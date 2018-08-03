@@ -1,0 +1,19 @@
+# meta
+name: script-rule
+active: true
+# trigger and args
+respond: nodescript
+# actions
+actions:
+  - name: sample script
+    type: exec
+    cmd: node config/scripts/index.js
+  - name: sample script
+    type: exec
+    cmd: ruby config/scripts/script.rb
+# response
+format_output: "${_exec_output}"
+direct_message_only: false
+# help
+help_text: nodescript
+include_in_help: true

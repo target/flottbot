@@ -1,0 +1,44 @@
+# meta
+name: issue
+active: true
+# trigger and args
+respond: issue
+args:
+  - org
+  - repo
+  - title
+  - assignee
+reaction: eyes
+# actions
+actions:
+  - name: github issue http request
+    type: POST
+    url: https://api.github.com/v3/repos/${org}/${repo}/issues
+    query_data:
+      title: "${title}"
+      body: "TODO: Fill in the deets.\n ACCEPTANCE CRITERIA:"
+      assignees:
+        - "${assignee}"
+      labels:
+        - "bug"
+    custom_headers:
+      Authorization: token ${GHE_TOKEN}
+      Accept: 'application/vnd.github.v3+json'
+      Content-Type: 'application/json'
+    auth:
+    expose_json_fields:
+      title: '.title'
+      url: '.html_url'
+      assignees: '.assignee.login'
+    update_reaction: |-
+      {{ if (eq `${_raw_http_status}` "201") }}
+        white_check_mark
+      {{ else }}
+        exclamation
+      {{ end }}
+# response
+format_output: "${title} has been created, and assigned to ${assignees} and can be found at ${url}. status: ${_raw_http_status}"
+direct_message_only: false
+# help
+help_text: "issue <org> <repo> <title> <assignee>"
+include_in_help: true

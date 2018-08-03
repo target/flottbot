@@ -1,0 +1,28 @@
+# meta
+name: dialogflow
+active: false
+# trigger and args
+respond: /(...)/ # CAUTION: this will override all rules
+# actions
+actions:
+  - name: dialogflow http request
+    type: POST
+    url: https://api.dialogflow.com/v1/query?v=20150910
+    query_data:
+      lang: "en"
+      query: "${_raw_user_input}"
+      sessionId: 12345
+      timezone: "America/New_York"
+    custom_headers:
+      Authorization: Bearer ${DIALOG_FLOW_TOKEN}
+      Accept: 'application/json'
+      Content-Type: 'application/json'
+    auth:
+    expose_json_fields:
+      answer: '.result.fulfillment.speech'
+# response
+format_output: "${answer}"
+direct_message_only: false
+# help
+help_text: "talk to me"
+include_in_help: true

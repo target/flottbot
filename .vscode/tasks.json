@@ -1,0 +1,47 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build-debug",
+            "type": "shell",
+            "command": "go",
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "never",
+                "focus": false,
+                "panel": "shared"
+            },
+            "args": [
+                "build",
+                "-i",
+                "-gcflags",
+                "'-N -l'"
+            ],
+            "linux": {
+                "args": [
+                    "-o",
+                    "debug",
+                    "${workspaceRoot}/main.go"
+                ]
+            },
+            "osx": {
+                "args": [
+                    "-o",
+                    "debug",
+                    "${workspaceRoot}/main.go"
+                ]
+            },
+            "windows": {
+                "args": [
+                    "-o",
+                    "debug.exe",
+                    "\"${workspaceRoot}\\main.go\""
+                ]
+            },
+            "problemMatcher": [
+                "$go"
+            ]
+        }
+    ]
+}

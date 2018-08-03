@@ -1,0 +1,27 @@
+# meta
+name: request tester
+active: true
+# trigger and args
+respond: req
+args:
+  - code
+# actions
+actions:
+  - name: bad http request
+    type: GET
+    url: https://httpbin.org/status/${code}
+    auth:
+    # kind of highjacking this to just store a value
+    expose_json_fields:
+      resp: |-
+        {{ if ge ${_raw_http_status} 400 }}
+          remote responded with status higher or equal to 400
+        {{ else }}
+          bam - what a request
+        {{ end }}
+# response
+format_output: "${resp}"
+direct_message_only: false
+# help
+help_text: req <code>
+include_in_help: true

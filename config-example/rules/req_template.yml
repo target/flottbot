@@ -1,0 +1,26 @@
+# meta
+name: test template in format output
+active: true
+# trigger and args
+respond: reqtemp
+args:
+  - code
+# actions
+actions:
+  - name: bad http request
+    type: GET
+    url: https://httpbin.org/status/${code}
+    auth:
+# response
+format_output: |-
+  {{ if eq ${_raw_http_status} 418 }}
+    TEAPOT! ${_raw_http_output}
+  {{ else if ge ${_raw_http_status} 500 }}
+    uh, server in flames!
+  {{ else }}
+    it werks
+  {{ end }}
+direct_message_only: false
+# help
+help_text: reqtemp <statuscode>
+include_in_help: true

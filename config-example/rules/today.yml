@@ -1,0 +1,31 @@
+# meta
+name: schedule an announcement of today in history
+active: true
+respond: today
+# actions
+actions:
+  - name: today in history http request
+    type: GET
+    url: https://history.muffinlabs.com/date
+    expose_json_fields:
+      num_of_events: |-
+        {{len .data.Events}}
+  - name: random number between 1-40
+    type: exec
+    cmd: /bin/sh /go/config/scripts/random.sh ${num_of_events}
+  - name: today in history http request
+    type: GET
+    url: https://history.muffinlabs.com/date
+    expose_json_fields:
+      date: '.date'
+      year: |-
+        {{ range $index, $element := .data.Events }}{{ if eq $index ${_exec_output} }}{{.year}}{{ end }}{{ end }}
+      event: |-
+        {{ range $index, $element := .data.Events }}{{ if eq $index ${_exec_output} }}{{.text}}{{ end }}{{ end }}
+
+# response
+format_output: "On ${date} in the year ${year}: ${event}"
+direct_message_only: false
+#help
+help_text: today
+include_in_help: true
