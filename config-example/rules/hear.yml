@@ -1,0 +1,11 @@
+# meta
+name: hear
+active: false
+# trigger and args
+hear: /(thing|hear)/
+# response
+allow_usergroups:
+  - admins
+
+format_output: "looks like you either said thing or hear"
+direct_message_only: true

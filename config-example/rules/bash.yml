@@ -1,0 +1,16 @@
+# meta
+name: script-rule
+active: true
+# trigger and args
+respond: bashscript
+# actions
+actions:
+  - name: sample script
+    type: exec
+    cmd: bash config/scripts/script.sh
+# response
+format_output: "${_exec_output}"
+direct_message_only: false
+# help
+help_text: bashscript
+include_in_help: true

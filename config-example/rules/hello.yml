@@ -1,0 +1,20 @@
+# metadata
+name: hello
+active: true # activate rule
+
+# trigger & arguments
+respond: hello
+args:
+# no required args, as we're just looking for the match and nothing else.
+
+# actions
+actions: # this rule takes no actions, just collects and responds with whats laid out in the format_response section
+
+# response
+format_output: "what's up, ${_user.name}?" # message to send to your user when they say hello
+start_message_thread: true # start a thread with the response
+direct_message_only: false # allow messaging inside channels
+
+#help
+help_text: hello # help/usage text for the echo rule
+include_in_help: true # see help_text in help message

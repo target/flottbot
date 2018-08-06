@@ -1,0 +1,35 @@
+# meta
+name: get a random gopher
+active: true
+respond: gopher
+reaction: waiting
+# actions
+actions:
+  - name: gopher http request
+    type: GET
+    url: https://gopherize.me/gophers/recent/json
+    expose_json_fields:
+      num_of_gophers: |-
+        {{len .gophers}}
+  - name: random number between 1-100
+    type: exec
+    cmd: /bin/sh /go/config/scripts/random.sh ${num_of_gophers}
+  - name: random gopher http request
+    type: GET
+    url: https://gopherize.me/gophers/recent/json
+    expose_json_fields:
+      random_gopher: |-
+        {{ range $index, $element := .gophers }}{{ if eq $index ${_exec_output} }}{{.original_url}}{{ end }}{{ end }}
+    update_reaction: |-
+      {{ if (eq `${_raw_http_status}` "202") }}
+        white_check_mark
+      {{ else }}
+        x
+      {{ end }}
+
+# response
+format_output: "${random_gopher}"
+direct_message_only: false
+#help
+help_text: gopher
+include_in_help: true

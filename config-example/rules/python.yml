@@ -1,0 +1,16 @@
+# meta
+name: script-rule that raises error
+active: true
+# trigger and args
+respond: pyscript
+# actions
+actions:
+  - name: sample script
+    type: exec
+    cmd: python config/scripts/main.py
+# response
+format_output: "${_exec_status} - ${_exec_output}"
+direct_message_only: false
+# help
+help_text: pyscript
+include_in_help: true

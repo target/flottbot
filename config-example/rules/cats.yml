@@ -1,0 +1,18 @@
+# meta
+name: cats
+active: true
+# trigger and args
+respond: cats
+# actions
+actions:
+  - name: cat facts http request
+    type: GET
+    url: https://catfact.ninja/fact
+    expose_json_fields:
+      fact: '.fact'
+# response
+format_output: "${fact}"
+direct_message_only: false
+# help
+help_text: cats
+include_in_help: true

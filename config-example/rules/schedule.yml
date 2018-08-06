@@ -1,0 +1,26 @@
+# This rule is in BETA
+
+# meta
+name: sched1
+active: false
+
+# trigger and args
+schedule: '@every 5s'
+# example working cron specs:
+# - 0 * * * * (at minute 0)
+# - @every 1m
+# - @every 10s
+# example breaking cron specs:
+# - */1 * * * * (at every minute)
+
+# format_output: "On this day (${date}) in the year ${year}: ${event}"
+format_output: "Hello, from Scheduler 1!"
+
+output_to_rooms:
+  - general
+
+output_to_users:
+  - kelly.shmelly
+
+# help
+include_in_help: false

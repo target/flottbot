@@ -1,0 +1,16 @@
+# meta
+name: script-rule
+active: true
+# trigger and args
+respond: rubyscript
+# actions
+actions:
+  - name: sample script
+    type: exec
+    cmd: ruby config/scripts/script.rb
+# response
+format_output: "STATUS: ${_exec_status} - OUTPUT: ${_exec_output}"
+direct_message_only: false
+# help
+help_text: rubyscript
+include_in_help: true

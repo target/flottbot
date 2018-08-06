@@ -1,0 +1,19 @@
+# meta
+name: announce
+active: true
+# trigger and args
+respond: announce
+args:
+  - message
+# response
+format_output: "${message}"
+direct_message_only: false
+allow_users:
+  - kelly.shmelly
+allow_usergroups:
+  - flottbot-team
+output_to_rooms:
+  - general
+# help
+help_text: announce <text>
+include_in_help: true

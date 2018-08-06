@@ -1,0 +1,58 @@
+package core
+
+import (
+	"strings"
+
+	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/remote/cli"
+	"github.com/target/flottbot/remote/discord"
+	"github.com/target/flottbot/remote/slack"
+)
+
+// Outputs determines where messages are output based on fields set in the bot.yml
+// TODO: Refactor to keep remote specifics in remote/
+func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *models.Bot) {
+	remoteCLI := &cli.Client{}
+	remoteDiscord := &discord.Client{}
+	remoteSlack := &slack.Client{}
+	for {
+		message := <-outputMsgs
+		rule := <-hitRule
+		service := message.Service
+		switch service {
+		case models.MsgServiceChat, models.MsgServiceScheduler:
+			chatApp := strings.ToLower(bot.ChatApplication)
+			switch chatApp {
+			case "discord":
+				if service == models.MsgServiceScheduler {
+					bot.Log.Warn("Scheduler does not currently support Discord")
+					break
+				}
+				remoteDiscord = &discord.Client{Token: bot.DiscordToken}
+				remoteDiscord.Send(message, bot)
+			case "slack":
+				// Create Slack client
+				remoteSlack = &slack.Client{
+					Token:             bot.SlackToken,
+					VerificationToken: bot.SlackVerificationToken,
+					WorkspaceToken:    bot.SlackWorkspaceToken,
+				}
+				if service == models.MsgServiceChat {
+					if bot.InteractiveComponents {
+						remoteSlack.InteractiveComponents(nil, &message, rule, bot)
+					}
+					remoteSlack.Reaction(message, rule, bot)
+				}
+				remoteSlack.Send(message, bot)
+			default:
+				bot.Log.Debugf("Chat application %s is not supported", chatApp)
+			}
+		case models.MsgServiceCLI:
+			remoteCLI.Send(message, bot)
+		case models.MsgServiceUnknown:
+			bot.Log.Error("Found unknown service")
+		default:
+			bot.Log.Errorf("No service found")
+		}
+	}
+}

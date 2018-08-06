@@ -1,0 +1,32 @@
+language: go
+sudo: false
+
+go:
+  - "1.9"
+
+before_script:
+  - go get github.com/golang/dep/cmd/dep
+  - go get github.com/mitchellh/gox
+  - go get github.com/mattn/goveralls
+
+script:
+  - dep ensure
+  - go vet $(go list ./... | grep -v /vendor/)
+  - go test -cover -coverprofile coverage.out $(go list ./... | grep -v /vendor/)
+  - gox -ldflags "-X github.com/target/flottbot/version.Version=${TRAVIS_TAG} -X github.com/target/flottbot/version.GitHash=${TRAVIS_COMMIT}" -os="linux darwin windows" -arch="amd64" -verbose ./...
+  - cd $TRAVIS_BUILD_DIR
+  - $GOPATH/bin/goveralls -service=travis-ci
+
+before_deploy:
+  - cd $TRAVIS_BUILD_DIR
+  - ./tar-release.sh
+
+deploy:
+  provider: releases
+  api_key:
+    secure: 
+  file_glob: true
+  file: "*.tgz"
+  skip_cleanup: true
+  on:
+    tags: true

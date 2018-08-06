@@ -1,0 +1,20 @@
+# meta
+name: days left
+active: true
+
+# trigger and args
+schedule: '@daily'
+# actions
+actions:
+  - name: get number of days left
+    type: exec
+    cmd: ruby config/scripts/manny.rb
+
+# response
+format_output: ":smile: Only ${_exec_output} more days! :smile:"
+direct_message_only: false
+output_to_rooms:
+  - general
+
+# help
+include_in_help: false
