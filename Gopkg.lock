@@ -64,7 +64,10 @@
 [[projects]]
   branch = "master"
   name = "github.com/nlopes/slack"
-  packages = [".","slackevents"]
+  packages = [
+    ".",
+    "slackevents"
+  ]
   revision = "18ee123ca35d40ba5b011e215a8798c017a3ba80"
 
 [[projects]]
@@ -82,13 +85,22 @@
 [[projects]]
   branch = "master"
   name = "github.com/prometheus/common"
-  packages = ["expfmt","internal/bitbucket.org/ww/goautoneg","model"]
+  packages = [
+    "expfmt",
+    "internal/bitbucket.org/ww/goautoneg",
+    "model"
+  ]
   revision = "7600349dcfe1abd18d72d3a1770870d9800a7801"
 
 [[projects]]
   branch = "master"
   name = "github.com/prometheus/procfs"
-  packages = [".","internal/util","nfs","xfs"]
+  packages = [
+    ".",
+    "internal/util",
+    "nfs",
+    "xfs"
+  ]
   revision = "7d6f385de8bea29190f15ba9931442a0eaef9af7"
 
 [[projects]]
@@ -112,13 +124,22 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["internal/subtle","nacl/secretbox","poly1305","salsa20/salsa","ssh/terminal"]
+  packages = [
+    "internal/subtle",
+    "nacl/secretbox",
+    "poly1305",
+    "salsa20/salsa",
+    "ssh/terminal"
+  ]
   revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix","windows"]
+  packages = [
+    "unix",
+    "windows"
+  ]
   revision = "ad87a3a340fa7f3bed189293fbfa7a9b7e021ae1"
 
 [[projects]]
@@ -130,6 +151,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "588a38f5c81abc1af494ae6245d797fab645e16c4ad8560c37e7ffb237f9725e"
+  inputs-digest = "dc8a6bff9cbf02fb7ddec154ec8157570f95d9b291303eab1bace8d61393f58f"
   solver-name = "gps-cdcl"
   solver-version = 1
