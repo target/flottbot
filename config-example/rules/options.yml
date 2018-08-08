@@ -4,7 +4,6 @@ name: options-rule
 active: true
 # trigger and args
 respond: options
-# hear: /(?:.*(please|kindly|can|help|2fa|account|github|new phone))(?:.*(2fa|unlock|disable|deactivate|not))/
 remotes:
   slack:
     attachments:

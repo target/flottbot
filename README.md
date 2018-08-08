@@ -19,7 +19,7 @@ We currently provide a few Docker images:
 
 [Flottbot Core + Golang](https://hub.docker.com/r/target/flottbot/) - Alpine image flottbot binary and golang v1.9.2 installed.
 
-## Flottbot Binaries
+## Binaries
 
 Binaries for Linux, macOS, and Windows are available as [Github Releases](https://github.com/target/flottbot/releases).
 
