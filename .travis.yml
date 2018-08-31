@@ -1,5 +1,4 @@
 language: go
-sudo: false
 
 go:
   - "1.9"
@@ -31,7 +30,7 @@ before_deploy:
 deploy:
   provider: releases
   api_key:
-    secure: $GITHUB_TOKEN
+    secure: <insert_secure_token>
   file_glob: true
   file: "*.tgz"
   skip_cleanup: true
