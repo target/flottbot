@@ -2,7 +2,7 @@ package models
 
 import "github.com/nlopes/slack"
 
-// Remote is a struct that holds data for various remotes
+// Remotes is a struct that holds data for various remotes
 type Remotes struct {
 	Slack   SlackConfig   `yaml:"slack" binding:"omitempty"`
 	Discord DiscordConfig `yaml:"discord" binding:"omitempty"`

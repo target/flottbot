@@ -83,8 +83,8 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 			bot.Log.Debug("Closing events reader (will not be able to read messages)")
 			return
 		}
-		if !isValidPath(bot.SlackEventsCallbackPath) { // valid path e.g. /slack_events/v1/octobot_dev-v1_events
-			bot.Log.Error("Invalid events path. Please double check your path value/syntax (e.g. \"/slack_events/v1/octobot_dev-v1_events\")")
+		if !isValidPath(bot.SlackEventsCallbackPath) { // valid path e.g. /slack_events/v1/mybot_dev-v1_events
+			bot.Log.Error("Invalid events path. Please double check your path value/syntax (e.g. \"/slack_events/v1/mybot_dev-v1_events\")")
 			bot.Log.Debug("Closing events reader (will not be able to read messages)")
 			return
 		}
@@ -136,7 +136,7 @@ var interactionsRouter *mux.Router
 func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
 	if bot.InteractiveComponents && len(c.VerificationToken) > 0 {
 		if len(bot.SlackInteractionsCallbackPath) == 0 {
-			bot.Log.Error("Need to specify a callback path for the 'slack_interactions_callback_path' field in the bot.yml (e.g. \"/slack_events/v1/octobot_dev-v1_interactions\")")
+			bot.Log.Error("Need to specify a callback path for the 'slack_interactions_callback_path' field in the bot.yml (e.g. \"/slack_events/v1/mybot_dev-v1_interactions\")")
 			bot.Log.Warn("Closing interactions reader (will not be able to read interactive components)")
 			return
 		}
@@ -151,9 +151,9 @@ func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message 
 			ruleHandle := getInteractiveComponentRuleHandler(c.VerificationToken, inputMsgs, message, rule, bot)
 
 			// We use regex for interactions routing for any bot using this framework
-			// e.g. /slack_events/v1/octobot_dev-v1_interactions
+			// e.g. /slack_events/v1/mybot_dev-v1_interactions
 			if !isValidPath(bot.SlackInteractionsCallbackPath) {
-				bot.Log.Error("Invalid events path. Please double check your path value/syntax (e.g. \"/slack_events/v1/octobot_dev-v1_interactions\")")
+				bot.Log.Error("Invalid events path. Please double check your path value/syntax (e.g. \"/slack_events/v1/mybot_dev-v1_interactions\")")
 				bot.Log.Warn("Closing interaction components reader (will not be able to read interactive components)")
 				return
 			}
