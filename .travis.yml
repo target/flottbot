@@ -4,27 +4,34 @@ sudo: false
 go:
   - "1.9"
 
-before_script:
+before_install:
   - go get github.com/golang/dep/cmd/dep
-  - go get github.com/mitchellh/gox
   - go get github.com/mattn/goveralls
+  - go get github.com/fzipp/gocyclo
+
+before_script:
+  - echo $TRAVIS_COMMIT
+  - echo $TRAVIS_TAG
+  - echo $TRAVIS_BRANCH
+  - echo $TRAVIS_BUILD_NUMBER
+  - echo $TRAVIS_REPO_SLUG
+  - dep ensure
 
 script:
-  - dep ensure
-  - go vet $(go list ./... | grep -v /vendor/)
-  - go test -cover -coverprofile coverage.out $(go list ./... | grep -v /vendor/)
-  - gox -ldflags "-X github.com/target/flottbot/version.Version=${TRAVIS_TAG} -X github.com/target/flottbot/version.GitHash=${TRAVIS_COMMIT}" -os="linux darwin windows" -arch="amd64" -verbose ./...
-  - cd $TRAVIS_BUILD_DIR
-  - $GOPATH/bin/goveralls -service=travis-ci
+  - go vet $(go list ./... | grep -v vendor)
+  - go test -v -race  -coverprofile=coverage.out $(go list ./... | grep -v vendor)
+  - gocyclo -over 18 `find . -iname '*.go' | grep -v vendor | grep -v '_test.go'`
+  - $GOPATH/bin/goveralls -coverprofile=coverage.out -service=travis-ci
 
 before_deploy:
-  - cd $TRAVIS_BUILD_DIR
+  - go get github.com/mitchellh/gox
+  - gox -ldflags "-X github.com/target/flottbot/version.Version=${TRAVIS_TAG} -X github.com/target/flottbot/version.GitHash=${TRAVIS_COMMIT}" -os="linux darwin windows" -arch="amd64" -verbose ./...
   - ./tar-release.sh
 
 deploy:
   provider: releases
   api_key:
-    secure: 
+    secure: $GITHUB_TOKEN
   file_glob: true
   file: "*.tgz"
   skip_cleanup: true
