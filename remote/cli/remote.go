@@ -75,7 +75,7 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM`)
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		bot.Log.Debugln(os.Stderr, "reading standard input:", err)
+		bot.Log.Debugf("Error reading standard input: %v", err)
 	}
 }
 

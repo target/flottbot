@@ -102,7 +102,7 @@ func configureChatApplication(bot *models.Bot) {
 			// Slack workspace token
 			wsToken, err := utils.Substitute(bot.SlackWorkspaceToken, map[string]string{})
 			if err != nil {
-				bot.Log.Warn("Could not set Slack Workspace Token: %s", err.Error())
+				bot.Log.Warnf("Could not set Slack Workspace Token: %s", err.Error())
 			}
 			bot.SlackWorkspaceToken = wsToken
 
