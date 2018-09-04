@@ -1,4 +1,4 @@
-FROM golang:1.9-alpine AS build
+FROM golang:1.11-alpine AS build
 ARG VERSION=0.0.0
 ARG GIT_HASH=c0ff33
 WORKDIR /go/src/github.com/target/flottbot/
