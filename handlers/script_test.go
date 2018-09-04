@@ -39,8 +39,7 @@ func TestScriptExec(t *testing.T) {
 
 	cmdNotFound := newExecAction(`/bin/sh ./this/is/a/trap.sh`)
 
-	// TODO: fix this test for travis
-	// msgBeforeExit := newExecAction(`printf "error is coming"; exit 1;`)
+	msgBeforeExit := newExecAction(`/bin/sh ../testdata/fail.sh`)
 
 	tests := []struct {
 		name    string
@@ -54,7 +53,7 @@ func TestScriptExec(t *testing.T) {
 		{"Existing Var Script", args{args: varExistsScriptAction, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 0, Output: "echo"}, false},
 		{"Missing Var Script", args{args: varMissingScriptAction, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 1, Output: ""}, true},
 		{"Script does not exist", args{args: cmdNotFound, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 127, Output: "/bin/sh: 0: Can't open ./this/is/a/trap.sh"}, true},
-		// {"StdOut before exit code 1", args{args: msgBeforeExit, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 1, Output: "error is coming"}, true},
+		{"StdOut before exit code 1", args{args: msgBeforeExit, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 1, Output: "error is coming"}, true},
 	}
 
 	for _, tt := range tests {
