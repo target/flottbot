@@ -63,6 +63,10 @@ func ScriptExec(args models.Action, msg *models.Message, bot *models.Bot) (*mode
 			bot.Log.Debugf("Couldn't get exit status for action '%s'", args.Name)
 			result.Output = strings.Trim(err.Error(), " \n")
 		}
+		// if something was printed to stdout before the error, use that as output
+		if string(out) != "" {
+			result.Output = string(out)
+		}
 		return result, err
 	}
 

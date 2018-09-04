@@ -7,6 +7,14 @@ import (
 	"github.com/target/flottbot/models"
 )
 
+func newExecAction(cmd string) models.Action {
+	return models.Action{
+		Name: "Simple",
+		Type: "exec",
+		Cmd:  cmd,
+	}
+}
+
 func TestScriptExec(t *testing.T) {
 	type args struct {
 		args models.Action
@@ -19,41 +27,19 @@ func TestScriptExec(t *testing.T) {
 	simpleScriptMessage := models.NewMessage()
 	simpleScriptMessage.Vars["test"] = "echo"
 
-	simpleScriptAction := models.Action{
-		Name: "Simple",
-		Type: "exec",
-		Cmd:  `echo "hi there"`,
-	}
+	simpleScriptAction := newExecAction(`echo "hi there"`)
 
-	slowScriptAction := models.Action{
-		Name: "Simple",
-		Type: "exec",
-		Cmd:  `sleep 22`,
-	}
+	slowScriptAction := newExecAction(`sleep 22`)
 
-	errorScriptAction := models.Action{
-		Name: "Simple",
-		Type: "exec",
-		Cmd:  `false`,
-	}
+	errorScriptAction := newExecAction(`false`)
 
-	varExistsScriptAction := models.Action{
-		Name: "Simple",
-		Type: "exec",
-		Cmd:  `echo "${test}"`,
-	}
+	varExistsScriptAction := newExecAction(`echo "${test}"`)
 
-	varMissingScriptAction := models.Action{
-		Name: "Simple",
-		Type: "exec",
-		Cmd:  `echo "${notest}"`,
-	}
+	varMissingScriptAction := newExecAction(`echo "${notest}"`)
 
-	cmdNotFound := models.Action{
-		Name: "Simple",
-		Type: "exec",
-		Cmd:  `/bin/sh ./this/is/a/trap.sh`,
-	}
+	cmdNotFound := newExecAction(`/bin/sh ./this/is/a/trap.sh`)
+
+	msgBeforeExit := newExecAction(`printf "error is coming"; exit 1`)
 
 	tests := []struct {
 		name    string
@@ -67,6 +53,7 @@ func TestScriptExec(t *testing.T) {
 		{"Existing Var Script", args{args: varExistsScriptAction, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 0, Output: "echo"}, false},
 		{"Missing Var Script", args{args: varMissingScriptAction, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 1, Output: ""}, true},
 		{"Script does not exist", args{args: cmdNotFound, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 127, Output: "/bin/sh: ./this/is/a/trap.sh: No such file or directory"}, true},
+		{"StdOut before exit code 1", args{args: msgBeforeExit, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 1, Output: "error is coming"}, true},
 	}
 
 	for _, tt := range tests {
