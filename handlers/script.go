@@ -64,8 +64,9 @@ func ScriptExec(args models.Action, msg *models.Message, bot *models.Bot) (*mode
 			result.Output = strings.Trim(err.Error(), " \n")
 		}
 		// if something was printed to stdout before the error, use that as output
-		if string(out) != "" {
-			result.Output = string(out)
+		strOut := strings.Trim(string(out), " \n")
+		if strOut != "" {
+			result.Output = strOut
 		}
 		return result, err
 	}
