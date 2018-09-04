@@ -39,7 +39,7 @@ func TestScriptExec(t *testing.T) {
 
 	cmdNotFound := newExecAction(`/bin/sh ./this/is/a/trap.sh`)
 
-	msgBeforeExit := newExecAction(`echo "error is coming"; exit 1`)
+	msgBeforeExit := newExecAction(`echo "error is coming"; exit 1;`)
 
 	tests := []struct {
 		name    string
