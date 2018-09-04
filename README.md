@@ -3,7 +3,7 @@
 [![GoDoc](https://godoc.org/github.com/target/flottbot?status.svg)](https://godoc.org/github.com/target/flottbot)
 [![Build Status](https://travis-ci.org/target/flottbot.svg)](https://travis-ci.org/target/flottbot)
 [![Coverage Status](https://coveralls.io/repos/target/flottbot/badge.svg?branch=master)](https://coveralls.io/r/target/flottbot?branch=master)
-[![Go Report Card](https://goreportcard.com/badge/target/flottbot)](https://goreportcard.com/report/target/flottbot)
+[![Go Report Card](https://goreportcard.com/badge/github.com/target/flottbot)](https://goreportcard.com/report/github.com/target/flottbot)
 
 A chatbot framework written in Go. But there's a catch, you don't need to know a lick of Go! Configure your bot via YAML files, extend functionality by writing scripts in your favorite language.
 

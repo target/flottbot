@@ -411,7 +411,7 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 		message.Debug = true // TODO: is this even needed?
 		return message
 	default:
-		bot.Log.Debugf("Read message of unsupported type '%s'. Unable to populate message attributes", msgType)
+		bot.Log.Debugf("Read message of unsupported type '%T'. Unable to populate message attributes", msgType)
 		return message
 	}
 }
