@@ -578,7 +578,7 @@ func sendMessage(api *slack.Client, ephemeral bool, channel, userID, text, threa
 				attachments[0].ImageURL = text
 			} else {
 				attachments = []slack.Attachment{
-					slack.Attachment{
+					{
 						ImageURL: text,
 					},
 				}

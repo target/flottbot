@@ -804,7 +804,7 @@ func Test_handleNoMatch(t *testing.T) {
 	}
 
 	testRules := map[string]models.Rule{
-		"test": models.Rule{
+		"test": {
 			Name:          "testRule",
 			Active:        true,
 			IncludeInHelp: true,
