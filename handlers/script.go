@@ -1,12 +1,11 @@
 package handlers
 
 import (
-	"bytes"
+	"context"
 	"fmt"
 	"os/exec"
-	"regexp"
-	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/target/flottbot/models"
@@ -15,67 +14,68 @@ import (
 
 // ScriptExec handles 'exec' actions; script executions for rules
 func ScriptExec(args models.Action, msg *models.Message, bot *models.Bot) (*models.ScriptResponse, error) {
-
+	bot.Log.Debugf("Executing process for action '%s'", args.Name)
+	// Default timeout of 20 seconds for any script execution, modifyable in rule yaml file
 	if args.Timeout == 0 {
-		// Default timeout of 20 seconds for any script execution, modifyable in rule yaml file
 		args.Timeout = 20
 	}
 
+	// Prep default response
 	result := &models.ScriptResponse{
 		Status: 1, // Default is exit code 1 (error)
 	}
 
+	// Create context for executing command; will deal with timeouts
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(args.Timeout)*time.Second)
+	defer cancel()
+
+	// Deal with variable substitution in command
 	cmdProcessed, err := utils.Substitute(args.Cmd, msg.Vars)
 	if err != nil {
 		return result, err
 	}
 
+	// Parse out all the arguments from the supplied command
 	bin := utils.FindArgs(cmdProcessed)
-	cmd := exec.Command(bin[0], bin[1:]...)
+	// Execute the command + arguments with the context
+	cmd := exec.CommandContext(ctx, bin[0], bin[1:]...)
 
-	var stdout, stderr, buf bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	done := make(chan error)
+	// Capture stdout/stderr
+	out, err := cmd.Output()
 
-	go func() {
-		if _, err := buf.ReadFrom(&stdout); err != nil {
-			bot.Log.Errorf("Exec rule for action '%s' failed with %s: %s", args.Name, err, stderr.String())
-		}
-		done <- cmd.Run()
-	}()
-
-	// Catch timeouts and return error
-	select {
-	case <-time.After(time.Duration(args.Timeout) * time.Second):
-		if err := cmd.Process.Kill(); err != nil {
-			return result, fmt.Errorf("Failed to kill exec process for action '%s': %s", args.Name, err.Error())
-		}
+	// Handle timeouts
+	if ctx.Err() == context.DeadlineExceeded {
 		result.Output = "Hmm, something timed out. Please try again."
-		return result, fmt.Errorf("Timeout reached, exec process for action '%s' killed", args.Name)
-	case err := <-done:
-		if err != nil {
-			close(done)
-			result.Output = stdout.String()
-			// Assuming that the error contains an exit status code integer that can be parsed out.
-			re := regexp.MustCompile("[0-9]+")
-			match := re.FindStringSubmatch(err.Error())
-			if len(match) > 0 {
-				statuscode := re.FindAllString(err.Error(), -1)[0]
-				status, err2 := strconv.Atoi(statuscode)
-				if err2 != nil {
-					return result, fmt.Errorf("Failed to parse error status code from Stderr")
-				}
-				result.Status = status
-			} else {
-				return result, fmt.Errorf("Did not find exit status code in Stderr, using default error status code of 1")
-			}
-			return result, fmt.Errorf("Exec rule for action '%s' failed with %s: %s", args.Name, err, stderr.String())
-		}
-
-		result.Status = 0
-		result.Output = strings.Trim(stdout.String(), " \n")
-
-		return result, nil
+		return result, fmt.Errorf("Timeout reached, exec process for action '%s' cancelled", args.Name)
 	}
+
+	// Deal with non-zero exit codes
+	if err != nil {
+		switch err.(type) {
+		case *exec.ExitError:
+			ws := err.(*exec.ExitError).Sys().(syscall.WaitStatus)
+			stderr := strings.Trim(string(err.(*exec.ExitError).Stderr), " \n")
+			bot.Log.Debugf("Process for action '%s' exited with status %d: %s", args.Name, ws.ExitStatus(), stderr)
+			result.Status = ws.ExitStatus()
+			result.Output = stderr
+		default:
+			// this should rarely/never get hit
+			bot.Log.Debugf("Couldn't get exit status for action '%s'", args.Name)
+			result.Output = strings.Trim(err.Error(), " \n")
+		}
+		// if something was printed to stdout before the error, use that as output
+		strOut := strings.Trim(string(out), " \n")
+		if strOut != "" {
+			result.Output = strOut
+		}
+		return result, err
+	}
+
+	// should be exit code 0 here
+	bot.Log.Debugf("Process finished for action '%s'", args.Name)
+	ws := cmd.ProcessState.Sys().(syscall.WaitStatus)
+	result.Status = ws.ExitStatus()
+	result.Output = strings.Trim(string(out), " \n")
+
+	return result, nil
 }
