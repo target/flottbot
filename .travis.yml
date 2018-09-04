@@ -6,6 +6,7 @@ go:
 before_install:
   - go get github.com/mattn/goveralls
   - go get github.com/fzipp/gocyclo
+  - go get github.com/golang/dep/cmd/dep
 
 before_script:
   - echo $TRAVIS_COMMIT
@@ -13,6 +14,7 @@ before_script:
   - echo $TRAVIS_BRANCH
   - echo $TRAVIS_BUILD_NUMBER
   - echo $TRAVIS_REPO_SLUG
+  - dep ensure
 
 script:
   - go vet $(go list ./... | grep -v vendor)
