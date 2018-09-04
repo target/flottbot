@@ -30,7 +30,7 @@ before_deploy:
 deploy:
   provider: releases
   api_key:
-    secure: <insert_secure_token>
+    secure: aKFC4VMR1EHX3sP49htwfKEJAoT6k9rZ5faMO2BpgUqcXuQlNz6p6kJyKT9GbTehjgJG1atC367nyoOASOfzlLWRVbJL+7A4Qw9MUQ052E9OKLSVClgcVcYdKrn5Vq6LaVmJacp29scs7OTYX+VLhSniIWlWaoFNg6CDbetznuFawUxpjFLLLx5W6OJEUoj3D+aBNterJtplO6Dr4nCxQSNrXQEen2hq41jKnGrZaN9ed0r9xxXjxfq6zvN51TqoE+4zIgRkLV+TOGbzuVfCnYQdXcuLTj8q/IBFyTrcUdprOrj6y2WukjSMqQu8KMW1lWvLhjoLq6Dfbdc92C6ZBwKjJZS63Mrb8i2+FCr5n1Wln1jiYuus0uuM9PV/g+A7MYwnKjRf9zUilZu7cvh95xrN+VV9LtKJKczp0N43Fh8ofD/OYXjDta6qH+dDWjbFAy8c0aaONftHz74KrW++7SpmbJVSU4uVnJHd35SMnOXtItkFJAtWNlEjvjYZHqSur6xFcGHGrwpKfWl04McvDmlCIa9q2fe4Exx+2L6UMjEp2Npff/0NrUTUrRMMeYUIYh1kJxGm/dER3nYpqdY1zH7cHvtkLBbKyTmvyQIIzyZC2KTkcu7oUS+zy7juPkManahlr/nBUgcx/q50c17CkMRcx3k8IKtcIN+v8X7why4=
   file_glob: true
   file: "*.tgz"
   skip_cleanup: true
