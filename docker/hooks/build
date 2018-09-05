@@ -1,6 +1,8 @@
 #!/bin/bash -xe
+DOCKER_PATH=$(echo $DOCKERFILE_PATH | sed -e 's/.*\///g')
+
 docker build \
     --build-arg "SOURCE_BRANCH=$SOURCE_BRANCH" \
     --build-arg "SOURCE_COMMIT=$SOURCE_COMMIT" \
-    -f $DOCKERFILE_PATH \
-    -t $IMAGE_NAME .
+    -f $DOCKER_PATH \
+    -t $IMAGE_NAME ../
