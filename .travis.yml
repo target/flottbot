@@ -27,6 +27,9 @@ deploy:
   provider: releases
   api_key:
     secure: Qmsp2BaaC+ueLZ2xc6K2vkt1sg6E3gcvDv9TkJtc6rPU7hSBL6DR9Ot/o96KtSde2kDxwjSAsj4q8I4SvROJxOAYMB0G5CiEQpueA0V2sUlUbIe9YJPPKwOV/NfPVrceTrtN9bYVY4DmIMOJQxcsXdh8g8wODiKGfZVifEnzQJMHYireABZWZvjhntqjFdvq7XrkWeWbUA6ZKOKUtyPL6vdsf1HnvvNB/1sH8bdIz0vLfNEBoH7xsZiUNNJP19IX/Po73DgnrJnkzGntr/yOluHrE2VmBuRmMDSeyRAazVV5yYBF/xwYZGhCfWMDpkLjQHIS3p2h/dtQXWXz0YfHMg/aAPf3gzzHN83zrkbbnzzWDu0a00tHLCGEho6vfsqfjRxRMARcyAsAYt/FO2slBQv8k4pZl3PesFGGxzsV9BbQSIGJEWabqi4swUtw2mtT7FdLgyIAEGIcEAcYnZa+0fH6K/f6UjxBU/kHQe5eybMHLf+Q+GxnEpO9B45O9WjM7a/l96xg0x7E/7K9ZNgCdQGLRC4SLlG4KE6shQH9sRFSm2+edG/kS5FxfHCVbGElpkJNtpoJj9pmvzaXbjMYucSdsVe9SYgHW7FbANAcTiqNgrRMcunchqpJame9m7FbXCuh6BzzTkOl9Nnfh+TIeuTfH1YVAMicRZxN2s35kwE=
+  file_glob: true
   file: "*.tgz"
+  skip_cleanup: true
   on:
+    tags: true
     repo: target/flottbot
