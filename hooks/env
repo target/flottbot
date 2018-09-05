@@ -1,6 +1,0 @@
-#!/bin/bash
-
-[ -n "$GIT_SHA1" ]        || GIT_SHA1=$(git rev-parse -q HEAD)
-[ -n "$GIT_TAG" ]         || GIT_TAG=$(git describe --tags --abbrev=0 --always)
-[ -n "$DOCKERFILE_PATH" ] || DOCKERFILE_PATH=./docker/Dockerfile
-[ -n "$IMAGE_NAME" ]      || IMAGE_NAME=flottbot-test:latest
