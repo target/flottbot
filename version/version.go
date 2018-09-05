@@ -7,7 +7,9 @@ import (
 )
 
 var (
+	// Version supplies the semantic version
 	Version string
+	// GitHash supplies the git sha hash used
 	GitHash string
 )
 

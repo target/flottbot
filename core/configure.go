@@ -111,7 +111,7 @@ func configureChatApplication(bot *models.Bot) {
 			if err != nil {
 				bot.Log.Errorf("Could not set Slack Events API callback path: %s", err.Error())
 				bot.Log.Warn("Defaulting to use Slack RTM")
-				vToken = ""
+				bot.SlackVerificationToken = ""
 			}
 			bot.SlackEventsCallbackPath = eCallbackPath
 

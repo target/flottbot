@@ -99,13 +99,11 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 		message := models.NewMessage()
 		switch m.Type {
 		case discordgo.MessageTypeDefault:
-			timestamp := ""
 			t, err := m.Timestamp.Parse()
 			if err != nil {
 				bot.Log.Errorf("Discord Remote: Failed to parse message timestamp.")
-				timestamp = "0"
 			}
-			timestamp = strconv.FormatInt(t.Unix(), 10)
+			timestamp := strconv.FormatInt(t.Unix(), 10)
 			msgType := models.MsgTypeChannel
 			switch ch.Type {
 			case discordgo.ChannelTypeDM:
