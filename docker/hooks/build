@@ -1,0 +1,6 @@
+#!/bin/bash -xe
+docker build \
+    --build-arg "SOURCE_BRANCH=$SOURCE_BRANCH" \
+    --build-arg "SOURCE_COMMIT=$SOURCE_COMMIT" \
+    -f $DOCKERFILE_PATH \
+    -t $IMAGE_NAME .

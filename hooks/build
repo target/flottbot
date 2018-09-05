@@ -1,7 +1,0 @@
-#!/bin/bash -xe
-. ./hooks/env
-docker build \
-    --build-arg "VERSION=$GIT_TAG" \
-    --build-arg "GIT_HASH=$GIT_SHA1" \
-    -f $DOCKERFILE_PATH \
-    -t $IMAGE_NAME .
