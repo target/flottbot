@@ -19,7 +19,7 @@ The philosophy behind flottbot is to create very simple, lightweight, "dumb" bot
 
 1. [Installation](#installation)
 1. [Docker images](#docker-images)
-1. [Available providers](#available-providers)
+1. [Available remotes](#available-remotes)
 1. [Documentation](#documentation)
 1. [Contributing](#contributing)
 
@@ -47,12 +47,12 @@ We currently provide a few Docker images:
 
 [target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.11 installed.
 
-## Available providers
+## Available remotes
 
-| Provider              | Status | Documentation |
+| Remote                | Status | Documentation |
 | --------------------- | -------| ------------- |
-| [Slack](https://aws.amazon.com/elasticbeanstalk/) | ✔ | - |
-| [Discord](https://aws.amazon.com/s3)  | 🚧 | - |
+| [Slack](https://slack.com) | ✔ | - |
+| [Discord](https://discordapp.com)  | 🚧 | - |
 
 ✔ = Done 🚧 = in progress
 
