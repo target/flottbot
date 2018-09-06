@@ -41,11 +41,11 @@ Binaries for Linux, macOS, and Windows are available as [Github Releases](https:
 
 We currently provide a few Docker images:
 
-[Flottbot Core](https://hub.docker.com/r/target/flottbot/) - Alpine image flottbot binary installed.
+[target/flottbot](https://hub.docker.com/r/target/flottbot) - Alpine image and flottbot binary installed
 
-[Flottbot Core + Ruby](https://hub.docker.com/r/target/flottbot/) - Alpine image flottbot binary and ruby v2.5 installed.
+[target/flottbot:ruby](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and ruby v2.5 installed
 
-[Flottbot Core + Golang](https://hub.docker.com/r/target/flottbot/) - Alpine image flottbot binary and golang v1.11 installed.
+[target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.11 installed.
 
 ## Available providers
 
