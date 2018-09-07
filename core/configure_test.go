@@ -72,8 +72,8 @@ func TestConfigure(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"Happy Path", args{pathToBotConfig: "../config-example/bot.yml", bot: testBot}, false},
-		{"Bad bot.yml", args{pathToBotConfig: "../config-example/badbot.yml", bot: testBot}, true},
+		{"Happy Path", args{pathToBotConfig: "../testdata/goodbot.yml", bot: testBot}, false},
+		{"Bad Bot", args{pathToBotConfig: "../testdata/badbot.yml", bot: testBot}, true},
 		{"Bad Path", args{pathToBotConfig: "$%W", bot: testBot}, true},
 	}
 	for _, tt := range tests {
