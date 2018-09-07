@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -24,7 +23,6 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 
 	client := &http.Client{
 		Timeout: time.Duration(args.Timeout) * time.Second,
-		// Transport: getTransport(), // only enable for local testing where needed
 	}
 
 	// check the URL string from defined action has a variable, try to substitute it
@@ -149,10 +147,4 @@ func createJSONPayload(data map[string]interface{}, msg *models.Message) (string
 	}
 
 	return payload, nil
-}
-
-func getTransport() *http.Transport {
-	return &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
 }
