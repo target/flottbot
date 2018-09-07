@@ -73,7 +73,7 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 
 // utility function to check if a user is part of the specified user groups,
 // if it's unable to check groupmembership, it will return an error
-// TODO: Refactor to keep remote specific stuff in remote/
+// TODO: Refactor to keep remote specific stuff in remote, also to allow increase testability
 func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot) (bool, error) {
 	if len(userGroups) == 0 {
 		return false, nil
