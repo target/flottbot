@@ -45,7 +45,7 @@ We currently provide a few Docker images:
 
 [target/flottbot:ruby](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and ruby v2.5 installed
 
-[target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.11 installed.
+[target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.11 installed
 
 ## Available remotes
 
@@ -59,6 +59,8 @@ We currently provide a few Docker images:
 ## Documentation
 
 For installation and usage, please [visit the flottbot docs](https://pages.github.com/target/flottbot-docs)
+
+For questions join the [#flottbot](https://gophers.slack.com/messages/flottbot/) channel in the [Gophers Slack](https://invite.slack.golangbridge.org/).
 
 ## Contributing
 
