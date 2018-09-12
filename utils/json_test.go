@@ -20,12 +20,19 @@ func TestMakeNiceJSON(t *testing.T) {
 	testDataResult["text"] = "I am a test message http://slack.com"
 	testDataResult["attachments"] = map[string]interface{}{"text": "And here's an attachment!"}
 
+	testDataArray := make(map[string]interface{})
+	testDataArray["foo"] = []interface{}{map[interface{}]interface{}{"text": "And here's an attachment!"}}
+
+	testDataArrayResult := make(map[string]interface{})
+	testDataArrayResult["foo"] = []interface{}{map[string]interface{}{"text": "And here's an attachment!"}}
+
 	tests := []struct {
 		name string
 		args args
 		want map[string]interface{}
 	}{
 		{"Nested Object", args{in: testData}, testDataResult},
+		{"Nested Array", args{in: testDataArray}, testDataArrayResult},
 		{"No Change", args{in: testDataResult}, testDataResult},
 	}
 	for _, tt := range tests {
