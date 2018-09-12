@@ -2,7 +2,6 @@ package discord
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/target/flottbot/models"
@@ -53,6 +52,14 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	// Wait here until CTRL-C or other term signal is received
 	bot.Log.Infof("Discord is now running '%s'. Press CTRL-C to exit", bot.Name)
 
+	// get informatiom about ourself
+	user, err := dg.User("@me")
+	if err != nil {
+		bot.Log.Errorf("Failed to get bot name from Discord. Error: %s", err.Error())
+		return
+	}
+	bot.Name = user.Username
+
 	// Register a callback for MessageCreate events
 	dg.AddHandler(handleDiscordMessage(bot, inputMsgs))
 }
@@ -87,7 +94,7 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 		if ch.Type == discordgo.ChannelTypeGuildText {
 			botmention := false
 			for _, mention := range m.Mentions {
-				if strings.HasPrefix(mention.Username, bot.Name) {
+				if mention.Username == bot.Name {
 					botmention = true
 				}
 			}
