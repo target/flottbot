@@ -21,10 +21,10 @@ e.g. 💥
 - Your `bot.yml` (remove any sensitive information!)
 - Maybe the contents of the `.yml` for the rule you're trying to run, if applicable (remove any sensitive information!)
 
-  ```yaml
-  # please paste .bot.yml here (remove any sensitive information!)
-  ```
+```yaml
+# please paste .bot.yml here (remove any sensitive information!)
+```
 
-  ```yaml
-  # please paste contents of your rule, if applicable (remove any sensitive information!)
-  ```
+```yaml
+# please paste contents of your rule, if applicable (remove any sensitive information!)
+```
