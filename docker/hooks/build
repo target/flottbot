@@ -12,4 +12,4 @@ docker build \
     --build-arg "SOURCE_BRANCH=$SOURCE_BRANCH" \
     --build-arg "SOURCE_COMMIT=$SOURCE_COMMIT" \
     -f "$DOCKER_PATH" \
-    "$TAGS" ../
+    $TAGS ../
