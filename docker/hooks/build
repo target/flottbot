@@ -1,8 +1,15 @@
 #!/bin/bash -xe
 DOCKER_PATH=$(echo $DOCKERFILE_PATH | sed -e 's/.*\///g')
 
+# loop over comma sepeated list of tags
+for tag in ${DOCKER_TAG//,/ }
+do
+    # build string for multiple tags
+    TAGS="$TAGS -t $DOCKER_REPO:$tag"
+done
+
 docker build \
     --build-arg "SOURCE_BRANCH=$SOURCE_BRANCH" \
     --build-arg "SOURCE_COMMIT=$SOURCE_COMMIT" \
-    -f $DOCKER_PATH \
-    -t $IMAGE_NAME ../
+    -f "$DOCKER_PATH" \
+    "$TAGS" ../
