@@ -1,3 +1,9 @@
+---
+name: Bug report
+about: Create a report to help us improve
+
+---
+
 # Report
 
 ## What did you do?
@@ -14,12 +20,18 @@ e.g. Running your flottbot without it crashing.
 ℹ Please replace this with of what happened instead.
 e.g. 💥
 
+## Screenshots
+
+If applicable, add screenshots to help explain your problem.
+
 ## Your Environment
 
-- Run `flottbot --version` and paste the output here
-- What OS are you running on?
-- Your `bot.yml` (remove any sensitive information!)
-- Maybe the contents of the `.yml` for the rule you're trying to run, if applicable (remove any sensitive information!)
+Please complete the following information):
+ - Flottbot version: [e.g. 0.1.0] (run `flottbot --version` and paste here)
+ - OS: [e.g. iOS]
+ - OS version: [e.g. 22]
+ - Bot YAML (see below)
+ - Rule YAML (see below) if applicable
 
 ```yaml
 # please paste .bot.yml here (remove any sensitive information!)
@@ -28,3 +40,7 @@ e.g. 💥
 ```yaml
 # please paste contents of your rule, if applicable (remove any sensitive information!)
 ```
+
+## Additional context
+
+Add any other context about the problem here.
