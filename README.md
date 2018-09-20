@@ -51,14 +51,14 @@ We currently provide a few Docker images:
 
 | Remote                | Status | Documentation |
 | --------------------- | -------| ------------- |
-| [Slack](https://slack.com) | ✔ | - |
-| [Discord](https://discordapp.com)  | 🚧 | - |
+| [Slack](https://slack.com) | ✔ | [Docs](https://target.github.io/flottbot-docs/basics/slack/) |
+| [Discord](https://discordapp.com)  | 🚧 | [Docs](https://target.github.io/flottbot-docs/basics/discord/) |
 
 ✔ = Done 🚧 = in progress
 
 ## Documentation
 
-For installation and usage, please [visit the flottbot docs](https://pages.github.com/target/flottbot-docs)
+For installation and usage, please [visit the flottbot docs](https://target.github.io/flottbot-docs/)
 
 For questions join the [#flottbot](https://gophers.slack.com/messages/flottbot/) channel in the [Gophers Slack](https://invite.slack.golangbridge.org/).
 
