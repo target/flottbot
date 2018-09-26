@@ -47,6 +47,8 @@ We currently provide a few Docker images:
 
 [target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.11 installed
 
+[target/flottbot:python](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and python v3.7 installed
+
 ## Available remotes
 
 | Remote                | Status | Documentation |

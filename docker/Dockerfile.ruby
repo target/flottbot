@@ -11,7 +11,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     -o flottbot ./cmd/flottbot
 
 FROM ruby:2.5-alpine
-RUN apk add --no-cache ruby-dev build-base
-RUN mkdir config
+RUN apk add --no-cache ruby-dev build-base && mkdir config
 COPY --from=build /go/src/github.com/target/flottbot/flottbot .
 EXPOSE 8080 3000 4000
+
+CMD ["/flottbot"]

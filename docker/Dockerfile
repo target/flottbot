@@ -11,7 +11,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     -o flottbot ./cmd/flottbot
 
 FROM alpine:3.8
-RUN apk --no-cache add ca-certificates
-RUN mkdir config
+RUN apk --no-cache add ca-certificates && mkdir config
 COPY --from=build /go/src/github.com/target/flottbot/flottbot .
 EXPOSE 8080 3000 4000
+
+CMD ["/flottbot"]

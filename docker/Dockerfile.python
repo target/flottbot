@@ -10,9 +10,9 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -ldflags "-X github.com/target/flottbot/version.Version=${SOURCE_BRANCH} -X github.com/target/flottbot/version.GitHash=${SOURCE_COMMIT}" \
     -o flottbot ./cmd/flottbot
 
-FROM golang:1.11-alpine
-RUN apk add --no-cache git && mkdir config
+FROM python:3-alpine3.7
+RUN mkdir config
 COPY --from=build /go/src/github.com/target/flottbot/flottbot .
 EXPOSE 8080 3000 4000
 
-CMD ["./flottbot"]
+CMD ["/flottbot"]
