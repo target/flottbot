@@ -2,7 +2,7 @@ FROM golang:1.11-alpine AS build
 ARG SOURCE_BRANCH
 ARG SOURCE_COMMIT
 WORKDIR /go/src/github.com/target/flottbot/
-RUN apk add --no-cache git
+RUN apk add --no-cache git bash
 RUN go get -u github.com/golang/dep/cmd/dep
 COPY / .
 RUN dep ensure
