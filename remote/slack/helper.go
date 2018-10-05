@@ -44,9 +44,7 @@ func constructInteractiveComponentMessage(callback slack.AttachmentActionCallbac
 		ID:   callback.User.ID,
 		Name: callback.User.Name,
 		Profile: slack.UserProfile{
-			// Unfortunately, Slack's callback does not populate the User.Profile field which contains the user email
-			// TODO: find out a way (ideally without making a slack API call) to compose the user's email successfully
-			Email:     fmt.Sprintf("%s@target.com", callback.User.Name),
+			Email:     callback.User.Profile.Email,
 			FirstName: userNames[0],
 			LastName:  userNames[len(userNames)-1],
 		},
