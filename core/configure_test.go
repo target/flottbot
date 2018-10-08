@@ -89,6 +89,20 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotSlackBadToken.SlackToken = "${TOKEN}"
 	validateRemoteSetup(testBotSlackBadToken)
 
+	testBotSlackBadVerificationToken := new(models.Bot)
+	testBotSlackBadVerificationToken.CLI = true
+	testBotSlackBadVerificationToken.ChatApplication = "slack"
+	testBotSlackBadVerificationToken.SlackToken = "${TOKEN}"
+	testBotSlackBadVerificationToken.SlackVerificationToken = "${TEST_BAD_VERIFICATION_TOKEN}"
+	validateRemoteSetup(testBotSlackBadVerificationToken)
+
+	testBotSlackBadWorkspaceToken := new(models.Bot)
+	testBotSlackBadWorkspaceToken.CLI = true
+	testBotSlackBadWorkspaceToken.ChatApplication = "slack"
+	testBotSlackBadWorkspaceToken.SlackToken = "${TOKEN}"
+	testBotSlackBadWorkspaceToken.SlackWorkspaceToken = "${TEST_BAD_WORKSPACE_TOKEN}"
+	validateRemoteSetup(testBotSlackBadWorkspaceToken)
+
 	testBotSlack := new(models.Bot)
 	testBotSlack.CLI = true
 	testBotSlack.ChatApplication = "slack"
@@ -116,6 +130,15 @@ func Test_configureChatApplication(t *testing.T) {
 	os.Setenv("TEST_SLACK_INTERACTIONS_CALLBACK_PATH_FAIL", "")
 	validateRemoteSetup(testBotSlackInteractionFail)
 
+	testBotSlackEventsCallbackFail := new(models.Bot)
+	testBotSlackEventsCallbackFail.CLI = true
+	testBotSlackEventsCallbackFail.InteractiveComponents = true
+	testBotSlackEventsCallbackFail.ChatApplication = "slack"
+	testBotSlackEventsCallbackFail.SlackToken = "${TEST_SLACK_TOKEN}"
+	testBotSlackEventsCallbackFail.SlackInteractionsCallbackPath = "${TEST_SLACK_INTERACTIONS_CALLBACK_PATH_FAIL}"
+	testBotSlackEventsCallbackFail.SlackEventsCallbackPath = "${TEST_SLACK_EVENTS_CALLBACK_PATH_FAIL}"
+	validateRemoteSetup(testBotSlackEventsCallbackFail)
+
 	testBotDiscordNoToken := new(models.Bot)
 	testBotDiscordNoToken.CLI = true
 	testBotDiscordNoToken.ChatApplication = "discord"
@@ -141,13 +164,16 @@ func Test_configureChatApplication(t *testing.T) {
 		shouldRunInteractiveComponents bool
 	}{
 		{"Fail", args{bot: testBot}, false, false},
-		{"Fail - No chat_application not set", args{bot: testBotNoChat}, false, false},
+		{"Fail - no chat_application not set", args{bot: testBotNoChat}, false, false},
 		{"Fail - Invalid value for chat_application", args{bot: testBotInvalidChat}, false, false},
 		{"Slack - no token", args{bot: testBotSlackNoToken}, false, false},
 		{"Slack - bad token", args{bot: testBotSlackBadToken}, false, false},
+		{"Slack - bad verification token", args{bot: testBotSlackBadVerificationToken}, false, false},
+		{"Slack - bad workspace token", args{bot: testBotSlackBadWorkspaceToken}, false, false},
 		{"Slack", args{bot: testBotSlack}, true, false},
-		{"Slack w/ Interaction", args{bot: testBotSlackInteraction}, true, true},
-		{"Slack w/ Interaction - empty path", args{bot: testBotSlackInteractionFail}, true, false},
+		{"Slack w/ interaction", args{bot: testBotSlackInteraction}, true, true},
+		{"Slack w/ interaction - empty path", args{bot: testBotSlackInteractionFail}, true, false},
+		{"Slack w/ bad events callback", args{bot: testBotSlackEventsCallbackFail}, true, false},
 		{"Discord - no token", args{bot: testBotDiscordNoToken}, false, false},
 		{"Discord - bad token", args{bot: testBotDiscordBadToken}, false, false},
 		{"Discord", args{bot: testBotDiscord}, true, false},
@@ -203,6 +229,10 @@ func Test_validateRemoteSetup(t *testing.T) {
 	testBotCLIScheduler.CLI = true
 	testBotCLIScheduler.Scheduler = true
 
+	testNoChatNoCLI := new(models.Bot)
+	testNoChatNoCLI.CLI = false
+	testNoChatNoCLI.ChatApplication = ""
+
 	tests := []struct {
 		name               string
 		args               args
@@ -213,6 +243,7 @@ func Test_validateRemoteSetup(t *testing.T) {
 		// {"Nothing should run", args{bot: testBot}, false, false, false}, // this should cause fatal exit
 		{"CLI Only", args{bot: testBotCLI}, false, true, false},
 		{"CLI + Chat", args{bot: testBotCLIChat}, true, true, false},
+		// {"No CLI + No Chat", args{bot: testNoChatNoCLI}, false, false, false}, // this will Fatal out
 		{"CLI + Chat + Scheduler", args{bot: testBotCLIChatScheduler}, true, true, true},
 		{"CLI + Scheduler is not valid without Chat", args{bot: testBotCLIScheduler}, false, true, false},
 		{"Chat + Scheduler", args{bot: testBotChatScheduler}, true, false, true},
@@ -232,6 +263,23 @@ func Test_validateRemoteSetup(t *testing.T) {
 			if tt.shouldRunScheduler != tt.args.bot.RunScheduler {
 				t.Errorf("validateRemoteSetup() wanted RunScheduler set to %v, but got %v", tt.shouldRunScheduler, tt.args.bot.RunScheduler)
 			}
+		})
+	}
+}
+
+func TestConfigure(t *testing.T) {
+	type args struct {
+		bot *models.Bot
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			Configure(tt.args.bot)
 		})
 	}
 }
