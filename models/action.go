@@ -2,24 +2,24 @@ package models
 
 // Action defines the structure for Actions used within Rules
 type Action struct {
-	Name             string                 `yaml:"name" binding:"required"`
-	Type             string                 `yaml:"type" binding:"required"`
-	URL              string                 `yaml:"url"`
-	Cmd              string                 `yaml:"cmd"`
-	Timeout          int                    `yaml:"timeout"`
-	QueryData        map[string]interface{} `yaml:"query_data"`
-	CustomHeaders    map[string]string      `yaml:"custom_headers"`
-	Auth             []Auth                 `yaml:"auth"`
-	ExposeJSONFields map[string]string      `yaml:"expose_json_fields"`
-	Response         string                 `yaml:"response"`
-	LimitToRooms     []string               `yaml:"limit_to_rooms"`
-	Message          string                 `yaml:"message"`
-	Reaction         string                 `yaml:"update_reaction" binding:"omitempty"`
+	Name             string                 `mapstructure:"name" binding:"required"`
+	Type             string                 `mapstructure:"type" binding:"required"`
+	URL              string                 `mapstructure:"url"`
+	Cmd              string                 `mapstructure:"cmd"`
+	Timeout          int                    `mapstructure:"timeout"`
+	QueryData        map[string]interface{} `mapstructure:"query_data"`
+	CustomHeaders    map[string]string      `mapstructure:"custom_headers"`
+	Auth             []Auth                 `mapstructure:"auth"`
+	ExposeJSONFields map[string]string      `mapstructure:"expose_json_fields"`
+	Response         string                 `mapstructure:"response"`
+	LimitToRooms     []string               `mapstructure:"limit_to_rooms"`
+	Message          string                 `mapstructure:"message"`
+	Reaction         string                 `mapstructure:"update_reaction" binding:"omitempty"`
 }
 
 // Auth is a basic Auth data structure
 type Auth struct {
-	Type string `yaml:"type"`
-	User string `yaml:"user"`
-	Pass string `yaml:"pass"`
+	Type string `mapstructure:"type"`
+	User string `mapstructure:"user"`
+	Pass string `mapstructure:"pass"`
 }

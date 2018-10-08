@@ -58,6 +58,8 @@ Temporary Items
 debug
 flottbot
 !flottbot/
+config/
 
 ### Git ###
 vendor
+_vendor*

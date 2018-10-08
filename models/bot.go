@@ -4,27 +4,27 @@ import "github.com/sirupsen/logrus"
 
 // Bot is a struct representation of bot.yml
 type Bot struct {
-	// Bot YAML fields
-	ID                            string            `yaml:"id"`
-	Name                          string            `yaml:"name" binding:"required"`
-	SlackToken                    string            `yaml:"slack_token"`
-	SlackVerificationToken        string            `yaml:"slack_verification_token"`
-	SlackWorkspaceToken           string            `yaml:"slack_workspace_token"`
-	SlackEventsCallbackPath       string            `yaml:"slack_events_callback_path"`
-	SlackInteractionsCallbackPath string            `yaml:"slack_interactions_callback_path"`
-	DiscordToken                  string            `yaml:"discord_token"`
-	Users                         map[string]string `yaml:"slack_users"`
-	UserGroups                    map[string]string `yaml:"slack_usergroups"`
-	Rooms                         map[string]string `yaml:"slack_channels"`
-	CLI                           bool              `yaml:"cli,omitempty"`
-	CLIUser                       string            `yaml:"cli_user,omitempty"`
-	Scheduler                     bool              `yaml:"scheduler,omitempty"`
-	ChatApplication               string            `yaml:"chat_application" binding:"required"`
-	Debug                         bool              `yaml:"debug,omitempty"`
-	LogJSON                       bool              `yaml:"log_json,omitempty"`
-	InteractiveComponents         bool              `yaml:"interactive_components,omitempty"`
-	Metrics                       bool              `yaml:"metrics,omitempty"`
-	CustomHelpText                string            `yaml:"custom_help_text,omitempty"`
+	// Bot fields
+	ID                            string            `mapstructure:"id"`
+	Name                          string            `mapstructure:"name" binding:"required"`
+	SlackToken                    string            `mapstructure:"slack_token"`
+	SlackVerificationToken        string            `mapstructure:"slack_verification_token"`
+	SlackWorkspaceToken           string            `mapstructure:"slack_workspace_token"`
+	SlackEventsCallbackPath       string            `mapstructure:"slack_events_callback_path"`
+	SlackInteractionsCallbackPath string            `mapstructure:"slack_interactions_callback_path"`
+	DiscordToken                  string            `mapstructure:"discord_token"`
+	Users                         map[string]string `mapstructure:"slack_users"`
+	UserGroups                    map[string]string `mapstructure:"slack_usergroups"`
+	Rooms                         map[string]string `mapstructure:"slack_channels"`
+	CLI                           bool              `mapstructure:"cli,omitempty"`
+	CLIUser                       string            `mapstructure:"cli_user,omitempty"`
+	Scheduler                     bool              `mapstructure:"scheduler,omitempty"`
+	ChatApplication               string            `mapstructure:"chat_application" binding:"required"`
+	Debug                         bool              `mapstructure:"debug,omitempty"`
+	LogJSON                       bool              `mapstructure:"log_json,omitempty"`
+	InteractiveComponents         bool              `mapstructure:"interactive_components,omitempty"`
+	Metrics                       bool              `mapstructure:"metrics,omitempty"`
+	CustomHelpText                string            `mapstructure:"custom_help_text,omitempty"`
 	// System
 	Log          logrus.Logger
 	RunChat      bool

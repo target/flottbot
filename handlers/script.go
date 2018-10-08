@@ -15,7 +15,7 @@ import (
 // ScriptExec handles 'exec' actions; script executions for rules
 func ScriptExec(args models.Action, msg *models.Message, bot *models.Bot) (*models.ScriptResponse, error) {
 	bot.Log.Debugf("Executing process for action '%s'", args.Name)
-	// Default timeout of 20 seconds for any script execution, modifyable in rule yaml file
+	// Default timeout of 20 seconds for any script execution, modifyable in rule file
 	if args.Timeout == 0 {
 		args.Timeout = 20
 	}

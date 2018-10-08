@@ -12,12 +12,12 @@ actions:
         {{len .data.Events}}
   - name: random number between 1-40
     type: exec
-    cmd: /bin/sh /go/config/scripts/random.sh ${num_of_events}
+    cmd: /bin/sh ./config/scripts/random.sh ${num_of_events}
   - name: today in history http request
     type: GET
     url: https://history.muffinlabs.com/date
     expose_json_fields:
-      date: '.date'
+      date: ".date"
       year: |-
         {{ range $index, $element := .data.Events }}{{ if eq $index ${_exec_output} }}{{.year}}{{ end }}{{ end }}
       event: |-

@@ -131,7 +131,7 @@ func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hit
 		Prommetric(bot.Name+"-None", bot)
 		// Set custom_help_text if it is set in bot.yml
 		helpMsg := bot.CustomHelpText
-		// If custom_help_text is not set, use default Help Text, for each rule use help_text from rule yaml file
+		// If custom_help_text is not set, use default Help Text, for each rule use help_text from rule file
 		if len(helpMsg) == 0 {
 			helpMsg = "I understand these commands: \n"
 			// Go through all the rules and collect the help_text
