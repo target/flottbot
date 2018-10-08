@@ -4,7 +4,7 @@ import "github.com/sirupsen/logrus"
 
 // Bot is a struct representation of bot.yml
 type Bot struct {
-	// Bot YAML fields
+	// Bot fields
 	ID                            string            `mapstructure:"id"`
 	Name                          string            `mapstructure:"name" binding:"required"`
 	SlackToken                    string            `mapstructure:"slack_token"`

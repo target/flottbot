@@ -23,6 +23,6 @@ type Rule struct {
 	Actions            []Action `mapstructure:"actions" binding:"required"`
 	Remotes            Remotes  `mapstructure:"remotes" binding:"omitempty"`
 	Reaction           string   `mapstructure:"reaction" binding:"omitempty"`
-	// The following fields are not included in rule yaml
+	// The following fields are not included in rule file
 	RemoveReaction string
 }

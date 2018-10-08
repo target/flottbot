@@ -4,13 +4,13 @@ import "github.com/nlopes/slack"
 
 // Remotes is a struct that holds data for various remotes
 type Remotes struct {
-	Slack   SlackConfig   `yaml:"slack" binding:"omitempty"`
-	Discord DiscordConfig `yaml:"discord" binding:"omitempty"`
+	Slack   SlackConfig   `mapstructure:"slack" binding:"omitempty"`
+	Discord DiscordConfig `mapstructure:"discord" binding:"omitempty"`
 }
 
 // SlackConfig is a support struct that holds Slack specific data
 type SlackConfig struct {
-	Attachments []slack.Attachment `yaml:"attachments"`
+	Attachments []slack.Attachment `mapstructure:"attachments"`
 }
 
 // DiscordConfig is a support struct that holds DiscordConfig specific data
