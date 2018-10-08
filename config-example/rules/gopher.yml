@@ -13,7 +13,7 @@ actions:
         {{len .gophers}}
   - name: random number between 1-100
     type: exec
-    cmd: /bin/sh /go/config/scripts/random.sh ${num_of_gophers}
+    cmd: /bin/sh ./config/scripts/random.sh ${num_of_gophers}
   - name: random gopher http request
     type: GET
     url: https://gopherize.me/gophers/recent/json
@@ -21,7 +21,7 @@ actions:
       random_gopher: |-
         {{ range $index, $element := .gophers }}{{ if eq $index ${_exec_output} }}{{.original_url}}{{ end }}{{ end }}
     update_reaction: |-
-      {{ if (eq `${_raw_http_status}` "202") }}
+      {{ if (eq `${_raw_http_status}` "200") }}
         white_check_mark
       {{ else }}
         x

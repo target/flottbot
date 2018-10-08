@@ -1,15 +1,15 @@
 package core
 
 import (
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/utils"
-	yaml "gopkg.in/yaml.v2"
 )
 
 // Rules - searches the rules directory for any existing .yml rules
@@ -25,10 +25,10 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 	}
 
 	// Loop through the rules directory and create a list of rules
-	bot.Log.Debug("Fetching all rule YAML files...")
+	bot.Log.Debug("Fetching all rule files...")
 	fileList := []string{}
 	err = filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
-		if !f.IsDir() && strings.HasSuffix(f.Name(), ".yml") {
+		if !f.IsDir() {
 			fileList = append(fileList, path)
 		}
 		return nil
@@ -45,18 +45,21 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 
 	// Loop through the list of rules, creating a Rule object
 	// for each rule, then populate the map of Rule objects
-	bot.Log.Debug("Reading and parsing rule YAML files...")
-	for _, ymlFile := range fileList {
-		yml, err := ioutil.ReadFile(ymlFile)
+	bot.Log.Debug("Reading and parsing rule files...")
+	for _, ruleFile := range fileList {
+		ruleConf := viper.New()
+		ruleConf.SetConfigFile(ruleFile)
+		err := ruleConf.ReadInConfig()
 		if err != nil {
-			bot.Log.Fatalf("Could not parse rules: %v", err)
+			bot.Log.Errorf("Error while reading rule file '%s': %s \n", ruleFile, err)
 		}
+
 		rule := models.Rule{}
-		err = yaml.Unmarshal([]byte(yml), &rule)
+		err = ruleConf.Unmarshal(&rule)
 		if err != nil {
-			bot.Log.Fatalf("Could not parse rules: %v", err)
+			log.Fatalf(err.Error())
 		}
-		(*rules)[ymlFile] = rule
+		(*rules)[ruleFile] = rule
 	}
 
 	bot.Log.Infof("Configured '%s' rules!", bot.Name)

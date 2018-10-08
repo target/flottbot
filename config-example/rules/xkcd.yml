@@ -7,12 +7,12 @@ respond: xkcd
 actions:
   - name: random number between 1-100
     type: exec
-    cmd: /bin/sh /go/config/scripts/random.sh 45
+    cmd: /bin/sh ./config/scripts/random.sh 45
   - name: xkcd random http request
     type: GET
     url: https://xkcd.com/${_exec_output}/info.0.json
     expose_json_fields:
-      img: '.img'
+      img: ".img"
 # response
 format_output: "${img}"
 direct_message_only: false
