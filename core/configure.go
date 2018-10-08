@@ -1,13 +1,9 @@
 package core
 
 import (
-	"fmt"
-	"io/ioutil"
-	"path/filepath"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	yaml "gopkg.in/yaml.v2"
 
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/utils"
@@ -15,23 +11,8 @@ import (
 
 // Configure searches the config directory for the bot.yml to create a Bot object.
 // The Bot object will be passed around to make accessible system-specific information.
-func Configure(pathToBotConfig string, bot *models.Bot) error {
+func Configure(bot *models.Bot) {
 	log.Info("Configuring bot...")
-
-	f, err := filepath.Abs(pathToBotConfig)
-	if err != nil {
-		return fmt.Errorf("Error resolving path to bot.yml: %v", err)
-	}
-
-	botYAML, err := ioutil.ReadFile(f)
-	if err != nil {
-		return fmt.Errorf("Error reading bot.yml: %v", err)
-	}
-
-	err = yaml.Unmarshal(botYAML, &bot)
-	if err != nil {
-		return fmt.Errorf("Error parsing bot.yml: %v", err)
-	}
 
 	initLogger(bot)
 
@@ -40,8 +21,6 @@ func Configure(pathToBotConfig string, bot *models.Bot) error {
 	configureChatApplication(bot)
 
 	bot.Log.Infof("Configured bot '%s'!", bot.Name)
-
-	return nil
 }
 
 // initLogger sets log configuration for the bot

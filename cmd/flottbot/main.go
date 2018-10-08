@@ -7,9 +7,10 @@ import (
 	"os"
 	"sync"
 
+	"github.com/spf13/viper"
+
 	"github.com/target/flottbot/core"
 	"github.com/target/flottbot/models"
-	"github.com/target/flottbot/utils"
 	"github.com/target/flottbot/version"
 )
 
@@ -24,30 +25,39 @@ func init() {
 	}
 }
 
-func main() {
-	// Kill the program if the 'config' directory isn't there
-	if _, err := utils.PathExists("config"); err != nil {
-		panic(err.Error())
+func newBot() *models.Bot {
+	bot := viper.New()
+	bot.AddConfigPath("./config")
+	bot.AddConfigPath(".")
+	bot.SetConfigName("bot")
+	err := bot.ReadInConfig()
+	if err != nil {
+		log.Fatalf("Fatal error config file: %s \n", err)
 	}
 
-	// Define globals
-	var bot models.Bot
+	var botC models.Bot
+	err = bot.Unmarshal(&botC)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	return &botC
+}
+
+func main() {
 	var rules = make(map[string]models.Rule)
 	var hitRule = make(chan models.Rule, 1)
 	var inputMsgs = make(chan models.Message, 1)
 	var outputMsgs = make(chan models.Message, 1)
 
 	// Configure the bot to the core framework
-	err := core.Configure("./config/bot.yml", &bot)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
+	bot := newBot()
+	core.Configure(bot)
 
 	// Populate the global rules map
-	core.Rules(&rules, &bot)
+	core.Rules(&rules, bot)
 
 	// Initialize and run Prometheus metrics logging
-	go core.Prommetric("init", &bot)
+	go core.Prommetric("init", bot)
 
 	// Create the wait group for handling concurrent runs (see further down)
 	// Add 3 to the wait group so the three separate processes run concurrently
@@ -57,9 +67,9 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(3)
 
-	go core.Remotes(inputMsgs, rules, &bot)
-	go core.Matcher(inputMsgs, outputMsgs, rules, hitRule, &bot)
-	go core.Outputs(outputMsgs, hitRule, &bot)
+	go core.Remotes(inputMsgs, rules, bot)
+	go core.Matcher(inputMsgs, outputMsgs, rules, hitRule, bot)
+	go core.Outputs(outputMsgs, hitRule, bot)
 
 	defer wg.Done()
 

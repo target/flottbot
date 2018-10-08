@@ -59,32 +59,6 @@ func TestInitLogger(t *testing.T) {
 	}
 }
 
-func TestConfigure(t *testing.T) {
-	type args struct {
-		pathToBotConfig string
-		bot             *models.Bot
-	}
-
-	testBot := new(models.Bot)
-
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{"Happy Path", args{pathToBotConfig: "../testdata/goodbot.yml", bot: testBot}, false},
-		{"Bad Bot", args{pathToBotConfig: "../testdata/badbot.yml", bot: testBot}, true},
-		{"Bad Path", args{pathToBotConfig: "$%W", bot: testBot}, true},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := Configure(tt.args.pathToBotConfig, tt.args.bot); (err != nil) != tt.wantErr {
-				t.Errorf("Configure() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func Test_configureChatApplication(t *testing.T) {
 	type args struct {
 		bot *models.Bot
