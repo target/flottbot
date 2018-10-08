@@ -268,6 +268,9 @@ func Test_validateRemoteSetup(t *testing.T) {
 }
 
 func TestConfigure(t *testing.T) {
+	testBot := new(models.Bot)
+	testBot.CLI = true
+
 	type args struct {
 		bot *models.Bot
 	}
@@ -275,7 +278,7 @@ func TestConfigure(t *testing.T) {
 		name string
 		args args
 	}{
-		// TODO: Add test cases.
+		{"Basic", args{bot: testBot}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
