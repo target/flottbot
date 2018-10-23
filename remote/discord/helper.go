@@ -31,7 +31,7 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 	// }
 
 	message.Vars["_channel.id"] = channel
-	message.Vars["_channel.name"] = "" // not implemented
+	message.Vars["_channel.name"] = channel
 
 	// Populate message user sender
 	// These will be accessible on rules via ${_user.email}, etc
