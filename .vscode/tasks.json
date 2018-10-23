@@ -1,45 +1,27 @@
 {
-    "version": "2.0.0",
-    "tasks": [{
-        "label": "build-debug",
-        "type": "shell",
-        "command": "go",
-        "group": "build",
-        "presentation": {
-            "echo": true,
-            "reveal": "never",
-            "focus": false,
-            "panel": "shared"
-        },
-        "args": [
-            "build",
-            "-i",
-            "-gcflags",
-            "'-N -l'"
-        ],
-        "linux": {
-            "args": [
-                "-o",
-                "debug",
-                "${workspaceRoot}/cmd/flottbot/main.go"
-            ]
-        },
-        "osx": {
-            "args": [
-                "-o",
-                "debug",
-                "${workspaceRoot}/cmd/flottbot/main.go"
-            ]
-        },
-        "windows": {
-            "args": [
-                "-o",
-                "debug.exe",
-                "\"${workspaceRoot}\\cmd\\flottbot\\main.go\""
-            ]
-        },
-        "problemMatcher": [
-            "$go"
-        ]
-    }]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-debug",
+      "type": "shell",
+      "command": "go",
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared"
+      },
+      "args": [
+        "build",
+        "-i",
+        "-gcflags",
+        "'-N -l'",
+        "-o",
+        "debug",
+        "${workspaceFolder}/cmd/flottbot/main.go"
+      ],
+      "problemMatcher": ["$go"]
+    }
+  ]
 }
