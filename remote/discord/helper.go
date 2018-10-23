@@ -30,6 +30,9 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 	// 	message.ChannelName = name
 	// }
 
+	message.Vars["_channel.id"] = channel
+	message.Vars["_channel.name"] = "" // not implemented
+
 	// Populate message user sender
 	// These will be accessible on rules via ${_user.email}, etc
 	if user != nil { // nil user implies a message from an api/bot (i.e. not an actual user)
