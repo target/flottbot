@@ -396,6 +396,10 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 			message.ChannelName = name
 		}
 
+		// make channel variables available
+		message.Vars["_channel.id"] = message.ChannelID
+		message.Vars["_channel.name"] = message.ChannelName // will be empty if it came via DM
+
 		// Populate message with user information (i.e. who sent the message)
 		// These will be accessible on rules via ${_user.email}, ${_user.id}, etc.
 		if user != nil { // nil user implies a message from an api/bot (i.e. not an actual user)
