@@ -30,7 +30,7 @@ The philosophy behind flottbot is to create very simple, lightweight, "dumb" bot
 ### Using go
 
 ```bash
-go get -u github.com/target/flottbot
+go get -u github.com/target/flottbot/cmd/flottbot
 ```
 
 ### Binaries
