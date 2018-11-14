@@ -358,7 +358,7 @@ func populateUserGroups(bot *models.Bot) {
 		wsAPI := slack.New(bot.SlackWorkspaceToken)
 		ugroups, err := wsAPI.GetUserGroups()
 		if err != nil {
-			bot.Log.Debugf("Unable to retrieve usergroups: %s", err.Error())
+			bot.Log.Debugf("Unable to retrieve usergroups. Restricting to rules with allow_usergroups and/or ignore_usergroups. Error: %s", err.Error())
 			bot.Log.Debug("Please double-check your slack_workspace_token. Also, if you recently added the usergroup:read scope you might have to reinstall your app in the Slack UI at api.slack.com")
 		}
 		for _, usergroup := range ugroups {
@@ -367,6 +367,10 @@ func populateUserGroups(bot *models.Bot) {
 		// we don't need API anymore
 		wsAPI = nil
 		bot.UserGroups = userGroups
+	} else {
+		bot.Log.Debug("Limiting to usergroups only works if you register " +
+			"your bot as an app with Slack and set the 'slack_workspace_token' property. " +
+			"Restricting access to rules with 'allow_usergroups' and/or 'ignore_usergroups', please set 'slack_workspace_token'.")
 	}
 }
 
