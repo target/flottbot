@@ -383,7 +383,6 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 		message.Timestamp = timeStamp
 		message.ThreadTimestamp = threadTimestamp
 		message.BotMentioned = mentioned
-		message.Attributes["ws_token"] = bot.SlackWorkspaceToken
 
 		// If the message read was not a dm, get the name of the channel it came from
 		if msgType != models.MsgTypeDirect {
@@ -544,12 +543,12 @@ func send(api *slack.Client, message models.Message, bot *models.Bot) {
 
 // sendBackToOriginMessage - sends a message back to where it came from in Slack; this is pretty much a catch-all among the other send functions
 func sendBackToOriginMessage(api *slack.Client, message models.Message) error {
-	return sendMessage(api, message.IsEphemeral, message.ChannelID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Attributes["ws_token"], message.Remotes.Slack.Attachments)
+	return sendMessage(api, message.IsEphemeral, message.ChannelID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Remotes.Slack.Attachments)
 }
 
 // sendChannelMessage - sends a message to a Slack channel
 func sendChannelMessage(api *slack.Client, channel string, message models.Message) error {
-	return sendMessage(api, message.IsEphemeral, channel, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Attributes["ws_token"], message.Remotes.Slack.Attachments)
+	return sendMessage(api, message.IsEphemeral, channel, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Remotes.Slack.Attachments)
 }
 
 // sendDirectMessage - sends a message back to the user who dm'ed your bot
@@ -558,11 +557,11 @@ func sendDirectMessage(api *slack.Client, userID string, message models.Message)
 	if err != nil {
 		return err
 	}
-	return sendMessage(api, message.IsEphemeral, imChannelID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Attributes["ws_token"], message.Remotes.Slack.Attachments)
+	return sendMessage(api, message.IsEphemeral, imChannelID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Remotes.Slack.Attachments)
 }
 
 // sendMessage - does the final send to Slack; adds any Slack-specific message parameters to the message to be sent out
-func sendMessage(api *slack.Client, ephemeral bool, channel, userID, text, threadTimeStamp, wsToken string, attachments []slack.Attachment) error {
+func sendMessage(api *slack.Client, ephemeral bool, channel, userID, text, threadTimeStamp string, attachments []slack.Attachment) error {
 	// send ephemeral message is indicated
 	if ephemeral {
 		var opt slack.MsgOption
