@@ -254,17 +254,15 @@ func getRooms(api *slack.Client) map[string]string {
 	return rooms
 }
 
-// getSlackUsers gets Slack user objects for each user listed in messages 'output_to_users' field
-func getSlackUsers(api *slack.Client, message models.Message) ([]slack.User, error) {
+// getSlackUsers gets current Slack users
+func getSlackUsers(api *slack.Client) ([]slack.User, error) {
 	slackUsers := []slack.User{}
-	// grab list of users to message if 'output_to_users' was specified
-	if len(message.OutputToUsers) > 0 {
-		res, err := api.GetUsers()
-		if err != nil {
-			return []slack.User{}, fmt.Errorf("Did not find any users listed in 'output_to_users': %s", err.Error())
-		}
-		slackUsers = res
+	res, err := api.GetUsers()
+	if err != nil {
+		return slackUsers, fmt.Errorf("Unable to get list of users: %s", err.Error())
 	}
+	slackUsers = res
+
 	return slackUsers, nil
 }
 
@@ -361,7 +359,7 @@ func populateUserGroups(bot *models.Bot) {
 		ugroups, err := wsAPI.GetUserGroups()
 		if err != nil {
 			bot.Log.Debugf("Unable to retrieve usergroups: %s", err.Error())
-			bot.Log.Debug("Please double check your Slack Workspace token")
+			bot.Log.Debug("Please double-check your slack_workspace_token. Also, if you recently added the usergroup:read scope you might have to reinstall your app in the Slack UI at api.slack.com")
 		}
 		for _, usergroup := range ugroups {
 			userGroups[usergroup.Handle] = usergroup.ID
@@ -444,9 +442,18 @@ func processInteractiveComponentRule(rule models.Rule, message *models.Message, 
 // readFromEventsAPI utilizes the Slack API client to read event-based messages.
 // This method of reading is preferred over the RTM method.
 func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models.Message, bot *models.Bot) {
+	// Get the current users
+	su, err := getSlackUsers(api)
+	if err != nil {
+		bot.Log.Error(err)
+	}
+	// populate users
+	populateBotUsers(su, bot)
+	// populate user groups
+	populateUserGroups(bot)
+
 	// Create router for the events server
 	router := mux.NewRouter()
-
 	// Add health check handler
 	router.HandleFunc("/event_health", getEventsAPIHealthHandler(bot)).Methods("GET")
 
@@ -518,7 +525,7 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 
 // send - handles the sending logic of a message going to Slack
 func send(api *slack.Client, message models.Message, bot *models.Bot) {
-	users, err := getSlackUsers(api, message)
+	users, err := getSlackUsers(api)
 	if err != nil {
 		bot.Log.Errorf("Problem sending message: %s", err.Error())
 	}
