@@ -27,7 +27,7 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 // Read implementation to satisfy remote interface
 func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
 	user := bot.CLIUser
-	if len(user) == 0 {
+	if user == "" {
 		user = "Flottbot-CLI-User"
 	}
 	fmt.Println(`MMMMMMMMMMMMMMMMMMMMMMMWNNWMMMMMMMMMMMMMMMMMMMMMMM
@@ -61,7 +61,7 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM`)
 	for scanner.Scan() {
 		fmt.Print("\n", bot.Name, "> ")
 		req := scanner.Text()
-		if len(strings.TrimSpace(req)) > 0 {
+		if strings.TrimSpace(req) != "" {
 			message := models.NewMessage()
 
 			message.Type = models.MsgTypeDirect

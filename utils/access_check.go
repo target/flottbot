@@ -85,14 +85,14 @@ func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot)
 		bot.Log.Error("Discord is currently not supported for validating user permissions on rules")
 		return false, nil
 	case "slack":
-		if len(bot.SlackWorkspaceToken) == 0 {
+		if bot.SlackWorkspaceToken == "" {
 			bot.Log.Debugf("Limiting to usergroups only works if you register " +
 				"your bot as an app with Slack and set the 'slack_workspace_token' property. " +
 				"Restricting access to rule. Unset 'allow_usergroups' and/or 'ignore_usergroups', or set 'slack_workspace_token'.")
 			return false, fmt.Errorf("SlackWorkspaceToken not supplied. Restricting access.")
 		}
 		// Check if we are restricting by usergroup
-		if len(bot.SlackWorkspaceToken) > 0 {
+		if bot.SlackWorkspaceToken != "" {
 			wsAPI := slack.New(bot.SlackWorkspaceToken)
 			for _, usergroupName := range userGroups {
 				// Get the ID of the group from the usergroups the bot is aware of

@@ -43,7 +43,7 @@ func Substitute(value string, tokens map[string]string) (string, error) {
 			// Check if token was already stored as a token
 			if _, ok := tokens[tok]; ok {
 				envTok := os.Getenv(tok)
-				if len(envTok) > 0 {
+				if envTok != "" {
 					log.Printf("Warning: you are using %s as '%s' but it is also an environment variable. Consider renaming.", tok, tok)
 				}
 				value = strings.Replace(value, hit, orDefault(tokens[tok], ""), -1)
@@ -51,7 +51,7 @@ func Substitute(value string, tokens map[string]string) (string, error) {
 			}
 			// Check if token is an environment variable
 			envTok := os.Getenv(tok)
-			if len(envTok) > 0 {
+			if envTok != "" {
 				value = strings.Replace(value, hit, os.Getenv(tok), -1)
 			} else {
 				err := fmt.Sprintf("Variable '%s' has not been defined.", tok)
@@ -92,7 +92,7 @@ func findVars(value string) (match bool, tokens []string) {
 
 // helper to provide default value
 func orDefault(value, def string) string {
-	if len(strings.TrimSpace(value)) == 0 {
+	if strings.TrimSpace(value) == "" {
 		return def
 	}
 	return value

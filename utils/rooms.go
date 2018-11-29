@@ -12,7 +12,7 @@ func GetRoomIDs(wantRooms []string, bot *models.Bot) []string {
 
 	for _, room := range wantRooms {
 		roomMatch := bot.Rooms[strings.ToLower(room)]
-		if len(roomMatch) > 0 {
+		if roomMatch != "" {
 			rooms = append(rooms, roomMatch)
 		} else {
 			bot.Log.Debugf("Room '%s' does not exist", room)

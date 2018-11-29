@@ -27,7 +27,7 @@ func constructInteractiveComponentMessage(callback slack.AttachmentActionCallbac
 	text := ""
 	if len(callback.Actions) > 0 {
 		for _, action := range callback.Actions {
-			if len(action.Value) > 0 {
+			if action.Value != "" {
 				text = fmt.Sprintf("<@%s> %s", bot.ID, action.Value)
 				break
 			}
@@ -81,7 +81,7 @@ func getEventsAPIHealthHandler(bot *models.Bot) func(w http.ResponseWriter, r *h
 }
 
 func sendHTTPResponse(status int, contentType string, message string, w http.ResponseWriter, r *http.Request) {
-	if len(contentType) == 0 {
+	if contentType == "" {
 		contentType = "text/plain"
 	}
 	w.WriteHeader(status)
@@ -112,7 +112,7 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 	case *slackevents.MessageEvent:
 		senderID := ev.User
 		// Only process messages that aren't from the bot itself
-		if len(senderID) > 0 && bot.ID != senderID {
+		if senderID != "" && bot.ID != senderID {
 			channel := ev.Channel
 			msgType, err := getMessageType(channel)
 			if err != nil {
@@ -120,7 +120,7 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 			}
 			text, mentioned := removeBotMention(ev.Text, bot.ID)
 			user, err := api.GetUserInfo(senderID)
-			if err != nil && len(senderID) > 0 { // we only care if senderID is not empty and there's an error (senderID == "" could be a thread from a message)
+			if err != nil && senderID != "" { // we only care if senderID is not empty and there's an error (senderID == "" could be a thread from a message)
 				bot.Log.Errorf("getEventsAPIEventHandler: Did not get Slack user info: %s", err.Error())
 			}
 			timestamp := ev.TimeStamp
@@ -316,7 +316,7 @@ func handleNonDirectMessage(api *slack.Client, users []slack.User, message model
 		for _, u := range message.OutputToUsers {
 			// Get users Slack user ID
 			userID := getUserID(u, users, bot)
-			if len(userID) > 0 {
+			if userID != "" {
 				// If 'direct_message_only' is 'false' but the user listed himself in the 'output_to_users'
 				if userID == message.Vars["_user.id"] && !message.DirectMessageOnly {
 					bot.Log.Warn("You have specified 'direct_message_only' as 'false' but listed yourself in 'output_to_users'")
@@ -355,7 +355,7 @@ func populateBotUsers(slackUsers []slack.User, bot *models.Bot) {
 
 // populateUserGroups populates slack user groups
 func populateUserGroups(bot *models.Bot) {
-	if len(bot.SlackWorkspaceToken) > 0 {
+	if bot.SlackWorkspaceToken != "" {
 		userGroups := make(map[string]string)
 		wsAPI := slack.New(bot.SlackWorkspaceToken)
 		ugroups, err := wsAPI.GetUserGroups()
@@ -471,7 +471,7 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 				senderID := ev.User
 				// Sometimes message events in RTM don't have a User ID?
 				// Also, only process messages that aren't from the bot itself
-				if len(senderID) > 0 && bot.ID != senderID {
+				if senderID != "" && bot.ID != senderID {
 					channel := ev.Channel
 					msgType, err := getMessageType(channel)
 					if err != nil {
@@ -479,7 +479,7 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 					}
 					text, mentioned := removeBotMention(ev.Text, bot.ID)
 					user, err := rtm.GetUserInfo(senderID)
-					if err != nil && len(senderID) > 0 { // we only care if senderID is not empty and there's an error (senderID == "" could be a thread from a message)
+					if err != nil && senderID != "" { // we only care if senderID is not empty and there's an error (senderID == "" could be a thread from a message)
 						bot.Log.Errorf("Did not get Slack user info: %s", err.Error())
 					}
 					timestamp := ev.Timestamp
@@ -497,7 +497,7 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 				// NOTE: looks like there is another unsupported event we could use
 				//   Received unmapped event \"member_joined_channel\"
 				// Maybe watch ffor an update to slack package for future support
-				if len(bot.Rooms[ev.Channel.Name]) == 0 {
+				if bot.Rooms[ev.Channel.Name] == "" {
 					bot.Rooms[ev.Channel.Name] = ev.Channel.ID
 					bot.Log.Debugf("Joined new channel. %s(%s) added to lookup", ev.Channel.Name, ev.Channel.ID)
 				}
@@ -574,7 +574,7 @@ func sendMessage(api *slack.Client, ephemeral bool, channel, userID, text, threa
 		ThreadTimestamp: threadTimeStamp,
 	}
 	// check if message was a link to set link attachment
-	if len(text) > 0 && strings.Contains(text, "http") {
+	if text != "" && strings.Contains(text, "http") {
 		if isValidURL(text) {
 			if len(attachments) > 0 {
 				attachments[0].ImageURL = text
@@ -652,7 +652,7 @@ func unfurlLink(workspaceToken, messageTimeStamp, channel, link string) error {
 		if err != nil {
 			return err
 		}
-		if len(rslt.Error) > 0 {
+		if rslt.Error != "" {
 			return fmt.Errorf("Could not unfurl message with link '%s' because of error '%s'", link, rslt.Error)
 		}
 	}

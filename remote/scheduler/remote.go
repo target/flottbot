@@ -39,7 +39,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 
 	// Find and create schedules
 	for _, rule := range rules {
-		if rule.Active && len(rule.Schedule) > 0 {
+		if rule.Active && rule.Schedule != "" {
 			// Pre-checks before executing rule as a cron job
 			if len(rule.OutputToRooms) == 0 && len(rule.OutputToUsers) == 0 {
 				bot.Log.Debug("Scheduling rules requires the 'output_to_rooms' and/or 'output_to_users' fields to be set")
@@ -47,7 +47,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 			} else if len(rule.OutputToRooms) > 0 && len(bot.Rooms) == 0 {
 				bot.Log.Debugf("Could not connect Scheduler to rooms: %s", rule.OutputToRooms)
 				continue
-			} else if len(rule.Respond) > 0 || len(rule.Hear) > 0 {
+			} else if rule.Respond != "" || rule.Hear != "" {
 				bot.Log.Debug("Scheduling rules does not allow the 'respond' and 'hear' fields")
 				continue
 			}
