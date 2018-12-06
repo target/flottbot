@@ -444,6 +444,16 @@ func processInteractiveComponentRule(rule models.Rule, message *models.Message, 
 // readFromEventsAPI utilizes the Slack API client to read event-based messages.
 // This method of reading is preferred over the RTM method.
 func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models.Message, bot *models.Bot) {
+	// get the current users
+	su, err := getSlackUsers(api, models.Message{})
+	if err != nil {
+		bot.Log.Error(err)
+	}
+	// populate users
+	populateBotUsers(su, bot)
+	// populate user groups
+	populateUserGroups(bot)
+
 	// Create router for the events server
 	router := mux.NewRouter()
 
