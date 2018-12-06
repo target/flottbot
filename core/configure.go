@@ -41,7 +41,7 @@ func initLogger(b *models.Bot) {
 // configureChatApplication configures a user's specified chat application
 // TODO: Refactor to keep remote specifics in remote/
 func configureChatApplication(bot *models.Bot) {
-	if len(bot.ChatApplication) > 0 {
+	if bot.ChatApplication != "" {
 		switch strings.ToLower(bot.ChatApplication) {
 		case "discord":
 			// Bot token from Discord
@@ -50,7 +50,7 @@ func configureChatApplication(bot *models.Bot) {
 				bot.Log.Warnf("Could not set Discord Token: %s", err.Error())
 				bot.RunChat = false
 			}
-			if len(token) == 0 {
+			if token == "" {
 				bot.Log.Warnf("Discord Token is empty: '%s'", token)
 				bot.RunChat = false
 			}
@@ -63,7 +63,7 @@ func configureChatApplication(bot *models.Bot) {
 				bot.Log.Warnf("Could not set Slack Token: %s", err.Error())
 				bot.RunChat = false
 			}
-			if len(token) == 0 {
+			if token == "" {
 				bot.Log.Warnf("Slack Token is empty: %s", token)
 				bot.RunChat = false
 			}
@@ -100,7 +100,7 @@ func configureChatApplication(bot *models.Bot) {
 				bot.Log.Errorf("Could not set Slack Interactive Components callback path: %s", err.Error())
 				bot.InteractiveComponents = false
 			}
-			if len(iCallbackPath) == 0 {
+			if iCallbackPath == "" {
 				bot.Log.Errorf("Slack Interactive Components callback path is empty: %s", iCallbackPath)
 				bot.InteractiveComponents = false
 			}
@@ -114,22 +114,22 @@ func configureChatApplication(bot *models.Bot) {
 }
 
 func validateRemoteSetup(bot *models.Bot) {
-	if len(bot.ChatApplication) > 0 {
+	if bot.ChatApplication != "" {
 		bot.RunChat = true
 	}
 	if bot.CLI {
 		bot.RunCLI = true
 	}
-	if !bot.CLI && len(bot.ChatApplication) == 0 {
+	if !bot.CLI && bot.ChatApplication == "" {
 		bot.Log.Fatalf("No chat_application specified and cli mode is not enabled. Exiting...")
 	}
 	if bot.Scheduler {
 		bot.RunScheduler = true
-		if bot.CLI && len(bot.ChatApplication) == 0 {
+		if bot.CLI && bot.ChatApplication == "" {
 			bot.Log.Warn("Scheduler does not support scheduled outputs to CLI mode")
 			bot.RunScheduler = false
 		}
-		if len(bot.ChatApplication) == 0 {
+		if bot.ChatApplication == "" {
 			bot.Log.Warn("Scheduler did not find any configured chat applications. Scheduler is closing")
 			bot.RunScheduler = false
 		}

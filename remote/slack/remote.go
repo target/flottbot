@@ -33,7 +33,7 @@ func (c *Client) new() *slack.Client {
 
 // Reaction implementation to satisfy remote interface
 func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
-	if len(rule.RemoveReaction) > 0 {
+	if rule.RemoveReaction != "" {
 		// Init api client
 		api := c.new()
 		// Grab a reference to the message
@@ -45,7 +45,7 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 		}
 		bot.Log.Debugf("Removed reaction '%s' for rule %s", rule.RemoveReaction, rule.Name)
 	}
-	if len(rule.Reaction) > 0 {
+	if rule.Reaction != "" {
 		// Init api client
 		api := c.new()
 		// Grab a reference to the message
@@ -77,8 +77,8 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	}
 
 	// read messages
-	if len(c.VerificationToken) > 0 {
-		if len(bot.SlackEventsCallbackPath) == 0 {
+	if c.VerificationToken != "" {
+		if bot.SlackEventsCallbackPath == "" {
 			bot.Log.Error("Need to specify a callback path for the 'slack_events_callback_path' field in the bot.yml (e.g. \"/slack_events/v1/mybot-v1_events\")")
 			bot.Log.Debug("Closing events reader (will not be able to read messages)")
 			return
@@ -90,7 +90,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 		}
 		bot.ID = rat.UserID
 		readFromEventsAPI(api, c.VerificationToken, inputMsgs, bot)
-	} else if len(c.Token) > 0 {
+	} else if c.Token != "" {
 		bot.ID = rat.UserID
 		rtm := api.NewRTM()
 		readFromRTM(rtm, inputMsgs, bot)
@@ -134,8 +134,8 @@ var interactionsRouter *mux.Router
 // It will serve as a way for your bot to handle advance messaging, such as message attachments.
 // When your bot is up and running, it will have an http/https endpoint to handle rules for sending attachments.
 func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
-	if bot.InteractiveComponents && len(c.VerificationToken) > 0 {
-		if len(bot.SlackInteractionsCallbackPath) == 0 {
+	if bot.InteractiveComponents && c.VerificationToken != "" {
+		if bot.SlackInteractionsCallbackPath == "" {
 			bot.Log.Error("Need to specify a callback path for the 'slack_interactions_callback_path' field in the bot.yml (e.g. \"/slack_events/v1/mybot_dev-v1_interactions\")")
 			bot.Log.Warn("Closing interactions reader (will not be able to read interactive components)")
 			return

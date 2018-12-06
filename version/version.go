@@ -19,7 +19,7 @@ func String() string {
 	if err != nil {
 		Version = "Dev build (no valid version)"
 	}
-	if len(GitHash) == 0 {
+	if GitHash == "" {
 		GitHash = "N/A"
 	}
 	return fmt.Sprintf("Version : %s\nGit Hash: %s\n", Version, GitHash)

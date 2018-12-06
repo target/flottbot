@@ -61,9 +61,9 @@ RuleSearch:
 // getProccessedInputAndHitValue gets the processed input from the message input and the true/false if it was a successfully hit rule
 func getProccessedInputAndHitValue(messageInput, ruleRespondValue, ruleHearValue string) (string, bool) {
 	processedInput, hit := "", false
-	if len(ruleRespondValue) > 0 {
+	if ruleRespondValue != "" {
 		processedInput, hit = utils.Match(ruleRespondValue, messageInput, true)
-	} else if len(ruleHearValue) > 0 { // Are we listening to everything?
+	} else if ruleHearValue != "" { // Are we listening to everything?
 		_, hit = utils.Match(ruleHearValue, messageInput, false)
 	}
 	return processedInput, hit
@@ -72,18 +72,18 @@ func getProccessedInputAndHitValue(messageInput, ruleRespondValue, ruleHearValue
 // handleChatServiceRule handles the processing logic for a rule that came from either the chat application or CLI remote
 func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Message, hitRule chan<- models.Rule, rule models.Rule, processedInput string, hit bool, bot *models.Bot) (bool, bool) {
 	match, stopSearch := false, false
-	if len(rule.Respond) > 0 || len(rule.Hear) > 0 {
+	if rule.Respond != "" || rule.Hear != "" {
 		// You can only use 'respond' OR 'hear'
-		if len(rule.Respond) > 0 && len(rule.Hear) > 0 {
+		if rule.Respond != "" && rule.Hear != "" {
 			bot.Log.Debugf("Rule '%s' has both 'hear' and 'match' or 'respond' defined. Please choose one or the other", rule.Name)
 		}
 		// Args are not implemented for 'hear'
-		if len(rule.Hear) > 0 && len(rule.Args) > 0 {
+		if rule.Hear != "" && len(rule.Args) > 0 {
 			bot.Log.Debugf("Rule '%s' has both 'args' and 'hear' set. To use 'args', use 'respond' instead of 'hear'", rule.Name)
 		}
 
 		// if it's a 'respond' rule, make sure the bot was mentioned
-		if hit && len(rule.Respond) > 0 && !message.BotMentioned && message.Type != models.MsgTypeDirect {
+		if hit && rule.Respond != "" && !message.BotMentioned && message.Type != models.MsgTypeDirect {
 			return match, stopSearch
 		}
 
@@ -113,7 +113,7 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 // handleSchedulerServiceRule handles the processing logic for a rule that came from the Scheduler remote
 func handleSchedulerServiceRule(outputMsgs chan<- models.Message, message models.Message, hitRule chan<- models.Rule, rule models.Rule, bot *models.Bot) (bool, bool) {
 	match, stopSearch := false, false
-	if len(rule.Schedule) > 0 && rule.Name == message.Attributes["from_schedule"] {
+	if rule.Schedule != "" && rule.Name == message.Attributes["from_schedule"] {
 		match, stopSearch = true, true // Don't go through more rules if rule is matched
 		msg := deepcopy.Copy(message).(models.Message)
 		go doRuleActions(msg, outputMsgs, rule, hitRule, bot)
@@ -132,12 +132,12 @@ func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hit
 		// Set custom_help_text if it is set in bot.yml
 		helpMsg := bot.CustomHelpText
 		// If custom_help_text is not set, use default Help Text, for each rule use help_text from rule file
-		if len(helpMsg) == 0 {
+		if helpMsg == "" {
 			helpMsg = "I understand these commands: \n"
 			// Go through all the rules and collect the help_text
 			for _, rule := range rules {
 				// Is the rule active and does the user want to expose the help for it? 'hear' rules don't show in help by default
-				if rule.Active && len(rule.Hear) == 0 && rule.IncludeInHelp && len(rule.HelpText) > 0 {
+				if rule.Active && rule.Hear == "" && rule.IncludeInHelp && rule.HelpText != "" {
 					helpMsg = helpMsg + fmt.Sprintf("\n • %s", rule.HelpText)
 				}
 			}
@@ -161,7 +161,7 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 		return false
 	}
 	// If this wasn't a 'hear' rule, handle the args
-	if len(rule.Hear) == 0 {
+	if rule.Hear == "" {
 		// Get all the args that the message sender supplied
 		args := utils.FindArgs(processedInput)
 		// Are we expecting a number of args but don't have as many as the rule defines? Send a helpful message
@@ -181,7 +181,7 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 // core handler routing for all allowed actions
 func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rule models.Rule, hitRule chan<- models.Rule, bot *models.Bot) {
 	// React to message which triggered rule
-	if len(rule.Reaction) > 0 {
+	if rule.Reaction != "" {
 		copyrule := deepcopy.Copy(rule).(models.Rule)
 		copymessage := deepcopy.Copy(message).(models.Message)
 		handleReaction(outputMsgs, &copymessage, hitRule, copyrule)
@@ -233,7 +233,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 
 	// Start a thread if the message is not already part of a thread and
 	// start_message_thread was set for the Rule
-	if rule.StartMessageThread && len(message.ThreadTimestamp) == 0 {
+	if rule.StartMessageThread && message.ThreadTimestamp == "" {
 		message.ThreadTimestamp = message.Timestamp
 	}
 
@@ -246,7 +246,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 	} else {
 		message.Output = val
 		// Override out with an error message, if one was set
-		if len(message.Error) > 0 {
+		if message.Error != "" {
 			message.Output = message.Error
 		}
 		// Pass along whether the message should be a direct message
@@ -260,7 +260,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 // craftResponse handles format_output to make the final message from the bot user-friendly
 func craftResponse(rule models.Rule, msg models.Message, bot *models.Bot) (string, error) {
 	// The user removed the 'format_output' field, or it's not set
-	if len(rule.FormatOutput) == 0 {
+	if rule.FormatOutput == "" {
 		return "", errors.New("Hmm, the 'format_output' field in your configuration is empty")
 	}
 
@@ -306,7 +306,7 @@ func craftResponse(rule models.Rule, msg models.Message, bot *models.Bot) (strin
 
 // Handle script execution actions
 func handleExec(action models.Action, msg *models.Message, bot *models.Bot) error {
-	if len(action.Cmd) == 0 {
+	if action.Cmd == "" {
 		return fmt.Errorf("no command was supplied for the '%s' action named: %s", action.Type, action.Name)
 	}
 
@@ -326,7 +326,7 @@ func handleExec(action models.Action, msg *models.Message, bot *models.Bot) erro
 
 // Handle HTTP call actions
 func handleHTTP(action models.Action, msg *models.Message, bot *models.Bot) error {
-	if len(action.URL) == 0 {
+	if action.URL == "" {
 		return fmt.Errorf("no URL was supplied for the '%s' action named: %s", action.Type, action.Name)
 	}
 
@@ -384,11 +384,11 @@ func handleHTTP(action models.Action, msg *models.Message, bot *models.Bot) erro
 
 // Handle standard message/logging actions
 func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *models.Message, direct, startMsgThread bool, hitRule chan<- models.Rule, bot *models.Bot) error {
-	if len(action.Message) == 0 {
+	if action.Message == "" {
 		return fmt.Errorf("No message was set")
 	}
 
-	if action.Type == "message" && startMsgThread && len(msg.ThreadTimestamp) == 0 {
+	if action.Type == "message" && startMsgThread && msg.ThreadTimestamp == "" {
 		msg.ThreadTimestamp = msg.Timestamp
 	}
 
@@ -429,7 +429,7 @@ func handleReaction(outputMsgs chan<- models.Message, msg *models.Message, hitRu
 
 // Update emoji reaction when specified
 func updateReaction(action models.Action, rule *models.Rule, vars map[string]string, bot *models.Bot) {
-	if len(action.Reaction) > 0 && len(rule.Reaction) > 0 {
+	if action.Reaction != "" && rule.Reaction != "" {
 		// Check if the value contains html/template code
 		if strings.Contains(action.Reaction, "{{") {
 			reaction, err := utils.Substitute(action.Reaction, vars)
