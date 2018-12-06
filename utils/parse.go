@@ -69,11 +69,11 @@ func Substitute(value string, tokens map[string]string) (string, error) {
 
 // FindArgs goes through a string and tokenizes as parameters
 func FindArgs(stripped string) []string {
-	re := regexp.MustCompile(`('')|("")|(“”)|('[^']+')|("[^"]+")|(“([^”]+)”)|([^'"“”\s]+)`)
+	re := regexp.MustCompile(`('[^']*')|("[^"]*")|“([^”]*”)|([^'"“”\s]+)`)
 	argmatch := re.FindAllString(stripped, -1)
 
 	for i, arg := range argmatch {
-		argmatch[i] = strings.Trim(arg, `"“”`)
+		argmatch[i] = strings.Trim(arg, `'"“”`)
 	}
 
 	return argmatch
