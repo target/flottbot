@@ -141,7 +141,7 @@ func TestExecArgTokenizer(t *testing.T) {
 		{"Multiple, Quoted (Mismatched Quotes, Double/Single)", args{stripped: `one two "quoted arg' three`}, []string{"one", "two", "quoted", "arg", "three"}},
 		{"Multiple, Quoted (Mismatched Quotes, Smart Close/Single)", args{stripped: `one two ”quoted arg' three`}, []string{"one", "two", "quoted", "arg", "three"}},
 		{"Multiple, Quoted (Mismatched Quotes, Smart Open/Single)", args{stripped: `one two “quoted arg' three`}, []string{"one", "two", "quoted", "arg", "three"}},
-		{"Multiple, Quoted (Mismatched Quotes, Smart Close/Double)", args{stripped: `one two ”quoted arg " three`}, []string{"one", "two", "quoted", "arg", "three"}},
+		{"Multiple, Quoted (Mismatched Quotes, Smart Close/Double)", args{stripped: `one two ”quoted arg" three`}, []string{"one", "two", "quoted", "arg", "three"}},
 		{"Multiple, Quoted (Mismatched Quotes, Smart Open/Double)", args{stripped: `one two “quoted arg" three`}, []string{"one", "two", "quoted", "arg", "three"}},
 		{"Multiple, Quoted (Mismatched Quotes, Smart Close/Smart Close)", args{stripped: `one two ”quoted arg” three`}, []string{"one", "two", "quoted", "arg", "three"}},
 		{"Multiple, Quoted (Mismatched Quotes, Smart Open/Smart Open)", args{stripped: `one two “quoted arg“ three`}, []string{"one", "two", "quoted", "arg", "three"}},
