@@ -76,7 +76,7 @@ func TestSubstitute(t *testing.T) {
 	}
 }
 
-func TestFindArgs(t *testing.T) {
+func TestRuleArgTokenizer(t *testing.T) {
 	type args struct {
 		stripped string
 	}
@@ -98,7 +98,57 @@ func TestFindArgs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := FindArgs(tt.args.stripped); !reflect.DeepEqual(got, tt.want) {
+			if got := RuleArgTokenizer(tt.args.stripped); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("FindArgs() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestExecArgTokenizer(t *testing.T) {
+	type args struct {
+		stripped string
+	}
+
+	var empty []string
+
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{"Single", args{stripped: `one`}, []string{"one"}},
+		{"Single, Empty", args{stripped: ``}, empty},
+		{"Single, Including Slash", args{stripped: `this\that`}, []string{`this\that`}},
+		{"Single, Extra Whitespace", args{stripped: ` one `}, []string{"one"}},
+		{"Multiple", args{stripped: `one two three`}, []string{"one", "two", "three"}},
+		{"Multiple, Extra Whitespace", args{stripped: ` one    two     three  `}, []string{"one", "two", "three"}},
+		{"Single, Quoted (Single Quotes)", args{stripped: `one 'quoted arg'`}, []string{"one", "quoted arg"}},
+		{"Single, Quoted (Double Quotes)", args{stripped: `one "quoted arg"`}, []string{"one", "quoted arg"}},
+		{"Single, Quoted (Smart Quotes)", args{stripped: `one “quoted arg”`}, []string{"one", "quoted arg"}},
+		{"Single, Quoted (Empty)", args{stripped: `one “”`}, []string{"one", ""}},
+		{"Multiple, Quoted (Single Quotes)", args{stripped: `one two 'quoted arg' three`}, []string{"one", "two", "quoted arg", "three"}},
+		{"Multiple, Quoted (Double Quotes)", args{stripped: `one two "quoted arg" three`}, []string{"one", "two", "quoted arg", "three"}},
+		{"Multiple, Quoted (Smart Quotes)", args{stripped: `one two “quoted arg” three`}, []string{"one", "two", "quoted arg", "three"}},
+		{"Multiple, Quoted (Mixed Quotes)", args{stripped: `one two 'quoted arg1' “quoted arg2” "quoted arg3" three`}, []string{"one", "two", "quoted arg1", "quoted arg2", "quoted arg3", "three"}},
+		{"Multiple, Quoted (Embedded Quotes)", args{stripped: `one two 'quoted ”“" arg1' “quoted "' arg2” "quoted ”“' arg3" three`}, []string{"one", "two", `quoted ”“" arg1`, `quoted "' arg2`, `quoted ”“' arg3`, "three"}},
+		{"Multiple, Quoted (Some Empty)", args{stripped: `one two '' “” "" three "" four '' five “” six`}, []string{"one", "two", "", "", "", "three", "", "four", "", "five", "", "six"}},
+		{"Multiple, Quoted (Mismatched Quotes, Single/Double)", args{stripped: `one two 'quoted arg" three`}, []string{"one", "two", "quoted", "arg", "three"}},
+		{"Multiple, Quoted (Mismatched Quotes, Single/Smart Close)", args{stripped: `one two 'quoted arg” three`}, []string{"one", "two", "quoted", "arg", "three"}},
+		{"Multiple, Quoted (Mismatched Quotes, Single/Smart Open)", args{stripped: `one two 'quoted arg“ three`}, []string{"one", "two", "quoted", "arg", "three"}},
+		{"Multiple, Quoted (Mismatched Quotes, Double/Smart Close)", args{stripped: `one two "quoted arg” three`}, []string{"one", "two", "quoted", "arg", "three"}},
+		{"Multiple, Quoted (Mismatched Quotes, Double/Smart Open)", args{stripped: `one two "quoted arg“ three`}, []string{"one", "two", "quoted", "arg", "three"}},
+		{"Multiple, Quoted (Mismatched Quotes, Double/Single)", args{stripped: `one two "quoted arg' three`}, []string{"one", "two", "quoted", "arg", "three"}},
+		{"Multiple, Quoted (Mismatched Quotes, Smart Close/Single)", args{stripped: `one two ”quoted arg' three`}, []string{"one", "two", "quoted", "arg", "three"}},
+		{"Multiple, Quoted (Mismatched Quotes, Smart Open/Single)", args{stripped: `one two “quoted arg' three`}, []string{"one", "two", "quoted", "arg", "three"}},
+		{"Multiple, Quoted (Mismatched Quotes, Smart Close/Double)", args{stripped: `one two ”quoted arg " three`}, []string{"one", "two", "quoted", "arg", "three"}},
+		{"Multiple, Quoted (Mismatched Quotes, Smart Open/Double)", args{stripped: `one two “quoted arg" three`}, []string{"one", "two", "quoted", "arg", "three"}},
+		{"Multiple, Quoted (Mismatched Quotes, Smart Close/Smart Close)", args{stripped: `one two ”quoted arg” three`}, []string{"one", "two", "quoted", "arg", "three"}},
+		{"Multiple, Quoted (Mismatched Quotes, Smart Open/Smart Open)", args{stripped: `one two “quoted arg“ three`}, []string{"one", "two", "quoted", "arg", "three"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ExecArgTokenizer(tt.args.stripped); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("FindArgs() = %v, want %v", got, tt.want)
 			}
 		})

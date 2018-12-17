@@ -30,13 +30,15 @@ func ScriptExec(args models.Action, msg *models.Message, bot *models.Bot) (*mode
 	defer cancel()
 
 	// Deal with variable substitution in command
+	bot.Log.Debugf("Command is: [%s]", args.Cmd)
 	cmdProcessed, err := utils.Substitute(args.Cmd, msg.Vars)
+	bot.Log.Debugf("Substituted: [%s]", cmdProcessed)
 	if err != nil {
 		return result, err
 	}
 
 	// Parse out all the arguments from the supplied command
-	bin := utils.FindArgs(cmdProcessed)
+	bin := utils.ExecArgTokenizer(cmdProcessed)
 	// Execute the command + arguments with the context
 	cmd := exec.CommandContext(ctx, bin[0], bin[1:]...)
 
