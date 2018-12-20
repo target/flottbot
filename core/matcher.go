@@ -88,12 +88,13 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 		}
 
 		if hit {
-			bot.Log.Debugf("Found rule match '%s'", rule.Name)
+			bot.Log.Debugf("Found rule match '%s' for input '%s'", rule.Name, message.Input)
 			// Don't go through more rules if rule is matched
 			match, stopSearch = true, true
 			// Publish metric to prometheus - metricname will be combination of bot name and rule name
 			Prommetric(bot.Name+"-"+rule.Name, bot)
 			// Capture untouched user input
+
 			message.Vars["_raw_user_input"] = message.Input
 			// Do additional checks on the rule before running
 			if !isValidHitChatRule(&message, rule, processedInput, bot) {
@@ -163,7 +164,7 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 	// If this wasn't a 'hear' rule, handle the args
 	if rule.Hear == "" {
 		// Get all the args that the message sender supplied
-		args := utils.FindArgs(processedInput)
+		args := utils.RuleArgTokenizer(processedInput)
 		// Are we expecting a number of args but don't have as many as the rule defines? Send a helpful message
 		if len(rule.Args) > 0 && len(args) < len(rule.Args) {
 			msg := fmt.Sprintf("You might be missing an argument or two. This is what I'm looking for\n```%s```", rule.HelpText)

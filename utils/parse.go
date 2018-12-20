@@ -67,13 +67,25 @@ func Substitute(value string, tokens map[string]string) (string, error) {
 	return value, nil
 }
 
-// FindArgs goes through a string and tokenizes as parameters
-func FindArgs(stripped string) []string {
+// RuleArgTokenizer goes through a string and tokenizes as parameters for use when identifying rules to be triggered (ignoring empty arguments)
+func RuleArgTokenizer(stripped string) []string {
 	re := regexp.MustCompile(`["“]([^"“”]+)["”]|([^"“”\s]+)`)
 	argmatch := re.FindAllString(stripped, -1)
 
 	for i, arg := range argmatch {
 		argmatch[i] = strings.Trim(arg, `"“”`)
+	}
+
+	return argmatch
+}
+
+// ExecArgTokenizer goes through a string and tokenizes as parameters for use when executing a script (respecting empty arguments)
+func ExecArgTokenizer(stripped string) []string {
+	re := regexp.MustCompile(`('[^']*')|("[^"]*")|“([^”]*”)|([^'"“”\s]+)`)
+	argmatch := re.FindAllString(stripped, -1)
+
+	for i, arg := range argmatch {
+		argmatch[i] = strings.Trim(arg, `'"“”`)
 	}
 
 	return argmatch
