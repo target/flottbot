@@ -47,7 +47,7 @@ git checkout -b name_of_your_branch
 export SLACK_TOKEN=xoxb-xxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxx
 
 # Build the binary and run flottbot
-go build . && ./flottbot
+go build cmd/flottbot/main.go && ./flottbot
 ```
 
 - If you followed the above steps correctly, you should see output similar to this:
