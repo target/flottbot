@@ -53,12 +53,12 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	bot.Log.Infof("Discord is now running '%s'. Press CTRL-C to exit", bot.Name)
 
 	// get informatiom about ourself
-	user, err := dg.User("@me")
+	botuser, err := dg.User("@me")
 	if err != nil {
 		bot.Log.Errorf("Failed to get bot name from Discord. Error: %s", err.Error())
 		return
 	}
-	bot.Name = user.Username
+	bot.Name = botuser.Username
 
 	// Register a callback for MessageCreate events
 	dg.AddHandler(handleDiscordMessage(bot, inputMsgs))
@@ -121,7 +121,7 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 				bot.Log.Debugf("Discord Remote: read message from unsupported channel type '%d'. Defaulting to use channel type 0 ('GUILD_TEXT')", ch.Type)
 			}
 			contents, mentioned := removeBotMention(m.Content, s.State.User.ID)
-			message = populateMessage(message, msgType, m.ChannelID, contents, timestamp, mentioned, s.State.User, bot)
+			message = populateMessage(message, msgType, m.ChannelID, contents, timestamp, mentioned, m.Author, bot)
 		default:
 			bot.Log.Errorf("Discord Remote: read message of unsupported type '%d'. Unable to populate message attributes", m.Type)
 		}
