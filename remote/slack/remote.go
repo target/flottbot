@@ -38,7 +38,7 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 		api := c.new()
 		// Grab a reference to the message
 		msgRef := slack.NewRefToMessage(message.ChannelID, message.Timestamp)
-		// React with desired reaction
+		// Remove bot reaction from message
 		if err := api.RemoveReaction(rule.RemoveReaction, msgRef); err != nil {
 			bot.Log.Errorf("Could not add reaction '%s'", err)
 			return

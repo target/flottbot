@@ -12,7 +12,7 @@ Discord helper functions (anything that uses the discord package)
 */
 
 // populateMessage - populates the 'Message' object to be passed on for processing/sending
-func populateMessage(message models.Message, msgType models.MessageType, channel, text, timeStamp string, mentioned bool, user *discordgo.User, bot *models.Bot) models.Message {
+func populateMessage(message models.Message, msgType models.MessageType, channel, id string, text, timeStamp string, mentioned bool, user *discordgo.User, bot *models.Bot) models.Message {
 	// Populate message attributes
 	message.Type = msgType
 	message.Service = models.MsgServiceChat
@@ -21,6 +21,7 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 	message.Output = ""
 	message.Timestamp = timeStamp
 	message.BotMentioned = mentioned
+	message.ID = id
 
 	// if msgType != models.MsgTypeDirect {
 	// 	name, ok := findKey(bot.Rooms, channel)
