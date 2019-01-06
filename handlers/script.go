@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"syscall"
@@ -60,6 +61,10 @@ func ScriptExec(args models.Action, msg *models.Message, bot *models.Bot) (*mode
 			bot.Log.Debugf("Process for action '%s' exited with status %d: %s", args.Name, ws.ExitStatus(), stderr)
 			result.Status = ws.ExitStatus()
 			result.Output = stderr
+		case *os.PathError:
+			result.Status = 127
+			bot.Log.Debugf("Process for action '%s' exited with status %d: %s", args.Name, result.Status, err)
+			result.Output = err.Error()
 		default:
 			// this should rarely/never get hit
 			bot.Log.Debugf("Couldn't get exit status for action '%s'", args.Name)
