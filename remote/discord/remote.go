@@ -34,7 +34,26 @@ func (c *Client) new() *discordgo.Session {
 
 // Reaction implementation to satisfy remote interface
 func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
-	// TODO: add ability to react to messages with emojis
+	if rule.RemoveReaction != "" {
+		// Init api client
+		dg := c.new()
+		// Remove bot reaction from message
+		if err := dg.MessageReactionRemove(message.ChannelID, message.ID, rule.RemoveReaction, "@me"); err != nil {
+			bot.Log.Errorf("Could not add reaction '%s'", err)
+			return
+		}
+		bot.Log.Debugf("Removed reaction '%s' for rule %s", rule.RemoveReaction, rule.Name)
+	}
+	if rule.Reaction != "" {
+		// Init api client
+		dg := c.new()
+		// React with desired reaction
+		if err := dg.MessageReactionAdd(message.ChannelID, message.ID, rule.Reaction); err != nil {
+			bot.Log.Errorf("Could not add reaction '%s'", err)
+			return
+		}
+		bot.Log.Debugf("Added reaction '%s' for rule %s", rule.Reaction, rule.Name)
+	}
 }
 
 // Read implementation to satisfy remote interface
@@ -121,7 +140,7 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 				bot.Log.Debugf("Discord Remote: read message from unsupported channel type '%d'. Defaulting to use channel type 0 ('GUILD_TEXT')", ch.Type)
 			}
 			contents, mentioned := removeBotMention(m.Content, s.State.User.ID)
-			message = populateMessage(message, msgType, m.ChannelID, contents, timestamp, mentioned, m.Author, bot)
+			message = populateMessage(message, msgType, m.ChannelID, m.Message.ID, contents, timestamp, mentioned, m.Author, bot)
 		default:
 			bot.Log.Errorf("Discord Remote: read message of unsupported type '%d'. Unable to populate message attributes", m.Type)
 		}

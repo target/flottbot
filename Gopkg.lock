@@ -18,12 +18,12 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
-  digest = "1:4fd5ce7844c22e194005b9e12fee8adc70fb5ba0bbba9e1964d2e3d1f301d789"
+  digest = "1:fc4f149402c1fa7258290c3f91b0bfbc709763f3d3899609a2e4a0163dec65c6"
   name = "github.com/bwmarrin/discordgo"
   packages = ["."]
   pruneopts = "UT"
-  revision = "4a33b9bc7c56cfdb9bb244e33e83cb3941fe2bdc"
-  version = "v0.18.0"
+  revision = "8325a6bf6dd6c91ed4040a1617b07287b8fb0eba"
+  version = "v0.19.0"
 
 [[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
@@ -66,7 +66,7 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:c0d19ab64b32ce9fe5cf4ddceba78d5bc9807f0016db6b1183599da3dcc24d10"
+  digest = "1:0c6aceca32885ed17808af2ad3a85f2cf18aca1a49b25de4a1d54f03913128c0"
   name = "github.com/hashicorp/hcl"
   packages = [
     ".",
@@ -133,7 +133,7 @@
   revision = "c48cc78d482608239f6c4c92a4abd87eb8761c90"
 
 [[projects]]
-  digest = "1:0d01bcdbda5760553e5ab803faa3d3a0dc6a3ef357eb179b8ac8501b358d49ce"
+  digest = "1:41c243b749b02670f87f849c205954af71f08d4ba8a0252a6c93128e692a6e3c"
   name = "github.com/nlopes/slack"
   packages = [
     ".",
@@ -170,7 +170,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2d5cd61daa5565187e1d96bae64dbbc6080dacf741448e9629c64fd93203b0d4"
+  digest = "1:0f37e09b3e92aaeda5991581311f8dbf38944b36a3edec61cc2d1991f527554a"
   name = "github.com/prometheus/client_model"
   packages = ["go"]
   pruneopts = "UT"
@@ -178,7 +178,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:63b68062b8968092eb86bedc4e68894bd096ea6b24920faca8b9dcf451f54bb5"
+  digest = "1:dad2e5a2153ee7a6c9ab8fc13673a16ee4fb64434a7da980965a3741b0c981a3"
   name = "github.com/prometheus/common"
   packages = [
     "expfmt",
@@ -190,7 +190,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ef74914912f99c79434d9c09658274678bc85080ebe3ab32bec3940ebce5e1fc"
+  digest = "1:4f63dbf446cdeef6226bffe9bbc5fc8b93e13378f84833fb4306514411a76963"
   name = "github.com/prometheus/procfs"
   packages = [
     ".",
@@ -226,7 +226,7 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:6a4a11ba764a56d2758899ec6f3848d24698d48442ebce85ee7a3f63284526cd"
+  digest = "1:7f665ff60a4c8efd5a5c053bf862020cf9f7cd56c3f70dd140f45cd66fb08a8d"
   name = "github.com/spf13/afero"
   packages = [
     ".",
@@ -270,7 +270,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:207d2e280e7a43845b12d07437538d22d02dbd4c274b49f3940bb3dce2ed70d7"
+  digest = "1:a6c91777916f37c288a9f2e352feb7567c3ff4c47a3880b391070740d3357e4f"
   name = "golang.org/x/crypto"
   packages = [
     "internal/subtle",
@@ -284,7 +284,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:850d28ab022512e2cd3cf511a77f363c29e22689b4031f2050871f5de47ae4a0"
+  digest = "1:19b2eb89a60dafcfe5c699fa21ef51143d9bc4825c155608f81e56e0a9a4bba4"
   name = "golang.org/x/sys"
   packages = [
     "unix",
@@ -294,7 +294,7 @@
   revision = "4497e2df6f9e69048a54498c7affbbec3294ad47"
 
 [[projects]]
-  digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
+  digest = "1:038003d098ffc345c4c5c6d47bcc6920b2649ee0c0d557162e54e75c76cadf8b"
   name = "golang.org/x/text"
   packages = [
     "internal/gen",

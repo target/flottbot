@@ -29,6 +29,7 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 					break
 				}
 				remoteDiscord = &discord.Client{Token: bot.DiscordToken}
+				remoteDiscord.Reaction(message, rule, bot)
 				remoteDiscord.Send(message, bot)
 			case "slack":
 				// Create Slack client

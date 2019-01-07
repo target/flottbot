@@ -31,7 +31,7 @@
 
 [[constraint]]
   name = "github.com/bwmarrin/discordgo"
-  version = "0.18.0"
+  version = "0.19.0"
 
 [[constraint]]
   name = "github.com/gorilla/mux"
