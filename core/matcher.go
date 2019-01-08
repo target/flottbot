@@ -167,11 +167,13 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 		args := utils.RuleArgTokenizer(processedInput)
 		var optionalArgs int
 		var requiredArgs int
+		// take note of all optional args that end with a '?'
 		for _, arg := range rule.Args {
 			if strings.HasSuffix(arg, "?") {
 				optionalArgs++
 			}
 		}
+		// ensure we only require args that don't end with '?'
 		requiredArgs = len(rule.Args) - optionalArgs
 		// Are we expecting a number of args but don't have as many as the rule defines? Send a helpful message
 		if len(rule.Args) > 0 && requiredArgs > len(args) {
@@ -182,7 +184,8 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 		// Go through the supplied args and make them available as variables
 		for i, arg := range rule.Args {
 			if i >= len(args) {
-				message.Vars[arg] = ""
+				// assign variable and trim '?' from the end
+				message.Vars[strings.TrimSuffix(arg, "?")] = ""
 			} else {
 				message.Vars[arg] = args[i]
 			}
