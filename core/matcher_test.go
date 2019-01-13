@@ -673,6 +673,13 @@ func Test_handleChatServiceRule(t *testing.T) {
 		HelpText: "foo <arg1> <arg2>",
 	}
 
+	ruleOpt := models.Rule{
+		Name:     "Test Rule with optional arg",
+		Respond:  "foo",
+		Args:     []string{"arg1", "arg2?"},
+		HelpText: "foo <arg1> <arg2>",
+	}
+
 	testBot := new(models.Bot)
 	testBot.Name = "Testbot"
 
@@ -695,6 +702,12 @@ func Test_handleChatServiceRule(t *testing.T) {
 		BotMentioned: true,
 	}
 
+	testMessageOptionalArgs := models.Message{
+		Input:        "foo arg1",
+		Vars:         map[string]string{},
+		BotMentioned: true,
+	}
+
 	tests := []struct {
 		name      string
 		args      args
@@ -707,6 +720,7 @@ func Test_handleChatServiceRule(t *testing.T) {
 		{"respond rule - hit true - valid", args{rule: rule, hit: true, bot: testBot, message: testMessage, processedInput: "arg1 arg2"}, true, true, "Hmm, the 'format_output' field in your configuration is empty"},
 		{"respond rule - hit true - bot not mentioned", args{rule: rule, hit: true, bot: testBot, message: testMessageBotNotMentioned, processedInput: "arg1 arg2"}, false, false, ""},
 		{"respond rule - hit true - valid - not enough args", args{rule: rule, hit: true, bot: testBot, message: testMessageNotEnoughArgs, processedInput: "arg1"}, true, true, "You might be missing an argument or two. This is what I'm looking for\n```foo <arg1> <arg2>```"},
+		{"respond rule - hit true - valid optional arg", args{rule: ruleOpt, hit: true, bot: testBot, message: testMessageOptionalArgs, processedInput: "arg1"}, true, true, ""},
 		{"respond rule - hit true - invalid", args{rule: rule, hit: true, bot: testBot, message: testMessage}, true, true, "You might be missing an argument or two. This is what I'm looking for\n```foo <arg1> <arg2>```"},
 	}
 	for _, tt := range tests {
