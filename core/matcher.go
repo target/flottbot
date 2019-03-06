@@ -184,7 +184,7 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 		// Go through the supplied args and make them available as variables
 		for index, arg := range rule.Args {
 			// strip '?' from end of arg
-			arg := strings.TrimSuffix(arg, "?")
+			arg = strings.TrimSuffix(arg, "?")
 			// index starts at 0 so we need to account for that
 			if index > (len(args) - 1) {
 				message.Vars[arg] = ""
