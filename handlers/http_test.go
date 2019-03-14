@@ -28,7 +28,7 @@ func Test_extractFields(t *testing.T) {
 		wantErr bool
 	}{
 		{"JSON Test", args{raw: []byte(`{ "testing": "test" }`)}, JSONTest, false},
-		{"JSON Arr Test", args{raw: []byte(`[{ "testing": "test" }]`)}, JSONArrTest, false}
+		{"JSON Arr Test", args{raw: []byte(`[{ "testing": "test" }]`)}, JSONArrTest, false},
 		{"String Test", args{raw: []byte(`testing`)}, "testing", false},
 	}
 	for _, tt := range tests {
