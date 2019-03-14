@@ -17,6 +17,9 @@ func Test_extractFields(t *testing.T) {
 
 	JSONTest := make(map[string]interface{})
 	JSONTest["testing"] = "test"
+	
+	JSONArrTest := make([]map[string]interface{}, 0)
+	JSONArrTest = append(JSONArrTest, map[string]interface{}{"testing": "test"})
 
 	tests := []struct {
 		name    string
@@ -25,6 +28,7 @@ func Test_extractFields(t *testing.T) {
 		wantErr bool
 	}{
 		{"JSON Test", args{raw: []byte(`{ "testing": "test" }`)}, JSONTest, false},
+		{"JSON Arr Test", args{raw: []byte(`[{ "testing": "test" }]`)}, JSONArrTest, false}
 		{"String Test", args{raw: []byte(`testing`)}, "testing", false},
 	}
 	for _, tt := range tests {
