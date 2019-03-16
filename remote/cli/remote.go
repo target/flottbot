@@ -56,10 +56,10 @@ MMMMMMMMMMMMMMMNkc,...lkkkkl...,ckNMMMMMMMMMMMMMMM
 MMMMMMMMMMMMMMMMMWN0kONMMMMNOOKNWMMMMMMMMMMMMMMMMM
 MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM`)
 	fmt.Println(version.String())
-	fmt.Println("Enter CLI mode: hit <Enter>. <Ctrl-C> to exit.")
+	fmt.Println("Entering CLI mode. <Ctrl-C> to exit.\n")
+	fmt.Print(user + "> ")
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
-		fmt.Print("\n", bot.Name, "> ")
 		req := scanner.Text()
 		if strings.TrimSpace(req) != "" {
 			message := models.NewMessage()
@@ -72,6 +72,9 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM`)
 			message.Vars["_user.firstname"] = user
 			message.Vars["_user.name"] = user
 			inputMsgs <- message
+		} else {
+			// nothing was entered. prevent blank line.
+			fmt.Print(user + "> ")
 		}
 	}
 	if err := scanner.Err(); err != nil {
@@ -81,10 +84,19 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM`)
 
 // Send implementation to satisfy remote interface
 func (c *Client) Send(message models.Message, bot *models.Bot) {
-	w := bufio.NewWriter(os.Stdout)
 	var re = regexp.MustCompile(`(?m)^(.*)`)
 	var substitution = fmt.Sprintf(`%s> $1`, bot.Name)
+
+	user := bot.CLIUser
+	if user == "" {
+		user = "Flottbot-CLI-User"
+	}
+
+	w := bufio.NewWriter(os.Stdout)
 	fmt.Fprintln(w, re.ReplaceAllString(message.Output, substitution))
+
+	// after sending the main message, also present a new prompt
+	fmt.Fprint(w, user+"> ")
 	w.Flush()
 }
 
