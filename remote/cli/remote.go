@@ -56,7 +56,7 @@ MMMMMMMMMMMMMMMNkc,...lkkkkl...,ckNMMMMMMMMMMMMMMM
 MMMMMMMMMMMMMMMMMWN0kONMMMMNOOKNWMMMMMMMMMMMMMMMMM
 MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM`)
 	fmt.Println(version.String())
-	fmt.Println("Entering CLI mode. <Ctrl-C> to exit.\n")
+	fmt.Print("Entering CLI mode. <Ctrl-C> to exit.\n\n")
 	fmt.Print(user + "> ")
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
