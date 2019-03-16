@@ -30,14 +30,13 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	if user == "" {
 		user = "Flottbot-CLI-User"
 	}
-	fmt.Println(`
+	fmt.Print(`
      ( )
 .-----'-----.
 | ( )   ( ) |  -( flottbot started )
 '-----.-----' 
  / '+---+' \
- \/--|_|--\/
-`)
+ \/--|_|--\/` + "\n\n")
 	fmt.Println(version.String())
 	fmt.Println("Enter CLI mode: hit <Enter>. <Ctrl-C> to exit.")
 	scanner := bufio.NewScanner(os.Stdin)
