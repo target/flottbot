@@ -30,31 +30,14 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	if user == "" {
 		user = "Flottbot-CLI-User"
 	}
-	fmt.Println(`MMMMMMMMMMMMMMMMMMMMMMMWNNWMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMMNkl;;;;lONMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMNo.   .  .dNMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMK:       .cXMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMWk,.    .;OWMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMMWKc.  .lXMMMMMMMMMMMMMMMMMMMMM
-MMMMXkdooooooooooooooo;.  .;ooooooooooooooodkXMMMM      ______      __  __  __          __
-MMMK:.                                      .cXMMM     / __/ /___  / /_/ /_/ /_  ____  / /_
-MMMO'                                        ,0MMM    / /_/ / __ \/ __/ __/ __ \/ __ \/ __/
-MMMO'      .;lodl;.           ..;ldol,.      ,0MMM   / __/ / /_/ / /_/ /_/ /_/ / /_/ / /_
-MMMO'    .,kNMMMMNk;.        .;ONMMMMNx,.    ,0MMM  /_/ /_/\____/\__/\__/_.___/\____/\__/
-MMMO'    .xWMMMMMMWx.        'kMMMMMMMWd.    ,0MMM
-MMMO'    .oNMMMMMMWd.        .xWMMMMMMNl.    ,0MMM
-MMMO'     .l0NWWN0l.          .o0NWWNOc.     ,0MMM            __             __           __
-MMMO'      ..,;;,..            ..,;;,.       ,0MMM      _____/ /_____ ______/ /____  ____/ /
-MMMO'                                        ,0MMM    / ___/ __/ __  / ___/ __/ _ \/ __  /
-MMMXl................        ................oXMMM   (__  ) /_/ /_/ / /  / /_/  __/ /_/ /
-MMMMWKkkkdc:::::cdkkxl..  ..cxkkdc:::::cdkkOKWMMMM  /____/\__/\__,_/_/   \__/\___/\__,_/
-MMMMMMMMMK:......c0WMW0occo0WMW0c......cXMMMMMMMMM
-MMMMMMMMMW0:.,'. .'cx0XNNNNX0xc.. .',':0MMMMMMMMMM
-MMMMMMMMMMMNXNKd'.  ..',,,,'..  .,dXNXNMMMMMMMMMMM
-MMMMMMMMMMMMMMMNc.    ......    .lNMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMNkc,...lkkkkl...,ckNMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMWN0kONMMMMNOOKNWMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM`)
+	fmt.Println(`
+     ( )
+.-----'-----.
+| ( )   ( ) |  -( flottbot started )
+'-----.-----' 
+ / '+---+' \
+ \/--|_|--\/
+`)
 	fmt.Println(version.String())
 	fmt.Println("Enter CLI mode: hit <Enter>. <Ctrl-C> to exit.")
 	scanner := bufio.NewScanner(os.Stdin)
