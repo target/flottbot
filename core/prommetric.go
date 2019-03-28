@@ -5,6 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/target/flottbot/models"
 )
 
@@ -42,8 +43,7 @@ func Prommetric(input string, bot *models.Bot) {
 
 			// metrics handler
 			prometheus.MustRegister(botResponseCollector)
-			promRouter.HandleFunc("/metrics", prometheus.Handler().ServeHTTP).Methods("GET")
-			// http.Handle("/metrics", prometheus.Handler())
+			promRouter.Handle("/metrics", promhttp.Handler())
 
 			// start prometheus server
 			go http.ListenAndServe(":8080", promRouter)
