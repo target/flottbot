@@ -40,10 +40,10 @@ func getMessageType(channel string) (models.MessageType, error) {
 		case "G":
 			return models.MsgTypePrivateChannel, nil
 		default:
-			return models.MsgTypeUnknown, fmt.Errorf("Unable to handle channel: UNKNOWN_%s", channel)
+			return models.MsgTypeUnknown, fmt.Errorf("unable to handle channel: UNKNOWN_%s", channel)
 		}
 	}
-	return models.MsgTypeUnknown, fmt.Errorf("Unable to handle channel: UNKNOWN_%s", channel)
+	return models.MsgTypeUnknown, fmt.Errorf("unable to handle channel: UNKNOWN_%s", channel)
 }
 
 // isValidPath - regex matches a URL's path string to check if it is a correct path
@@ -70,7 +70,7 @@ func isValidURL(url string) bool {
 	return false
 }
 
-// removeBotMention - parse out the preppended bot mention in a message
+// removeBotMention - parse out the prepended bot mention in a message
 func removeBotMention(contents, botID string) (string, bool) {
 	mention := fmt.Sprintf("<@%s> ", botID)
 	wasMentioned := false
@@ -83,10 +83,13 @@ func removeBotMention(contents, botID string) (string, bool) {
 }
 
 // sanitizeContents - sanitizes a buffer's contents from incoming http payloads
-func sanitizeContents(b []byte) string {
+func sanitizeContents(b []byte) (string, error) {
 	contents := string(b)
 	contents = strings.Replace(contents, "payload=", "", 1)
-	contents, _ = url.QueryUnescape(contents)
+	contents, err := url.QueryUnescape(contents)
+	if err != nil {
+		return "", err
+	}
 	contents = strings.Replace(contents, `\/`, `/`, -1)
-	return contents
+	return contents, nil
 }

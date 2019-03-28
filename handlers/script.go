@@ -49,7 +49,7 @@ func ScriptExec(args models.Action, msg *models.Message, bot *models.Bot) (*mode
 	// Handle timeouts
 	if ctx.Err() == context.DeadlineExceeded {
 		result.Output = "Hmm, something timed out. Please try again."
-		return result, fmt.Errorf("Timeout reached, exec process for action '%s' cancelled", args.Name)
+		return result, fmt.Errorf("timeout reached, exec process for action '%s' cancelled", args.Name)
 	}
 
 	// Deal with non-zero exit codes
