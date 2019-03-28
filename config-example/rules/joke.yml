@@ -7,13 +7,13 @@ respond: joke
 actions:
   - name: joke http request
     type: GET
-    url: https://08ad1pao69.execute-api.us-east-1.amazonaws.com/dev/random_joke
-    auth:
+    url: https://icanhazdadjoke.com/
+    custom_headers:
+      Accept: 'application/json'
     expose_json_fields:
-      setup: '.setup'
-      punchline: '.punchline'
+      joke: '.joke'
 # response
-format_output: "${setup}\n\n${punchline}"
+format_output: "${joke}"
 direct_message_only: false
 # help
 help_text: joke
