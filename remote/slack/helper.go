@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/nlopes/slack"
@@ -137,7 +136,7 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 		delete(bot.Rooms, ev.Channel)
 		bot.Log.Debugf("%s has left the channel %s", bot.Name, bot.Rooms[ev.Channel])
 	default:
-		bot.Log.Errorf("getEventsAPIEventHandler: Unrecognized event type")
+		bot.Log.Errorf("getEventsAPIEventHandler: Unrecognized event type: %v", ev)
 	}
 }
 
@@ -205,7 +204,10 @@ func getInteractiveComponentRuleHandler(verificationToken string, inputMsgs chan
 			bot.Log.Errorf("getInteractiveComponentRuleHandler: Failed to read request body: %s", err.Error())
 		}
 
-		contents := sanitizeContents(buff)
+		contents, err := sanitizeContents(buff)
+		if err != nil {
+			bot.Log.Debugf("failed to santize content: %v", err)
+		}
 
 		var callback slack.AttachmentActionCallback
 		if err := json.Unmarshal([]byte(contents), &callback); err != nil {
@@ -261,7 +263,7 @@ func getSlackUsers(api *slack.Client, message models.Message) ([]slack.User, err
 	if len(message.OutputToUsers) > 0 {
 		res, err := api.GetUsers()
 		if err != nil {
-			return []slack.User{}, fmt.Errorf("Did not find any users listed in 'output_to_users': %s", err.Error())
+			return []slack.User{}, fmt.Errorf("did not find any users listed in 'output_to_users': %s", err.Error())
 		}
 		slackUsers = res
 	}
@@ -474,56 +476,54 @@ func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models
 func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bot) {
 	go rtm.ManageConnection()
 	for {
-		select {
-		case msg := <-rtm.IncomingEvents:
-			switch ev := msg.Data.(type) {
-			case *slack.MessageEvent:
-				senderID := ev.User
-				// Sometimes message events in RTM don't have a User ID?
-				// Also, only process messages that aren't from the bot itself
-				if senderID != "" && bot.ID != senderID {
-					channel := ev.Channel
-					msgType, err := getMessageType(channel)
-					if err != nil {
-						bot.Log.Debug(err.Error())
-					}
-					text, mentioned := removeBotMention(ev.Text, bot.ID)
-					user, err := rtm.GetUserInfo(senderID)
-					if err != nil && senderID != "" { // we only care if senderID is not empty and there's an error (senderID == "" could be a thread from a message)
-						bot.Log.Errorf("Did not get Slack user info: %s", err.Error())
-					}
-					timestamp := ev.Timestamp
-					threadTimestamp := ev.ThreadTimestamp
-					inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, mentioned, user, bot)
+		msg := <-rtm.IncomingEvents
+		switch ev := msg.Data.(type) {
+		case *slack.MessageEvent:
+			senderID := ev.User
+			// Sometimes message events in RTM don't have a User ID?
+			// Also, only process messages that aren't from the bot itself
+			if senderID != "" && bot.ID != senderID {
+				channel := ev.Channel
+				msgType, err := getMessageType(channel)
+				if err != nil {
+					bot.Log.Debug(err.Error())
 				}
-			case *slack.ConnectedEvent:
-				// populate users
-				populateBotUsers(ev.Info.Users, bot)
-				// populate user groups
-				populateUserGroups(bot)
-				bot.Log.Debugf("RTM connection established!")
-			case *slack.GroupJoinedEvent:
-				// when the bot joins a channel add it to the internal lookup
-				// NOTE: looks like there is another unsupported event we could use
-				//   Received unmapped event \"member_joined_channel\"
-				// Maybe watch ffor an update to slack package for future support
-				if bot.Rooms[ev.Channel.Name] == "" {
-					bot.Rooms[ev.Channel.Name] = ev.Channel.ID
-					bot.Log.Debugf("Joined new channel. %s(%s) added to lookup", ev.Channel.Name, ev.Channel.ID)
+				text, mentioned := removeBotMention(ev.Text, bot.ID)
+				user, err := rtm.GetUserInfo(senderID)
+				if err != nil && senderID != "" { // we only care if senderID is not empty and there's an error (senderID == "" could be a thread from a message)
+					bot.Log.Errorf("Did not get Slack user info: %s", err.Error())
 				}
-			case *slack.HelloEvent:
-				// ignore - this is the very first initial event sent when connecting to Slack
-			case *slack.RTMError:
-				bot.Log.Error(ev.Error())
-			case *slack.ConnectionErrorEvent:
-				bot.Log.Errorf("RTM connection error: %+v", ev)
-			case *slack.InvalidAuthEvent:
-				if !bot.CLI {
-					bot.Log.Debug("Invalid Authorization. Please double check your Slack token.")
-				}
-			} // EOF inner switch
-		} // EOF outter switch
-	} // EOF for
+				timestamp := ev.Timestamp
+				threadTimestamp := ev.ThreadTimestamp
+				inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, mentioned, user, bot)
+			}
+		case *slack.ConnectedEvent:
+			// populate users
+			populateBotUsers(ev.Info.Users, bot)
+			// populate user groups
+			populateUserGroups(bot)
+			bot.Log.Debugf("RTM connection established!")
+		case *slack.GroupJoinedEvent:
+			// when the bot joins a channel add it to the internal lookup
+			// NOTE: looks like there is another unsupported event we could use
+			//   Received unmapped event \"member_joined_channel\"
+			// Maybe watch ffor an update to slack package for future support
+			if bot.Rooms[ev.Channel.Name] == "" {
+				bot.Rooms[ev.Channel.Name] = ev.Channel.ID
+				bot.Log.Debugf("Joined new channel. %s(%s) added to lookup", ev.Channel.Name, ev.Channel.ID)
+			}
+		case *slack.HelloEvent:
+			// ignore - this is the very first initial event sent when connecting to Slack
+		case *slack.RTMError:
+			bot.Log.Error(ev.Error())
+		case *slack.ConnectionErrorEvent:
+			bot.Log.Errorf("RTM connection error: %+v", ev)
+		case *slack.InvalidAuthEvent:
+			if !bot.CLI {
+				bot.Log.Debug("Invalid Authorization. Please double check your Slack token.")
+			}
+		}
+	}
 }
 
 // send - handles the sending logic of a message going to Slack
@@ -607,64 +607,4 @@ func sendMessage(api *slack.Client, ephemeral bool, channel, userID, text, threa
 		return err
 	}
 	return nil
-}
-
-// unfurlLink is not being used for anything but could be pretty handy later
-func unfurlLink(workspaceToken, messageTimeStamp, channel, link string) error {
-	if isValidURL(link) {
-		var jsonStr = []byte(fmt.Sprintf(`{
-			"token":"%s",
-			"ts":"%s",
-			"channel":"%s",
-			"unfurls": {
-				"%s": {
-					"parse": "full",
-					"response_type": "in_channel",
-					"text": "<%s>",
-					"attachments":[
-						{
-							"image_url": "%s"
-						}
-					],
-					"unfurl_media":true,
-					"unfurl_links":true
-				}
-			}
-			}`, workspaceToken, messageTimeStamp, channel, link, link, link))
-		req, err := http.NewRequest("POST", "https://slack.com/api/chat.unfurl", bytes.NewBuffer(jsonStr))
-		if err != nil {
-			return err
-		}
-		req.Header.Add("Content-Type", "application/json; charset=utf-8")
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", workspaceToken))
-		req.Close = true
-
-		client := &http.Client{
-			Timeout: 10 * time.Second,
-		}
-		resp, err := client.Do(req)
-		if err != nil {
-			return err
-		}
-
-		defer resp.Body.Close()
-
-		resultBytes, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-
-		type result struct {
-			Error string `json:"error"`
-		}
-		var rslt result
-		err = json.Unmarshal(resultBytes, &rslt)
-		if err != nil {
-			return err
-		}
-		if rslt.Error != "" {
-			return fmt.Errorf("Could not unfurl message with link '%s' because of error '%s'", link, rslt.Error)
-		}
-	}
-	return fmt.Errorf("URL link to unfurl is invalid, please check it's validity and try again")
 }
