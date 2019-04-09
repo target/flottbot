@@ -57,10 +57,6 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 		}
 	}
 
-	if !canRunRule && len(rule.AllowUsers) > 0 {
-		bot.Log.Debugf("'%s' is not part of allow_users: %s", currentUserName, strings.Join(rule.AllowUsers, ", "))
-	}
-
 	// if they still can't run the rule,
 	// check if they are a member of any of the supplied allowed user groups
 	if !canRunRule && len(rule.AllowUserGroups) > 0 {
@@ -73,7 +69,17 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	}
 
 	if !canRunRule {
-		bot.Log.Debugf("'%s' is not part of any groups in allow_usergroups: %s", currentUserName, strings.Join(rule.AllowUserGroups, ", "))
+		if len(rule.AllowUsers) > 0 {
+			bot.Log.Debugf("'%s' is not part of allow_users: %s", currentUserName, strings.Join(rule.AllowUsers, ", "))
+		}
+
+		if len(rule.AllowUserIds) > 0 {
+			bot.Log.Debugf("'%s' is not part of allow_userids: %s", currentUserID, strings.Join(rule.AllowUserIds, ", "))
+		}
+
+		if  len(rule.AllowUserGroups) > 0 {
+			bot.Log.Debugf("'%s' is not part of any groups in allow_usergroups: %s", currentUserName, strings.Join(rule.AllowUserGroups, ", "))
+		}
 	}
 
 	return canRunRule
