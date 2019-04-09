@@ -11,6 +11,7 @@ type Rule struct {
 	OutputToRooms      []string `mapstructure:"output_to_rooms" binding:"omitempty"`
 	OutputToUsers      []string `mapstructure:"output_to_users" binding:"omitempty"`
 	AllowUsers         []string `mapstructure:"allow_users" binding:"omitempty"`
+	AllowUserIds       []string `mapstructure:"allow_userids" binding:"omitempty"`
 	AllowUserGroups    []string `mapstructure:"allow_usergroups" binding:"omitempty"`
 	IgnoreUsers        []string `mapstructure:"ignore_users" binding:"omitempty"`
 	IgnoreUserGroups   []string `mapstructure:"ignore_usergroups" binding:"omitempty"`

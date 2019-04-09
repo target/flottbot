@@ -13,7 +13,7 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	var canRunRule bool
 
 	// no restriction were given for this rule, allow to proceed
-	if len(rule.AllowUsers)+len(rule.AllowUserGroups)+len(rule.IgnoreUsers)+len(rule.IgnoreUserGroups) == 0 {
+	if len(rule.AllowUsers)+len(rule.AllowUserGroups)+len(rule.AllowUserIds)+len(rule.IgnoreUsers)+len(rule.IgnoreUserGroups) == 0 {
 		return true
 	}
 
@@ -37,13 +37,21 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	}
 
 	// if they didn't get denied at this point and no 'allow' rules are set, let them through
-	if len(rule.AllowUsers)+len(rule.AllowUserGroups) == 0 {
+	if len(rule.AllowUsers)+len(rule.AllowUserGroups)+len(rule.AllowUserIds) == 0 {
 		return true
 	}
 
 	// check if they are part of the allow users list
 	for _, name := range rule.AllowUsers {
 		if name == currentUserName {
+			canRunRule = true
+			break
+		}
+	}
+
+	// check if they are part of the allow users ids list
+	for _, userId := range rule.AllowUserIds {
+		if userId == currentUserID {
 			canRunRule = true
 			break
 		}
