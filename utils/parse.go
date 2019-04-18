@@ -10,8 +10,8 @@ import (
 
 // Match checks given value against given pattern
 func Match(pattern, value string, trimInput bool) (string, bool) {
+	var regx *regexp.Regexp
 	re := strings.HasPrefix(pattern, "/") && strings.HasSuffix(pattern, "/")
-	regx := new(regexp.Regexp)
 
 	if re {
 		pattern = strings.Replace(pattern, "/", "", -1)
