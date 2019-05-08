@@ -9,9 +9,8 @@ import (
 
 func TestGetRoomIDs(t *testing.T) {
 	type args struct {
-		wantRooms   []string
-		activeRooms map[string]string
-		bot         *models.Bot
+		wantRooms []string
+		bot       *models.Bot
 	}
 
 	// For Room Exists

@@ -101,7 +101,7 @@ func configureChatApplication(bot *models.Bot) {
 				bot.InteractiveComponents = false
 			}
 			if iCallbackPath == "" {
-				bot.Log.Errorf("Slack Interactive Components callback path is empty: %s", iCallbackPath)
+				bot.Log.Warnf("Slack Interactive Components callback path is empty: %s", iCallbackPath)
 				bot.InteractiveComponents = false
 			}
 			bot.SlackInteractionsCallbackPath = iCallbackPath

@@ -103,7 +103,7 @@ func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot)
 			bot.Log.Debugf("Limiting to usergroups only works if you register " +
 				"your bot as an app with Slack and set the 'slack_workspace_token' property. " +
 				"Restricting access to rule. Unset 'allow_usergroups' and/or 'ignore_usergroups', or set 'slack_workspace_token'.")
-			return false, fmt.Errorf("SlackWorkspaceToken not supplied. Restricting access.")
+			return false, fmt.Errorf("slack_workspace_token not supplied - restricting access")
 		}
 		// Check if we are restricting by usergroup
 		if bot.SlackWorkspaceToken != "" {

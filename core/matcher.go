@@ -279,7 +279,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 func craftResponse(rule models.Rule, msg models.Message, bot *models.Bot) (string, error) {
 	// The user removed the 'format_output' field, or it's not set
 	if rule.FormatOutput == "" {
-		return "", errors.New("Hmm, the 'format_output' field in your configuration is empty")
+		return "", errors.New("hmm, the 'format_output' field in your configuration is empty")
 	}
 
 	// None of the rooms specified in 'output_to_rooms' exist
@@ -302,10 +302,9 @@ func craftResponse(rule models.Rule, msg models.Message, bot *models.Bot) (strin
 
 	// Check if the value contains html/template code, for advanced formatting
 	if strings.Contains(output, "{{") {
-		t := new(template.Template)
 		var i interface{}
 
-		t, err = template.New("output").Funcs(gtf.GtfFuncMap).Parse(output)
+		t, err := template.New("output").Funcs(gtf.GtfFuncMap).Parse(output)
 		if err != nil {
 			return "", err
 		}
@@ -328,7 +327,6 @@ func handleExec(action models.Action, msg *models.Message, bot *models.Bot) erro
 		return fmt.Errorf("no command was supplied for the '%s' action named: %s", action.Type, action.Name)
 	}
 
-	resp := &models.ScriptResponse{}
 	resp, err := handlers.ScriptExec(action, msg, bot)
 
 	// Set explicit variables to make script output, script status code accessible in rules
@@ -348,7 +346,6 @@ func handleHTTP(action models.Action, msg *models.Message, bot *models.Bot) erro
 		return fmt.Errorf("no URL was supplied for the '%s' action named: %s", action.Type, action.Name)
 	}
 
-	resp := &models.HTTPResponse{}
 	resp, err := handlers.HTTPReq(action, msg)
 	if err != nil {
 		msg.Error = fmt.Sprintf("Error in request made by action '%s'. See bot admin for more information", action.Name)
@@ -369,7 +366,7 @@ func handleHTTP(action models.Action, msg *models.Message, bot *models.Bot) erro
 	// Do we need to expose any fields?
 	if len(action.ExposeJSONFields) > 0 {
 		for k, v := range action.ExposeJSONFields {
-			t := new(template.Template)
+			var t *template.Template
 
 			v, err = utils.Substitute(v, msg.Vars)
 			if err != nil {
@@ -403,7 +400,7 @@ func handleHTTP(action models.Action, msg *models.Message, bot *models.Bot) erro
 // Handle standard message/logging actions
 func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *models.Message, direct, startMsgThread bool, hitRule chan<- models.Rule, bot *models.Bot) error {
 	if action.Message == "" {
-		return fmt.Errorf("No message was set")
+		return fmt.Errorf("no message was set")
 	}
 
 	if action.Type == "message" && startMsgThread && msg.ThreadTimestamp == "" {
@@ -424,7 +421,7 @@ func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *
 		msg.OutputToRooms = utils.GetRoomIDs(action.LimitToRooms, bot)
 
 		if len(msg.OutputToRooms) == 0 {
-			return errors.New("The rooms defined in 'limit_to_rooms' do not exist")
+			return errors.New("the rooms defined in 'limit_to_rooms' do not exist")
 		}
 	} else if !direct && len(action.LimitToRooms) == 0 { // direct=false and no limit_to_rooms is specified
 		msg.OutputToRooms = []string{msg.ChannelID}
@@ -457,7 +454,7 @@ func updateReaction(action models.Action, rule *models.Rule, vars map[string]str
 			}
 			action.Reaction = reaction
 
-			t := new(template.Template)
+			var t *template.Template
 			var i interface{}
 
 			t, err = template.New("update_reaction").Funcs(gtf.GtfFuncMap).Parse(action.Reaction)

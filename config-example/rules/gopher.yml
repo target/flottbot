@@ -2,7 +2,7 @@
 name: get a random gopher
 active: true
 respond: gopher
-reaction: waiting
+reaction: thinking_face
 # actions
 actions:
   - name: gopher http request

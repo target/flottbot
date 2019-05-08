@@ -171,7 +171,7 @@ func TestHandleExec(t *testing.T) {
 
 	testFailScriptResponse := models.ScriptResponse{
 		Status: 1,
-		Output: "Hmm, something timed out. Please try again",
+		Output: "hmm, something timed out. Please try again",
 	}
 
 	testNoCmdScriptAction := models.Action{
@@ -717,7 +717,7 @@ func Test_handleChatServiceRule(t *testing.T) {
 	}{
 		{"basic", args{}, false, false, ""},
 		{"respond rule - hit false", args{rule: rule, hit: false}, false, false, ""},
-		{"respond rule - hit true - valid", args{rule: rule, hit: true, bot: testBot, message: testMessage, processedInput: "arg1 arg2"}, true, true, "Hmm, the 'format_output' field in your configuration is empty"},
+		{"respond rule - hit true - valid", args{rule: rule, hit: true, bot: testBot, message: testMessage, processedInput: "arg1 arg2"}, true, true, "hmm, the 'format_output' field in your configuration is empty"},
 		{"respond rule - hit true - bot not mentioned", args{rule: rule, hit: true, bot: testBot, message: testMessageBotNotMentioned, processedInput: "arg1 arg2"}, false, false, ""},
 		{"respond rule - hit true - valid - not enough args", args{rule: rule, hit: true, bot: testBot, message: testMessageNotEnoughArgs, processedInput: "arg1"}, true, true, "You might be missing an argument or two. This is what I'm looking for\n```foo <arg1> <arg2>```"},
 		{"respond rule - hit true - valid optional arg", args{rule: ruleOpt, hit: true, bot: testBot, message: testMessageOptionalArgs, processedInput: "arg1"}, true, true, ""},
@@ -973,7 +973,7 @@ func Test_doRuleActions(t *testing.T) {
 		args            args
 		expectedMessage string
 	}{
-		{"Missing format_output", args{message: models.Message{}, rule: models.Rule{}, bot: testBot}, "Hmm, the 'format_output' field in your configuration is empty"},
+		{"Missing format_output", args{message: models.Message{}, rule: models.Rule{}, bot: testBot}, "hmm, the 'format_output' field in your configuration is empty"},
 		{"Message Action", args{message: testMessage, rule: testRule, bot: testBot}, "hi there from foo action"},
 		{"Exec Action", args{message: testMessage, rule: execRule, bot: testBot}, "hi"},
 		{"Http Action", args{message: testMessage, rule: httpRule, bot: testBot}, "OK"},
