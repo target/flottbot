@@ -206,7 +206,7 @@ func getInteractiveComponentRuleHandler(verificationToken string, inputMsgs chan
 
 		contents, err := sanitizeContents(buff)
 		if err != nil {
-			bot.Log.Debugf("failed to santize content: %v", err)
+			bot.Log.Debugf("failed to sanitize content: %v", err)
 		}
 
 		var callback slack.AttachmentActionCallback
@@ -507,7 +507,7 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 			// when the bot joins a channel add it to the internal lookup
 			// NOTE: looks like there is another unsupported event we could use
 			//   Received unmapped event \"member_joined_channel\"
-			// Maybe watch ffor an update to slack package for future support
+			// Maybe watch for an update to slack package for future support
 			if bot.Rooms[ev.Channel.Name] == "" {
 				bot.Rooms[ev.Channel.Name] = ev.Channel.ID
 				bot.Log.Debugf("Joined new channel. %s(%s) added to lookup", ev.Channel.Name, ev.Channel.ID)
