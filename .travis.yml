@@ -16,7 +16,7 @@ script:
   - env GO111MODULE=on go vet $(go list ./... | grep -v vendor)
   - env GO111MODULE=on go test -v -race  -coverprofile=coverage.out -coverpkg=./... $(go list ./... | grep -v vendor)
   - env GO111MODULE=on gocyclo -over 18 `find . -iname '*.go' | grep -v vendor | grep -v '_test.go'`
-  - env GO111MODULE=on goveralls -coverprofile=coverage.out -service=travis-ci
+  - "$GOPATH/bin/goveralls -coverprofile=coverage.out -service=travis-ci"
 before_deploy:
   - go get github.com/mitchellh/gox
   - gox -ldflags "-X github.com/target/flottbot/version.Version=${TRAVIS_TAG} -X github.com/target/flottbot/version.GitHash=${TRAVIS_COMMIT}" -os="linux darwin windows" -arch="amd64" -verbose ./...
