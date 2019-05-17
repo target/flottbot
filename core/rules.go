@@ -59,6 +59,10 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
+		err = rule.Validate()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
 		(*rules)[ruleFile] = rule
 	}
 
