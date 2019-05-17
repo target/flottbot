@@ -30,7 +30,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.2
-	github.com/target/flottbot v0.0.0-20190508180909-572e66cbb3ad // indirect
+	github.com/target/flottbot v0.0.0-20190508180909-572e66cbb3ad
 	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c
 	golang.org/x/sys v0.0.0-20190322080309-f49334f85ddc
 	golang.org/x/text v0.3.0
