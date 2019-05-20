@@ -3,6 +3,7 @@ package models
 import (
 	"flottbot/utils"
 	"fmt"
+	"log"
 )
 
 // Rule is a struct representation of the .yml rules
@@ -40,6 +41,9 @@ func (r *Rule) Validate() error {
 		if err != nil {
 			return fmt.Errorf("Could not configure output room: %s", err.Error())
 		}
+
+		log.Printf("processing output rule: %s to %s\n", r.OutputToRooms[i], token)
+
 		r.OutputToRooms[i] = token
 	}
 	return nil
