@@ -1,10 +1,5 @@
 package models
 
-import (
-	"flottbot/utils"
-	"fmt"
-)
-
 // Rule is a struct representation of the .yml rules
 type Rule struct {
 	Name               string   `mapstructure:"name" binding:"required"`
@@ -31,22 +26,4 @@ type Rule struct {
 	Reaction           string   `mapstructure:"reaction" binding:"omitempty"`
 	// The following fields are not included in rule file
 	RemoveReaction string
-}
-
-// Validate applies any environmental changes
-func (r *Rule) Validate(bot *Bot) error {
-
-	bot.Log.Debugf("validating rule: %s", r.Name)
-
-	for i := range r.OutputToRooms {
-		token, err := utils.Substitute(r.OutputToRooms[i], map[string]string{})
-		if err != nil {
-			return fmt.Errorf("Could not configure output room: %s", err.Error())
-		}
-
-		bot.Log.Debugf("processing output rule: %s to %s\n", r.OutputToRooms[i], token)
-
-		r.OutputToRooms[i] = token
-	}
-	return nil
 }

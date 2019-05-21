@@ -47,8 +47,6 @@ func configureChatApplication(bot *models.Bot) {
 	if err != nil {
 		bot.Log.Warnf("Could not configure bot Name: %s", err.Error())
 	}
-
-	bot.Log.Debugf("Updating name from: %s to %s", bot.Name, token)
 	bot.Name = token
 
 	if bot.ChatApplication != "" {

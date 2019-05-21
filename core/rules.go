@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -59,7 +60,7 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		err = rule.Validate()
+		err = validateRule(bot, &rule)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
@@ -67,4 +68,18 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 	}
 
 	bot.Log.Infof("Configured '%s' rules!", bot.Name)
+}
+
+// Validate applies any environmental changes
+func validateRule(bot *models.Bot, r *models.Rule) error {
+
+	for i := range r.OutputToRooms {
+		token, err := utils.Substitute(r.OutputToRooms[i], map[string]string{})
+		if err != nil {
+			return fmt.Errorf("Could not configure output room: %s", err.Error())
+		}
+
+		r.OutputToRooms[i] = token
+	}
+	return nil
 }
