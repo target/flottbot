@@ -3,6 +3,8 @@ package models
 import (
 	"os"
 	"testing"
+
+	"github.com/sirupsen/logrus"
 )
 
 func TestRuleValidation(t *testing.T) {
@@ -11,9 +13,14 @@ func TestRuleValidation(t *testing.T) {
 	defer os.Unsetenv("FB_ENV")
 
 	r := new(Rule)
+	r.Name = "test"
 	r.OutputToRooms = []string{"operations-${FB_ENV}"}
 
-	err := r.Validate()
+	bot := new(Bot)
+	bot.Log = *logrus.StandardLogger()
+	bot.Log.SetLevel(logrus.DebugLevel)
+
+	err := r.Validate(bot)
 	if err != nil {
 		t.Error(err)
 	}
