@@ -13,22 +13,24 @@ To ensure that all developers follow the same guidelines for development, we hav
 - Clone this repository to your Go workspace:
 
 ```sh
-# Make sure your go paths are set if they aren't already
-export GOPATH=$HOME/go
-export PATH=$PATH:$GOPATH/bin
+# Make sure you are running go 1.11 or later
+# if you plan to clone into your current GOPATH then set the environment variable GO111MODULE=on
+# this will tell go to use the new modules support
 
 # Clone the project
-git clone git@github.com:target/flottbot.git $GOPATH/src/github.com/target/flottbot
+git clone git@github.com:target/flottbot.git somepath/src/github.com/target/flottbot
 ```
 
-- Build the project dependencies using [dep](https://github.com/golang/dep):
+- Build the project:
 
 ```sh
 # Change into the project directory
-cd $GOPATH/src/github.com/target/flottbot
+cd somepath/src/github.com/target/flottbot
 
-# Run dep
-dep ensure
+# Install modules
+go mod download
+# Build project
+make build
 ```
 
 - Write your code and ensure all tests pass.
@@ -47,7 +49,7 @@ git checkout -b name_of_your_branch
 export SLACK_TOKEN=xoxb-xxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxx
 
 # Build the binary and run flottbot
-go build -o ./flottbot cmd/flottbot/main.go && ./flottbot
+make run
 ```
 
 - If you followed the above steps correctly, you should see output similar to this:
