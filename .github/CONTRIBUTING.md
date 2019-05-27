@@ -18,14 +18,14 @@ To ensure that all developers follow the same guidelines for development, we hav
 # this will tell go to use the new modules support
 
 # Clone the project
-git clone git@github.com:target/flottbot.git somepath/src/github.com/target/flottbot
+git clone git@github.com:target/flottbot.git somepath/flottbot
 ```
 
 - Build the project:
 
 ```sh
 # Change into the project directory
-cd somepath/src/github.com/target/flottbot
+cd somepath/flottbot
 
 # Install modules
 go mod download
