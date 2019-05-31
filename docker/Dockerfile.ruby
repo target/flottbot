@@ -1,11 +1,11 @@
-FROM golang:1.11-alpine AS build
+FROM golang:1.12-alpine AS build
 ARG SOURCE_BRANCH
 ARG SOURCE_COMMIT
 WORKDIR /go/src/github.com/target/flottbot/
 RUN apk add --no-cache git
-RUN go get -u github.com/golang/dep/cmd/dep
+ENV GO111MODULE=on
 COPY / .
-RUN dep ensure
+RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -ldflags "-X github.com/target/flottbot/version.Version=${SOURCE_BRANCH} -X github.com/target/flottbot/version.GitHash=${SOURCE_COMMIT}" \
     -o flottbot ./cmd/flottbot
