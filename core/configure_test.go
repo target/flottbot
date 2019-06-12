@@ -268,21 +268,31 @@ func Test_validateRemoteSetup(t *testing.T) {
 }
 
 func TestConfigure(t *testing.T) {
+
 	testBot := new(models.Bot)
+	testBot.Name = "mybot(${FB_ENV})"
 	testBot.CLI = true
+
+	os.Setenv("FB_ENV", "dev")
+	defer os.Unsetenv("FB_ENV")
 
 	type args struct {
 		bot *models.Bot
 	}
 	tests := []struct {
-		name string
-		args args
+		name   string
+		args   args
+		expect args
 	}{
-		{"Basic", args{bot: testBot}},
+		{"Basic", args{bot: testBot}, args{bot: &models.Bot{Name: "mybot(dev)"}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			Configure(tt.args.bot)
+
+			if tt.args.bot.Name != tt.expect.bot.Name {
+				t.Errorf("configure() wanted bot.Name set to %v, but got %v", tt.args.bot.Name, tt.expect.bot.Name)
+			}
 		})
 	}
 }
