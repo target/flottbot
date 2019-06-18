@@ -14,6 +14,12 @@ docker:
 	docker build \
 		--build-arg "SOURCE_BRANCH=$(SOURCE_BRANCH)" \
 		--build-arg "SOURCE_COMMIT=$(SOURCE_COMMIT)" \
+		-f "./docker/Dockerfile" \
+		-t $(TAG) .
+
+	docker build \
+		--build-arg "SOURCE_BRANCH=$(SOURCE_BRANCH)" \
+		--build-arg "SOURCE_COMMIT=$(SOURCE_COMMIT)" \
 		-f "./docker/Dockerfile.ruby" \
 		-t $(TAG):ruby .
 	
