@@ -735,7 +735,7 @@ func Test_handleChatServiceRule(t *testing.T) {
 		expectMsg string
 	}{
 		{"basic", args{}, false, false, ""},
-		{"respone + hear", args{rule: models.Rule{Respond: "hi", Hear: "/hi/"}, hit: false, bot: testBot, message: testMessage}, false, false, ""},
+		{"respond + hear", args{rule: models.Rule{Respond: "hi", Hear: "/hi/"}, hit: false, bot: testBot, message: testMessage}, false, false, ""},
 		{"hear + rule args", args{rule: ruleHearWithArgs, hit: false, bot: testBot, message: testMessage}, false, false, ""},
 		{"respond rule - hit false", args{rule: rule, hit: false}, false, false, ""},
 		{"respond rule - hit true - valid", args{rule: rule, hit: true, bot: testBot, message: testMessage, processedInput: "arg1 arg2"}, true, true, "hmm, the 'format_output' field in your configuration is empty"},
