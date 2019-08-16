@@ -83,7 +83,7 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 		}
 
 		if hit && message.ThreadTimestamp != "" && rule.IgnoreThreads {
-			bot.Log.Debug("Response suppressed due to 'ignore_thread' being set")
+			bot.Log.Debug("Response suppressed due to 'ignore_threads' being set")
 			return true, true
 		}
 
