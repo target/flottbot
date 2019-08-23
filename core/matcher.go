@@ -82,6 +82,11 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 			bot.Log.Debugf("Rule '%s' has both 'args' and 'hear' set. To use 'args', use 'respond' instead of 'hear'", rule.Name)
 		}
 
+		if hit && message.ThreadTimestamp != "" && rule.IgnoreThreads {
+			bot.Log.Debug("Response suppressed due to 'ignore_threads' being set")
+			return true, true
+		}
+
 		// if it's a 'respond' rule, make sure the bot was mentioned
 		if hit && rule.Respond != "" && !message.BotMentioned && message.Type != models.MsgTypeDirect {
 			return match, stopSearch
@@ -96,6 +101,8 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 			// Capture untouched user input
 
 			message.Vars["_raw_user_input"] = message.Input
+			message.Vars["_is_thread_message"] = strconv.FormatBool(message.ThreadTimestamp != "")
+
 			// Do additional checks on the rule before running
 			if !isValidHitChatRule(&message, rule, processedInput, bot) {
 				outputMsgs <- message

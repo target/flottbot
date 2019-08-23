@@ -16,6 +16,7 @@ type Rule struct {
 	IgnoreUsers        []string `mapstructure:"ignore_users" binding:"omitempty"`
 	IgnoreUserGroups   []string `mapstructure:"ignore_usergroups" binding:"omitempty"`
 	StartMessageThread bool     `mapstructure:"start_message_thread" binding:"omitempty"`
+	IgnoreThreads      bool     `mapstructure:"ignore_threads" binding:"omitempty"`
 	FormatOutput       string   `mapstructure:"format_output"`
 	HelpText           string   `mapstructure:"help_text"`
 	IncludeInHelp      bool     `mapstructure:"include_in_help" binding:"required"`
