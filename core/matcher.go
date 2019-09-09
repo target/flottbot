@@ -174,11 +174,34 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 		args := utils.RuleArgTokenizer(processedInput)
 		var optionalArgs int
 		var requiredArgs int
+		var varArgs int
 		// take note of all optional args that end with a '?'
 		for _, arg := range rule.Args {
 			if strings.HasSuffix(arg, "?") {
 				optionalArgs++
 			}
+			if strings.HasSuffix(arg, "+") {
+				varArgs++
+			}
+		}
+		if varArgs > 1 {
+			// error, can ony have 1
+			msg := fmt.Sprintf("You cannot specify more than 1 variable argument")
+			message.Output = msg
+			return false
+		}
+		if strings.HasSuffix(rule.Args[len(rule.Args)-1], "+") {
+			if optionalArgs > 0 {
+				// error, cannot combine optional and varargs
+				msg := fmt.Sprintf("You cannot combine optional arguments with variable arguments")
+				message.Output = msg
+				return false
+			}
+		} else if varArgs == 1 {
+			// error, vararg but not in last position
+			msg := fmt.Sprintf("You must specify the variable argument in the last argument position")
+			message.Output = msg
+			return false
 		}
 		// ensure we only require args that don't end with '?'
 		requiredArgs = len(rule.Args) - optionalArgs
@@ -190,6 +213,11 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 		}
 		// Go through the supplied args and make them available as variables
 		for index, arg := range rule.Args {
+			// If this is a varag method, then join all the remaining args and end
+			if strings.HasSuffix(arg, "+") {
+				message.Vars[strings.TrimSuffix(arg, "+")] = strings.Join(args[index:], " ")
+				break
+			}
 			// strip '?' from end of arg
 			arg = strings.TrimSuffix(arg, "?")
 			// index starts at 0 so we need to account for that
