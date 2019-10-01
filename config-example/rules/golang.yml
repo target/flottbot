@@ -1,0 +1,16 @@
+# meta
+name: script-rule
+active: true
+# trigger and args
+respond: goscript
+# actions
+actions:
+  - name: sample script
+    type: exec
+    cmd: go run config/scripts/main.go
+# response
+format_output: "STATUS: ${_exec_status} - OUTPUT: ${_exec_output}"
+direct_message_only: false
+# help
+help_text: golang
+include_in_help: true
