@@ -30,36 +30,18 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	if user == "" {
 		user = "Flottbot-CLI-User"
 	}
-	fmt.Println(`MMMMMMMMMMMMMMMMMMMMMMMWNNWMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMMNkl;;;;lONMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMNo.   .  .dNMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMK:       .cXMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMWk,.    .;OWMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMMWKc.  .lXMMMMMMMMMMMMMMMMMMMMM
-MMMMXkdooooooooooooooo;.  .;ooooooooooooooodkXMMMM      ______      __  __  __          __
-MMMK:.                                      .cXMMM     / __/ /___  / /_/ /_/ /_  ____  / /_
-MMMO'                                        ,0MMM    / /_/ / __ \/ __/ __/ __ \/ __ \/ __/
-MMMO'      .;lodl;.           ..;ldol,.      ,0MMM   / __/ / /_/ / /_/ /_/ /_/ / /_/ / /_
-MMMO'    .,kNMMMMNk;.        .;ONMMMMNx,.    ,0MMM  /_/ /_/\____/\__/\__/_.___/\____/\__/
-MMMO'    .xWMMMMMMWx.        'kMMMMMMMWd.    ,0MMM
-MMMO'    .oNMMMMMMWd.        .xWMMMMMMNl.    ,0MMM
-MMMO'     .l0NWWN0l.          .o0NWWNOc.     ,0MMM            __             __           __
-MMMO'      ..,;;,..            ..,;;,.       ,0MMM      _____/ /_____ ______/ /____  ____/ /
-MMMO'                                        ,0MMM    / ___/ __/ __  / ___/ __/ _ \/ __  /
-MMMXl................        ................oXMMM   (__  ) /_/ /_/ / /  / /_/  __/ /_/ /
-MMMMWKkkkdc:::::cdkkxl..  ..cxkkdc:::::cdkkOKWMMMM  /____/\__/\__,_/_/   \__/\___/\__,_/
-MMMMMMMMMK:......c0WMW0occo0WMW0c......cXMMMMMMMMM
-MMMMMMMMMW0:.,'. .'cx0XNNNNX0xc.. .',':0MMMMMMMMMM
-MMMMMMMMMMMNXNKd'.  ..',,,,'..  .,dXNXNMMMMMMMMMMM
-MMMMMMMMMMMMMMMNc.    ......    .lNMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMNkc,...lkkkkl...,ckNMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMWN0kONMMMMNOOKNWMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM`)
+	fmt.Print(`
+     ( )
+.-----'-----.
+| ( )   ( ) |  -( flottbot started )
+'-----.-----' 
+ / '+---+' \
+ \/--|_|--\/` + "\n\n")
 	fmt.Println(version.String())
-	fmt.Println("Enter CLI mode: hit <Enter>. <Ctrl-C> to exit.")
+	fmt.Print("Entering CLI mode. <Ctrl-C> to exit.\n\n")
+	fmt.Print(user + "> ")
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
-		fmt.Print("\n", bot.Name, "> ")
 		req := scanner.Text()
 		if strings.TrimSpace(req) != "" {
 			message := models.NewMessage()
@@ -72,6 +54,9 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM`)
 			message.Vars["_user.firstname"] = user
 			message.Vars["_user.name"] = user
 			inputMsgs <- message
+		} else {
+			// nothing was entered. prevent blank line.
+			fmt.Print(user + "> ")
 		}
 	}
 	if err := scanner.Err(); err != nil {
@@ -81,10 +66,19 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM`)
 
 // Send implementation to satisfy remote interface
 func (c *Client) Send(message models.Message, bot *models.Bot) {
-	w := bufio.NewWriter(os.Stdout)
 	var re = regexp.MustCompile(`(?m)^(.*)`)
 	var substitution = fmt.Sprintf(`%s> $1`, bot.Name)
+
+	user := bot.CLIUser
+	if user == "" {
+		user = "Flottbot-CLI-User"
+	}
+
+	w := bufio.NewWriter(os.Stdout)
 	fmt.Fprintln(w, re.ReplaceAllString(message.Output, substitution))
+
+	// after sending the main message, also present a new prompt
+	fmt.Fprint(w, user+"> ")
 	w.Flush()
 }
 

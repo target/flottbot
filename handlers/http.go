@@ -111,7 +111,12 @@ func extractFields(raw []byte) (interface{}, error) {
 
 	err := json.Unmarshal(raw, &resp)
 	if err != nil {
-		return string(raw), nil
+		var arrResp []map[string]interface{}
+		err := json.Unmarshal(raw, &arrResp)
+		if err != nil {
+			return string(raw), nil
+		}
+		return arrResp, nil
 	}
 
 	return resp, nil

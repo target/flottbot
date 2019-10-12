@@ -1,19 +1,20 @@
 language: go
 go:
-  - "1.11"
+  - "1.12"
 before_install:
   - go get github.com/mattn/goveralls
   - go get github.com/fzipp/gocyclo
-  - go get github.com/golang/dep/cmd/dep
 install: true
+env:
+  - GO111MODULE=on
 before_script:
   - echo $TRAVIS_COMMIT
   - echo $TRAVIS_TAG
   - echo $TRAVIS_BRANCH
   - echo $TRAVIS_BUILD_NUMBER
   - echo $TRAVIS_REPO_SLUG
-  - dep ensure
 script:
+  - go mod download
   - go vet $(go list ./... | grep -v vendor)
   - go test -v -race -coverprofile=coverage.out -coverpkg=./... $(go list ./... | grep -v vendor | grep -v  config-example)
   - gocyclo -over 18 `find . -iname '*.go' | grep -v vendor | grep -v '_test.go'`

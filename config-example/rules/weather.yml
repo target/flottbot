@@ -4,43 +4,26 @@ active: true
 # trigger and args
 respond: weather
 args:
-  - location
+  - lonlat
 # actions
 actions:
   - name: weather http request
     type: GET
-    url: http://api.openweathermap.org/data/2.5/weather
-    query_data:
-      q: ${location}
-      APPID: ${APPID}
-      units: metric
-    auth:
+    url: http://api.weather.gov/points/${lonlat}
     expose_json_fields:
-      temperature: '.main.temp'
-      loc: '.name'
-      desc: |-
-        {{ range .weather }}
-        {{ range $k, $v := . }}
-        - {{- $v -}}
-        {{ end }}
-
-        {{ end }}
-      country: '.sys.country'
-  - name: location http request
+      city: '.properties.relativeLocation.properties.city'
+      state: '.properties.relativeLocation.properties.state'
+      fc_url: '.properties.forecast'
+  - name: get forecast
     type: GET
-    url: https://restcountries.eu/rest/v2/alpha/${country}
-    auth:
+    url: ${fc_url}
     expose_json_fields:
-      flag_url: .flag
-      full_name: '.name'
-      population: 'printf "%0.f" .population'
-      native_name: .nativeName
+      tomorrow_temp: |-
+        {{ (index .properties.periods 1).temperature }}{{ (index .properties.periods 1).temperatureUnit }}
 # response
-format_output: "It is ${temperature}C in ${loc} (${full_name}/${native_name}, country population: ${population})"
+format_output: "Tomorrow's temperature in ${city}, ${state} will be ${tomorrow_temp}"
 direct_message_only: false
-output_to_rooms:
-  - general
 
 # help
-help_text: weather <location>
+help_text: weather <lon,lat>
 include_in_help: true

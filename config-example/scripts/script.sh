@@ -1,3 +1,3 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
-echo "hi from bash running on $(whoami)'s machine"
+echo "hi from the shell running on $(whoami)'s machine"

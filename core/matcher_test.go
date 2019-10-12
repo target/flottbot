@@ -171,7 +171,7 @@ func TestHandleExec(t *testing.T) {
 
 	testFailScriptResponse := models.ScriptResponse{
 		Status: 1,
-		Output: "Hmm, something timed out. Please try again",
+		Output: "hmm, something timed out. Please try again",
 	}
 
 	testNoCmdScriptAction := models.Action{
@@ -673,6 +673,25 @@ func Test_handleChatServiceRule(t *testing.T) {
 		HelpText: "foo <arg1> <arg2>",
 	}
 
+	ruleOpt := models.Rule{
+		Name:     "Test Rule with optional arg",
+		Respond:  "foo",
+		Args:     []string{"arg1", "arg2?"},
+		HelpText: "foo <arg1> <arg2>",
+	}
+
+	ruleHearWithArgs := models.Rule{
+		Name: "Hear rule with Args set",
+		Hear: "/hi/",
+		Args: []string{"arg1", "arg2"},
+	}
+
+	ruleIgnoreThread := models.Rule{
+		Name:          "Test rule that ignores thread",
+		Hear:          "/thread/",
+		IgnoreThreads: true,
+	}
+
 	testBot := new(models.Bot)
 	testBot.Name = "Testbot"
 
@@ -695,6 +714,19 @@ func Test_handleChatServiceRule(t *testing.T) {
 		BotMentioned: true,
 	}
 
+	testMessageOptionalArgs := models.Message{
+		Input:        "foo arg1",
+		Vars:         map[string]string{},
+		BotMentioned: true,
+	}
+
+	testMessageIgnoreThread := models.Message{
+		Input:           "we have a thread",
+		Vars:            map[string]string{},
+		Timestamp:       "x",
+		ThreadTimestamp: "x",
+	}
+
 	tests := []struct {
 		name      string
 		args      args
@@ -703,11 +735,15 @@ func Test_handleChatServiceRule(t *testing.T) {
 		expectMsg string
 	}{
 		{"basic", args{}, false, false, ""},
+		{"respond + hear", args{rule: models.Rule{Respond: "hi", Hear: "/hi/"}, hit: false, bot: testBot, message: testMessage}, false, false, ""},
+		{"hear + rule args", args{rule: ruleHearWithArgs, hit: false, bot: testBot, message: testMessage}, false, false, ""},
 		{"respond rule - hit false", args{rule: rule, hit: false}, false, false, ""},
-		{"respond rule - hit true - valid", args{rule: rule, hit: true, bot: testBot, message: testMessage, processedInput: "arg1 arg2"}, true, true, "Hmm, the 'format_output' field in your configuration is empty"},
+		{"respond rule - hit true - valid", args{rule: rule, hit: true, bot: testBot, message: testMessage, processedInput: "arg1 arg2"}, true, true, "hmm, the 'format_output' field in your configuration is empty"},
 		{"respond rule - hit true - bot not mentioned", args{rule: rule, hit: true, bot: testBot, message: testMessageBotNotMentioned, processedInput: "arg1 arg2"}, false, false, ""},
 		{"respond rule - hit true - valid - not enough args", args{rule: rule, hit: true, bot: testBot, message: testMessageNotEnoughArgs, processedInput: "arg1"}, true, true, "You might be missing an argument or two. This is what I'm looking for\n```foo <arg1> <arg2>```"},
+		{"respond rule - hit true - valid optional arg", args{rule: ruleOpt, hit: true, bot: testBot, message: testMessageOptionalArgs, processedInput: "arg1"}, true, true, ""},
 		{"respond rule - hit true - invalid", args{rule: rule, hit: true, bot: testBot, message: testMessage}, true, true, "You might be missing an argument or two. This is what I'm looking for\n```foo <arg1> <arg2>```"},
+		{"hear rule - ignore thread", args{rule: ruleIgnoreThread, hit: true, bot: testBot, message: testMessageIgnoreThread}, true, true, ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -959,7 +995,7 @@ func Test_doRuleActions(t *testing.T) {
 		args            args
 		expectedMessage string
 	}{
-		{"Missing format_output", args{message: models.Message{}, rule: models.Rule{}, bot: testBot}, "Hmm, the 'format_output' field in your configuration is empty"},
+		{"Missing format_output", args{message: models.Message{}, rule: models.Rule{}, bot: testBot}, "hmm, the 'format_output' field in your configuration is empty"},
 		{"Message Action", args{message: testMessage, rule: testRule, bot: testBot}, "hi there from foo action"},
 		{"Exec Action", args{message: testMessage, rule: execRule, bot: testBot}, "hi"},
 		{"Http Action", args{message: testMessage, rule: httpRule, bot: testBot}, "OK"},

@@ -82,6 +82,11 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 			bot.Log.Debugf("Rule '%s' has both 'args' and 'hear' set. To use 'args', use 'respond' instead of 'hear'", rule.Name)
 		}
 
+		if hit && message.ThreadTimestamp != "" && rule.IgnoreThreads {
+			bot.Log.Debug("Response suppressed due to 'ignore_threads' being set")
+			return true, true
+		}
+
 		// if it's a 'respond' rule, make sure the bot was mentioned
 		if hit && rule.Respond != "" && !message.BotMentioned && message.Type != models.MsgTypeDirect {
 			return match, stopSearch
@@ -96,6 +101,8 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 			// Capture untouched user input
 
 			message.Vars["_raw_user_input"] = message.Input
+			message.Vars["_is_thread_message"] = strconv.FormatBool(message.ThreadTimestamp != "")
+
 			// Do additional checks on the rule before running
 			if !isValidHitChatRule(&message, rule, processedInput, bot) {
 				outputMsgs <- message
@@ -165,15 +172,32 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 	if rule.Hear == "" {
 		// Get all the args that the message sender supplied
 		args := utils.RuleArgTokenizer(processedInput)
+		var optionalArgs int
+		var requiredArgs int
+		// take note of all optional args that end with a '?'
+		for _, arg := range rule.Args {
+			if strings.HasSuffix(arg, "?") {
+				optionalArgs++
+			}
+		}
+		// ensure we only require args that don't end with '?'
+		requiredArgs = len(rule.Args) - optionalArgs
 		// Are we expecting a number of args but don't have as many as the rule defines? Send a helpful message
-		if len(rule.Args) > 0 && len(args) < len(rule.Args) {
+		if len(rule.Args) > 0 && requiredArgs > len(args) {
 			msg := fmt.Sprintf("You might be missing an argument or two. This is what I'm looking for\n```%s```", rule.HelpText)
 			message.Output = msg
 			return false
 		}
 		// Go through the supplied args and make them available as variables
-		for i, arg := range rule.Args {
-			message.Vars[arg] = args[i]
+		for index, arg := range rule.Args {
+			// strip '?' from end of arg
+			arg = strings.TrimSuffix(arg, "?")
+			// index starts at 0 so we need to account for that
+			if index > (len(args) - 1) {
+				message.Vars[arg] = ""
+			} else {
+				message.Vars[arg] = args[index]
+			}
 		}
 	}
 	return true
@@ -262,7 +286,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 func craftResponse(rule models.Rule, msg models.Message, bot *models.Bot) (string, error) {
 	// The user removed the 'format_output' field, or it's not set
 	if rule.FormatOutput == "" {
-		return "", errors.New("Hmm, the 'format_output' field in your configuration is empty")
+		return "", errors.New("hmm, the 'format_output' field in your configuration is empty")
 	}
 
 	// None of the rooms specified in 'output_to_rooms' exist
@@ -285,10 +309,9 @@ func craftResponse(rule models.Rule, msg models.Message, bot *models.Bot) (strin
 
 	// Check if the value contains html/template code, for advanced formatting
 	if strings.Contains(output, "{{") {
-		t := new(template.Template)
 		var i interface{}
 
-		t, err = template.New("output").Funcs(gtf.GtfFuncMap).Parse(output)
+		t, err := template.New("output").Funcs(gtf.GtfFuncMap).Parse(output)
 		if err != nil {
 			return "", err
 		}
@@ -311,7 +334,6 @@ func handleExec(action models.Action, msg *models.Message, bot *models.Bot) erro
 		return fmt.Errorf("no command was supplied for the '%s' action named: %s", action.Type, action.Name)
 	}
 
-	resp := &models.ScriptResponse{}
 	resp, err := handlers.ScriptExec(action, msg, bot)
 
 	// Set explicit variables to make script output, script status code accessible in rules
@@ -331,7 +353,6 @@ func handleHTTP(action models.Action, msg *models.Message, bot *models.Bot) erro
 		return fmt.Errorf("no URL was supplied for the '%s' action named: %s", action.Type, action.Name)
 	}
 
-	resp := &models.HTTPResponse{}
 	resp, err := handlers.HTTPReq(action, msg)
 	if err != nil {
 		msg.Error = fmt.Sprintf("Error in request made by action '%s'. See bot admin for more information", action.Name)
@@ -352,7 +373,7 @@ func handleHTTP(action models.Action, msg *models.Message, bot *models.Bot) erro
 	// Do we need to expose any fields?
 	if len(action.ExposeJSONFields) > 0 {
 		for k, v := range action.ExposeJSONFields {
-			t := new(template.Template)
+			var t *template.Template
 
 			v, err = utils.Substitute(v, msg.Vars)
 			if err != nil {
@@ -386,7 +407,7 @@ func handleHTTP(action models.Action, msg *models.Message, bot *models.Bot) erro
 // Handle standard message/logging actions
 func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *models.Message, direct, startMsgThread bool, hitRule chan<- models.Rule, bot *models.Bot) error {
 	if action.Message == "" {
-		return fmt.Errorf("No message was set")
+		return fmt.Errorf("no message was set")
 	}
 
 	if action.Type == "message" && startMsgThread && msg.ThreadTimestamp == "" {
@@ -407,7 +428,7 @@ func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *
 		msg.OutputToRooms = utils.GetRoomIDs(action.LimitToRooms, bot)
 
 		if len(msg.OutputToRooms) == 0 {
-			return errors.New("The rooms defined in 'limit_to_rooms' do not exist")
+			return errors.New("the rooms defined in 'limit_to_rooms' do not exist")
 		}
 	} else if !direct && len(action.LimitToRooms) == 0 { // direct=false and no limit_to_rooms is specified
 		msg.OutputToRooms = []string{msg.ChannelID}
@@ -440,7 +461,7 @@ func updateReaction(action models.Action, rule *models.Rule, vars map[string]str
 			}
 			action.Reaction = reaction
 
-			t := new(template.Template)
+			var t *template.Template
 			var i interface{}
 
 			t, err = template.New("update_reaction").Funcs(gtf.GtfFuncMap).Parse(action.Reaction)

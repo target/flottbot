@@ -41,6 +41,14 @@ func initLogger(b *models.Bot) {
 // configureChatApplication configures a user's specified chat application
 // TODO: Refactor to keep remote specifics in remote/
 func configureChatApplication(bot *models.Bot) {
+
+	// update the bot name
+	token, err := utils.Substitute(bot.Name, map[string]string{})
+	if err != nil {
+		bot.Log.Warnf("Could not configure bot Name: %s", err.Error())
+	}
+	bot.Name = token
+
 	if bot.ChatApplication != "" {
 		switch strings.ToLower(bot.ChatApplication) {
 		case "discord":
@@ -101,7 +109,7 @@ func configureChatApplication(bot *models.Bot) {
 				bot.InteractiveComponents = false
 			}
 			if iCallbackPath == "" {
-				bot.Log.Errorf("Slack Interactive Components callback path is empty: %s", iCallbackPath)
+				bot.Log.Warnf("Slack Interactive Components callback path is empty: %s", iCallbackPath)
 				bot.InteractiveComponents = false
 			}
 			bot.SlackInteractionsCallbackPath = iCallbackPath

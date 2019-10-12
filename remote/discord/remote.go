@@ -88,7 +88,10 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	dg := c.new()
 	switch message.Type {
 	case models.MsgTypeDirect, models.MsgTypeChannel:
-		dg.ChannelMessageSend(message.ChannelID, message.Output)
+		_, err := dg.ChannelMessageSend(message.ChannelID, message.Output)
+		if err != nil {
+			bot.Log.Errorf("Unable to send message: %v", err)
+		}
 	default:
 		bot.Log.Errorf("Unable to send message of type %d", message.Type)
 	}

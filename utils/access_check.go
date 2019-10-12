@@ -13,7 +13,7 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	var canRunRule bool
 
 	// no restriction were given for this rule, allow to proceed
-	if len(rule.AllowUsers)+len(rule.AllowUserGroups)+len(rule.IgnoreUsers)+len(rule.IgnoreUserGroups) == 0 {
+	if len(rule.AllowUsers)+len(rule.AllowUserGroups)+len(rule.AllowUserIds)+len(rule.IgnoreUsers)+len(rule.IgnoreUserGroups) == 0 {
 		return true
 	}
 
@@ -37,7 +37,7 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	}
 
 	// if they didn't get denied at this point and no 'allow' rules are set, let them through
-	if len(rule.AllowUsers)+len(rule.AllowUserGroups) == 0 {
+	if len(rule.AllowUsers)+len(rule.AllowUserGroups)+len(rule.AllowUserIds) == 0 {
 		return true
 	}
 
@@ -49,8 +49,12 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 		}
 	}
 
-	if !canRunRule && len(rule.AllowUsers) > 0 {
-		bot.Log.Debugf("'%s' is not part of allow_users: %s", currentUserName, strings.Join(rule.AllowUsers, ", "))
+	// check if they are part of the allow users ids list
+	for _, userId := range rule.AllowUserIds {
+		if userId == currentUserID {
+			canRunRule = true
+			break
+		}
 	}
 
 	// if they still can't run the rule,
@@ -65,7 +69,17 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	}
 
 	if !canRunRule {
-		bot.Log.Debugf("'%s' is not part of any groups in allow_usergroups: %s", currentUserName, strings.Join(rule.AllowUserGroups, ", "))
+		if len(rule.AllowUsers) > 0 {
+			bot.Log.Debugf("'%s' is not part of allow_users: %s", currentUserName, strings.Join(rule.AllowUsers, ", "))
+		}
+
+		if len(rule.AllowUserIds) > 0 {
+			bot.Log.Debugf("'%s' is not part of allow_userids: %s", currentUserID, strings.Join(rule.AllowUserIds, ", "))
+		}
+
+		if  len(rule.AllowUserGroups) > 0 {
+			bot.Log.Debugf("'%s' is not part of any groups in allow_usergroups: %s", currentUserName, strings.Join(rule.AllowUserGroups, ", "))
+		}
 	}
 
 	return canRunRule
@@ -89,7 +103,7 @@ func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot)
 			bot.Log.Debugf("Limiting to usergroups only works if you register " +
 				"your bot as an app with Slack and set the 'slack_workspace_token' property. " +
 				"Restricting access to rule. Unset 'allow_usergroups' and/or 'ignore_usergroups', or set 'slack_workspace_token'.")
-			return false, fmt.Errorf("SlackWorkspaceToken not supplied. Restricting access.")
+			return false, fmt.Errorf("slack_workspace_token not supplied - restricting access")
 		}
 		// Check if we are restricting by usergroup
 		if bot.SlackWorkspaceToken != "" {

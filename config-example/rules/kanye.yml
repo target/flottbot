@@ -1,0 +1,17 @@
+# meta
+name: kanye-quote
+active: true
+# trigger and args
+respond: kanye
+# actions
+actions:
+  - name: kanye.rest http request
+    type: GET
+    url: https://api.kanye.rest
+    expose_json_fields:
+      quote: ".quote"
+# response
+format_output: "${quote}"
+direct_message_only: false
+# help
+help_text: kanye
