@@ -14,17 +14,6 @@ import (
 	"github.com/target/flottbot/version"
 )
 
-func init() {
-	ver := flag.Bool("version", false, "print version information")
-	v := flag.Bool("v", false, "print version information")
-
-	flag.Parse()
-	if *v || *ver {
-		fmt.Println(version.String())
-		os.Exit(0)
-	}
-}
-
 func newBot() *models.Bot {
 	bot := viper.New()
 	bot.AddConfigPath("./config")
@@ -48,6 +37,15 @@ func main() {
 	var hitRule = make(chan models.Rule, 1)
 	var inputMsgs = make(chan models.Message, 1)
 	var outputMsgs = make(chan models.Message, 1)
+
+	ver := flag.Bool("version", false, "print version information")
+	v := flag.Bool("v", false, "print version information")
+
+	flag.Parse()
+	if *v || *ver {
+		fmt.Println(version.String())
+		os.Exit(0)
+	}
 
 	// Configure the bot to the core framework
 	bot := newBot()
