@@ -58,18 +58,6 @@ func isValidPath(path string) bool {
 	return false
 }
 
-// isValidURL - regex matches a URL string to check if it is a correct URL
-func isValidURL(url string) bool {
-	urlPattern := regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)`)
-	matches := urlPattern.FindAllString(url, -1)
-	if matches != nil {
-		if matches[0] == url {
-			return true
-		}
-	}
-	return false
-}
-
 // removeBotMention - parse out the prepended bot mention in a message
 func removeBotMention(contents, botID string) (string, bool) {
 	mention := fmt.Sprintf("<@%s> ", botID)
