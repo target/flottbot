@@ -24,8 +24,8 @@ Slack helper functions (anything that uses the 'nlopes/slack' package)
 // constructInteractiveComponentMessage creates a message specifically for a matched rule from the Interactive Components server
 func constructInteractiveComponentMessage(callback slack.AttachmentActionCallback, bot *models.Bot) models.Message {
 	text := ""
-	if len(callback.Actions) > 0 {
-		for _, action := range callback.Actions {
+	if len(callback.ActionCallback.AttachmentActions) > 0 {
+		for _, action := range callback.ActionCallback.AttachmentActions {
 			if action.Value != "" {
 				text = fmt.Sprintf("<@%s> %s", bot.ID, action.Value)
 				break
@@ -499,7 +499,11 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 			}
 		case *slack.ConnectedEvent:
 			// populate users
-			populateBotUsers(ev.Info.Users, bot)
+			users, err := rtm.GetUsers()
+			if err != nil {
+				bot.Log.Errorf("Unable to get users: %v", err)
+			}
+			populateBotUsers(users, bot)
 			// populate user groups
 			populateUserGroups(bot)
 			bot.Log.Debugf("RTM connection established!")
@@ -568,43 +572,17 @@ func sendDirectMessage(api *slack.Client, userID string, message models.Message)
 func sendMessage(api *slack.Client, ephemeral bool, channel, userID, text, threadTimeStamp, wsToken string, attachments []slack.Attachment) error {
 	// send ephemeral message is indicated
 	if ephemeral {
-		var opt slack.MsgOption
-		if len(attachments) > 0 {
-			opt = slack.MsgOptionAttachments(attachments[0]) // only handling attachments messages with single attachments
-			_, err := api.PostEphemeral(channel, userID, opt)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-	// send standard message
-	pmp := slack.PostMessageParameters{
-		AsUser:          true,
-		ThreadTimestamp: threadTimeStamp,
-	}
-	// check if message was a link to set link attachment
-	if text != "" && strings.Contains(text, "http") {
-		if isValidURL(text) {
-			if len(attachments) > 0 {
-				attachments[0].ImageURL = text
-			} else {
-				attachments = []slack.Attachment{
-					{
-						ImageURL: text,
-					},
-				}
-				attachments[0].ImageURL = text
-			}
-		}
-	}
-	// include attachments if any
-	if len(attachments) > 0 {
-		pmp.Attachments = attachments
-	}
-	_, _, err := api.PostMessage(channel, text, pmp)
-	if err != nil {
+		opt := slack.MsgOptionAttachments(attachments...)
+		_, err := api.PostEphemeral(channel, userID, opt)
 		return err
 	}
-	return nil
+
+	opts := []slack.MsgOption{
+		slack.MsgOptionText(text, false),
+		slack.MsgOptionAsUser(true),
+		slack.MsgOptionAttachments(attachments...),
+		slack.MsgOptionTS(threadTimeStamp),
+	}
+	_, _, err := api.PostMessage(channel, opts...)
+	return err
 }
