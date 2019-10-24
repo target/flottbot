@@ -190,7 +190,7 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 			message.Output = msg
 			return false
 		}
-		if strings.HasSuffix(rule.Args[len(rule.Args)-1], "+") {
+		if len(rule.Args) > 0 && strings.HasSuffix(rule.Args[len(rule.Args)-1], "+") {
 			if optionalArgs > 0 {
 				// error, cannot combine optional and varargs
 				msg := fmt.Sprintf("You cannot combine optional arguments with variable arguments")
