@@ -680,6 +680,13 @@ func Test_handleChatServiceRule(t *testing.T) {
 		HelpText: "foo <arg1> <arg2>",
 	}
 
+	ruleVarg := models.Rule{
+		Name: "Test Rules with varargs",
+		Respond: "foo",
+		Args: []string{"arg1", "argv+"},
+		HelpText: "foo <arg1> <argv...>",
+	}
+
 	ruleHearWithArgs := models.Rule{
 		Name: "Hear rule with Args set",
 		Hear: "/hi/",
@@ -720,6 +727,12 @@ func Test_handleChatServiceRule(t *testing.T) {
 		BotMentioned: true,
 	}
 
+	testMessageVargs := models.Message{
+		Input: "foo arg1 arg2 arg3 arg4",
+		Vars: map[string]string{},
+		BotMentioned: true,
+	}
+
 	testMessageIgnoreThread := models.Message{
 		Input:           "we have a thread",
 		Vars:            map[string]string{},
@@ -733,17 +746,19 @@ func Test_handleChatServiceRule(t *testing.T) {
 		want      bool
 		want1     bool
 		expectMsg string
+		expectedVars map[string]string
 	}{
-		{"basic", args{}, false, false, ""},
-		{"respond + hear", args{rule: models.Rule{Respond: "hi", Hear: "/hi/"}, hit: false, bot: testBot, message: testMessage}, false, false, ""},
-		{"hear + rule args", args{rule: ruleHearWithArgs, hit: false, bot: testBot, message: testMessage}, false, false, ""},
-		{"respond rule - hit false", args{rule: rule, hit: false}, false, false, ""},
-		{"respond rule - hit true - valid", args{rule: rule, hit: true, bot: testBot, message: testMessage, processedInput: "arg1 arg2"}, true, true, "hmm, the 'format_output' field in your configuration is empty"},
-		{"respond rule - hit true - bot not mentioned", args{rule: rule, hit: true, bot: testBot, message: testMessageBotNotMentioned, processedInput: "arg1 arg2"}, false, false, ""},
-		{"respond rule - hit true - valid - not enough args", args{rule: rule, hit: true, bot: testBot, message: testMessageNotEnoughArgs, processedInput: "arg1"}, true, true, "You might be missing an argument or two. This is what I'm looking for\n```foo <arg1> <arg2>```"},
-		{"respond rule - hit true - valid optional arg", args{rule: ruleOpt, hit: true, bot: testBot, message: testMessageOptionalArgs, processedInput: "arg1"}, true, true, ""},
-		{"respond rule - hit true - invalid", args{rule: rule, hit: true, bot: testBot, message: testMessage}, true, true, "You might be missing an argument or two. This is what I'm looking for\n```foo <arg1> <arg2>```"},
-		{"hear rule - ignore thread", args{rule: ruleIgnoreThread, hit: true, bot: testBot, message: testMessageIgnoreThread}, true, true, ""},
+		{"basic", args{}, false, false, "", map[string]string{}},
+		{"respond + hear", args{rule: models.Rule{Respond: "hi", Hear: "/hi/"}, hit: false, bot: testBot, message: testMessage}, false, false, "", map[string]string{}},
+		{"hear + rule args", args{rule: ruleHearWithArgs, hit: false, bot: testBot, message: testMessage}, false, false, "", map[string]string{}},
+		{"respond rule - hit false", args{rule: rule, hit: false}, false, false, "", map[string]string{}},
+		{"respond rule - hit true - valid", args{rule: rule, hit: true, bot: testBot, message: testMessage, processedInput: "arg1 arg2"}, true, true, "hmm, the 'format_output' field in your configuration is empty", map[string]string{"arg1": "arg1", "arg2": "arg2"}},
+		{"respond rule - hit true - bot not mentioned", args{rule: rule, hit: true, bot: testBot, message: testMessageBotNotMentioned, processedInput: "arg1 arg2"}, false, false, "", map[string]string{}},
+		{"respond rule - hit true - valid - not enough args", args{rule: rule, hit: true, bot: testBot, message: testMessageNotEnoughArgs, processedInput: "arg1"}, true, true, "You might be missing an argument or two. This is what I'm looking for\n```foo <arg1> <arg2>```", map[string]string{}},
+		{"respond rule - hit true - valid optional arg", args{rule: ruleOpt, hit: true, bot: testBot, message: testMessageOptionalArgs, processedInput: "arg1"}, true, true, "", map[string]string{"arg1": "arg1"}},
+		{"respond rule - hit true - valid vargs", args{rule: ruleVarg, hit: true, bot: testBot, message: testMessageVargs, processedInput: "arg1 arg2 arg3 arg4"}, true, true, "", map[string]string{"arg1": "arg1", "argv": "arg2 arg3 arg4"}},
+		{"respond rule - hit true - invalid", args{rule: rule, hit: true, bot: testBot, message: testMessage}, true, true, "You might be missing an argument or two. This is what I'm looking for\n```foo <arg1> <arg2>```", map[string]string{}},
+		{"hear rule - ignore thread", args{rule: ruleIgnoreThread, hit: true, bot: testBot, message: testMessageIgnoreThread}, true, true, "", map[string]string{}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -771,6 +786,11 @@ func Test_handleChatServiceRule(t *testing.T) {
 				}
 				if got1 != tt.want1 {
 					t.Errorf("handleChatServiceRule() got1 = %v, want %v", got1, tt.want1)
+				}
+				for argk, argv := range tt.expectedVars {
+					if tt.args.message.Vars[argk] != argv {
+						t.Errorf("handleChatServiceRules() did not extract argument %v. got = %v, want %v", argk, tt.args.message.Vars[argk], argv)
+					}
 				}
 			}
 		})
