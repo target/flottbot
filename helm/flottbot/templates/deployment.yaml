@@ -1,0 +1,77 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "flottbot.fullname" . }}
+  labels:
+    app: {{ template "flottbot.name" . }}
+    chart: {{ template "flottbot.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "flottbot.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "flottbot.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: ["/bin/sh", "-c", "./flottbot"]
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: SLACK_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: slack
+                key: SLACK_TOKEN
+          volumeMounts:
+          - name: bot
+            mountPath: /config/bot.yml
+            subPath: bot.yml
+          - name: hello-rule
+            mountPath: /config/rules/hello.yml
+            subPath: hello.yml
+          ports:
+          - containerPort: {{ .Values.service.internalPort }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.service.internalPort }}
+            initialDelaySeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.service.internalPort }}
+            timeoutSeconds: 3
+            initialDelaySeconds: 30
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      volumes:
+        - name: hello-rule
+          configMap:
+            name: rules
+            items:
+            - key: hello.yml
+              path: hello.yml
+        - name: bot
+          configMap:
+            name: bot
+            items:
+            - key: bot.yml
+              path: bot.yml
