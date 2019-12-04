@@ -681,9 +681,9 @@ func Test_handleChatServiceRule(t *testing.T) {
 	}
 
 	ruleVarg := models.Rule{
-		Name: "Test Rules with varargs",
-		Respond: "foo",
-		Args: []string{"arg1", "argv+"},
+		Name:     "Test Rules with varargs",
+		Respond:  "foo",
+		Args:     []string{"arg1", "argv+"},
 		HelpText: "foo <arg1> <argv...>",
 	}
 
@@ -728,8 +728,8 @@ func Test_handleChatServiceRule(t *testing.T) {
 	}
 
 	testMessageVargs := models.Message{
-		Input: "foo arg1 arg2 arg3 arg4",
-		Vars: map[string]string{},
+		Input:        "foo arg1 arg2 arg3 arg4",
+		Vars:         map[string]string{},
 		BotMentioned: true,
 	}
 
@@ -741,11 +741,11 @@ func Test_handleChatServiceRule(t *testing.T) {
 	}
 
 	tests := []struct {
-		name      string
-		args      args
-		want      bool
-		want1     bool
-		expectMsg string
+		name         string
+		args         args
+		want         bool
+		want1        bool
+		expectMsg    string
 		expectedVars map[string]string
 	}{
 		{"basic", args{}, false, false, "", map[string]string{}},
