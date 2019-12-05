@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/leekchan/gtf"
+	"github.com/Masterminds/sprig"
 	"github.com/mohae/deepcopy"
 
 	"github.com/target/flottbot/handlers"
@@ -339,7 +339,7 @@ func craftResponse(rule models.Rule, msg models.Message, bot *models.Bot) (strin
 	if strings.Contains(output, "{{") {
 		var i interface{}
 
-		t, err := template.New("output").Funcs(gtf.GtfFuncMap).Parse(output)
+		t, err := template.New("output").Funcs(sprig.FuncMap()).Parse(output)
 		if err != nil {
 			return "", err
 		}
@@ -410,9 +410,9 @@ func handleHTTP(action models.Action, msg *models.Message, bot *models.Bot) erro
 
 			// Check if the value contains html/template code
 			if strings.Contains(v, "{{") {
-				t, err = template.New(k).Funcs(gtf.GtfFuncMap).Parse(v)
+				t, err = template.New(k).Funcs(sprig.FuncMap()).Parse(v)
 			} else {
-				t, err = template.New(k).Funcs(gtf.GtfFuncMap).Parse(fmt.Sprintf(`{{%s}}`, v))
+				t, err = template.New(k).Funcs(sprig.FuncMap()).Parse(fmt.Sprintf(`{{%s}}`, v))
 			}
 			if err != nil {
 				return err
@@ -492,7 +492,7 @@ func updateReaction(action models.Action, rule *models.Rule, vars map[string]str
 			var t *template.Template
 			var i interface{}
 
-			t, err = template.New("update_reaction").Funcs(gtf.GtfFuncMap).Parse(action.Reaction)
+			t, err = template.New("update_reaction").Funcs(sprig.FuncMap()).Parse(action.Reaction)
 			if err != nil {
 				bot.Log.Errorf("Failed to update Reaction %s", rule.Reaction)
 				return
