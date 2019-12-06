@@ -49,6 +49,14 @@ We currently provide a few Docker images:
 
 [target/flottbot:python](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and python v3.7 installed
 
+## Helm Chart
+
+To install using the [Helm](https://helm.sh/) chart located in this repo, clone this repo, create a [Kubernetes secret](https://kubernetes.io/docs/concepts/configuration/secret/) for your Slack Token in your namespace & install the chart:
+
+```bash
+   helm install helm/flottbot/
+```
+
 ## Available remotes
 
 | Remote                | Status | Documentation |
