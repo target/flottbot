@@ -29,6 +29,7 @@ type Message struct {
 	OutputToRooms     []string
 	OutputToUsers     []string
 	Remotes           Remotes
+	SourceLink        string
 }
 
 // MessageType is used to differentiate between different message types
