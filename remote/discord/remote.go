@@ -106,34 +106,30 @@ func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message 
 // message is created on any channel that the authenticated bot has access to
 func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) interface{} {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		// Ignore all messages created by the bot itself
+		// Ignore all messages created by bots
 		// This isn't required in this specific example but it's a good practice
 		if m.Author.Bot {
 			return
 		}
-		// Ignore messages in public channels that don't mention the bot
-		ch, _ := s.Channel(m.ChannelID)
-		if ch.Type == discordgo.ChannelTypeGuildText {
-			botmention := false
-			for _, mention := range m.Mentions {
-				if mention.Username == bot.Name {
-					botmention = true
-				}
-			}
-			if !botmention {
-				return
-			}
-		}
+
 		// Process message
 		message := models.NewMessage()
 		switch m.Type {
 		case discordgo.MessageTypeDefault:
+			msgType := models.MsgTypeChannel
+
+			ch, err := s.Channel(m.ChannelID)
+			if err != nil {
+				bot.Log.Errorf("Discord Remote: Failed to retrieve channel.")
+			}
+
 			t, err := m.Timestamp.Parse()
 			if err != nil {
 				bot.Log.Errorf("Discord Remote: Failed to parse message timestamp.")
 			}
+
 			timestamp := strconv.FormatInt(t.Unix(), 10)
-			msgType := models.MsgTypeChannel
+
 			switch ch.Type {
 			case discordgo.ChannelTypeDM:
 				msgType = models.MsgTypeDirect
@@ -142,6 +138,7 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 			default:
 				bot.Log.Debugf("Discord Remote: read message from unsupported channel type '%d'. Defaulting to use channel type 0 ('GUILD_TEXT')", ch.Type)
 			}
+
 			contents, mentioned := removeBotMention(m.Content, s.State.User.ID)
 			message = populateMessage(message, msgType, m.ChannelID, m.Message.ID, contents, timestamp, mentioned, m.Author, bot)
 		default:
