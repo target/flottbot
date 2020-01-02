@@ -124,7 +124,7 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	case models.MsgTypeDirect, models.MsgTypeChannel, models.MsgTypePrivateChannel:
 		send(api, message, bot)
 	default:
-		bot.Log.Warn("Received unknown  message type - no message to send")
+		bot.Log.Warn("Received unknown message type - no message to send")
 	}
 }
 

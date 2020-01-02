@@ -29,21 +29,28 @@ func (c *Client) new() *discordgo.Session {
 	if err != nil {
 		return nil
 	}
+
 	return dg
 }
 
 // Reaction implementation to satisfy remote interface
+// Note: Discord expects the actual unicode emoji, so you need to have that in the rule setup, ie.
+// .
+// reaction: 🔥
+// .
 func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
 	if rule.RemoveReaction != "" {
 		// Init api client
 		dg := c.new()
 		// Remove bot reaction from message
 		if err := dg.MessageReactionRemove(message.ChannelID, message.ID, rule.RemoveReaction, "@me"); err != nil {
-			bot.Log.Errorf("Could not add reaction '%s'", err)
+			bot.Log.Errorf("Could not add reaction '%s'. Make sure to use actual emoji unicode characters.", err)
 			return
 		}
+
 		bot.Log.Debugf("Removed reaction '%s' for rule %s", rule.RemoveReaction, rule.Name)
 	}
+
 	if rule.Reaction != "" {
 		// Init api client
 		dg := c.new()
@@ -52,6 +59,7 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 			bot.Log.Errorf("Could not add reaction '%s'", err)
 			return
 		}
+
 		bot.Log.Debugf("Added reaction '%s' for rule %s", rule.Reaction, rule.Name)
 	}
 }
@@ -63,6 +71,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 		bot.Log.Error("Failed to initialize Discord client")
 		return
 	}
+
 	err := dg.Open()
 	if err != nil {
 		bot.Log.Errorf("Failed to open connection to Discord server. Error: %s", err.Error())
@@ -77,7 +86,63 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 		bot.Log.Errorf("Failed to get bot name from Discord. Error: %s", err.Error())
 		return
 	}
+
 	bot.Name = botuser.Username
+
+	foundGuild := false
+
+	guilds := dg.State.Guilds
+	for _, g := range guilds {
+		if g.ID == bot.DiscordServerID {
+			foundGuild = true
+			break
+		}
+	}
+
+	if !foundGuild {
+		bot.Log.Error("Unable to find server defined in 'discord_server_id'. Has the bot been added to the server?")
+		return
+	}
+
+	rooms := make(map[string]string)
+	users := make(map[string]string)
+	groups := make(map[string]string)
+
+	// populate rooms
+	gchans, err := dg.GuildChannels(bot.DiscordServerID)
+	if err != nil {
+		bot.Log.Debugf("Unable to get channels. Error: %v", err)
+	}
+
+	for _, gchan := range gchans {
+		rooms[gchan.Name] = gchan.ID
+	}
+
+	// populate users - 1000 is API limit
+	// TODO: paginate to *really* get all - would have to find highest ID
+	// from prev results and pass in as second param to .GuildMembers
+	gmembers, err := dg.GuildMembers(bot.DiscordServerID, "", 1000)
+	if err != nil {
+		bot.Log.Debugf("Unable to get users")
+	}
+
+	for _, gmember := range gmembers {
+		users[gmember.User.Username] = gmember.User.ID
+	}
+
+	// populate user groups
+	groles, err := dg.GuildRoles(bot.DiscordServerID)
+	if err != nil {
+		bot.Log.Debugf("Unable to get roles")
+	}
+
+	for _, grole := range groles {
+		groups[grole.Name] = grole.ID
+	}
+
+	bot.Rooms = rooms
+	bot.Users = users
+	bot.UserGroups = groups
 
 	// Register a callback for MessageCreate events
 	dg.AddHandler(handleDiscordMessage(bot, inputMsgs))
@@ -86,12 +151,13 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 // Send implementation to satisfy remote interface
 func (c *Client) Send(message models.Message, bot *models.Bot) {
 	dg := c.new()
+
+	// Timestamp message
+	message.EndTime = models.MessageTimestamp()
+
 	switch message.Type {
 	case models.MsgTypeDirect, models.MsgTypeChannel:
-		_, err := dg.ChannelMessageSend(message.ChannelID, message.Output)
-		if err != nil {
-			bot.Log.Errorf("Unable to send message: %v", err)
-		}
+		send(dg, message, bot)
 	default:
 		bot.Log.Errorf("Unable to send message of type %d", message.Type)
 	}
@@ -116,7 +182,7 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 		message := models.NewMessage()
 		switch m.Type {
 		case discordgo.MessageTypeDefault:
-			msgType := models.MsgTypeChannel
+			var msgType models.MessageType
 
 			ch, err := s.Channel(m.ChannelID)
 			if err != nil {
@@ -134,8 +200,9 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 			case discordgo.ChannelTypeDM:
 				msgType = models.MsgTypeDirect
 			case discordgo.ChannelTypeGuildText:
-				break
+				msgType = models.MsgTypeChannel
 			default:
+				msgType = models.MsgTypeChannel
 				bot.Log.Debugf("Discord Remote: read message from unsupported channel type '%d'. Defaulting to use channel type 0 ('GUILD_TEXT')", ch.Type)
 			}
 

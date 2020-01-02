@@ -13,6 +13,7 @@ type Bot struct {
 	SlackEventsCallbackPath       string            `mapstructure:"slack_events_callback_path"`
 	SlackInteractionsCallbackPath string            `mapstructure:"slack_interactions_callback_path"`
 	DiscordToken                  string            `mapstructure:"discord_token"`
+	DiscordServerID               string            `mapstructure:"discord_server_id"`
 	Users                         map[string]string `mapstructure:"slack_users"`
 	UserGroups                    map[string]string `mapstructure:"slack_usergroups"`
 	Rooms                         map[string]string `mapstructure:"slack_channels"`

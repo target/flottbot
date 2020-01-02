@@ -288,13 +288,13 @@ func handleDirectMessage(api *slack.Client, message models.Message, bot *models.
 	if len(message.OutputToRooms) > 0 {
 		bot.Log.Warn("You have specified 'direct_message_only' as 'true' and provided 'output_to_rooms'." +
 			" Messages will not be sent to listed rooms. If you want to send messages to these rooms," +
-			" please set 'direct_message_ony' to 'false'.")
+			" please set 'direct_message_only' to 'false'.")
 	}
 	// Is output to users set?
 	if len(message.OutputToUsers) > 0 {
 		bot.Log.Warn("You have specified 'direct_message_only' as 'true' and provided 'output_to_users'." +
 			" Messages will not be sent to the listed users (other than you). If you want to send messages to other users," +
-			" please set 'direct_message_ony' to 'false'.")
+			" please set 'direct_message_only' to 'false'.")
 	}
 	// Respond back to user via direct message
 	return sendDirectMessage(api, message.Vars["_user.id"], message)

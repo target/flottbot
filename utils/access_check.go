@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/bwmarrin/discordgo"
 	"github.com/nlopes/slack"
 	"github.com/target/flottbot/models"
 )
@@ -31,8 +32,9 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	if err != nil {
 		return false
 	}
+
 	if isIgnored {
-		bot.Log.Debugf("'%s' is part of any group in ignore_usergroups: %s", currentUserName, strings.Join(rule.IgnoreUserGroups, ", "))
+		bot.Log.Debugf("'%s' is part of a group in ignore_usergroups: %s", currentUserName, strings.Join(rule.IgnoreUserGroups, ", "))
 		return false
 	}
 
@@ -50,8 +52,8 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	}
 
 	// check if they are part of the allow users ids list
-	for _, userId := range rule.AllowUserIds {
-		if userId == currentUserID {
+	for _, userID := range rule.AllowUserIds {
+		if userID == currentUserID {
 			canRunRule = true
 			break
 		}
@@ -65,6 +67,7 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 		if err != nil {
 			return false
 		}
+
 		canRunRule = isAllowed
 	}
 
@@ -77,7 +80,7 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 			bot.Log.Debugf("'%s' is not part of allow_userids: %s", currentUserID, strings.Join(rule.AllowUserIds, ", "))
 		}
 
-		if  len(rule.AllowUserGroups) > 0 {
+		if len(rule.AllowUserGroups) > 0 {
 			bot.Log.Debugf("'%s' is not part of any groups in allow_usergroups: %s", currentUserName, strings.Join(rule.AllowUserGroups, ", "))
 		}
 	}
@@ -96,18 +99,45 @@ func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot)
 	capp := strings.ToLower(bot.ChatApplication)
 	switch capp {
 	case "discord":
-		bot.Log.Error("Discord is currently not supported for validating user permissions on rules")
+		var usr *discordgo.Member
+
+		dg, err := discordgo.New("Bot " + bot.DiscordToken)
+		if err != nil {
+			return false, err
+		}
+
+		usr = nil
+
+		usr, err = dg.GuildMember(bot.DiscordServerID, currentUserID)
+		if err != nil {
+			bot.Log.Debugf("Error while searching for user. Error: %v", err)
+		}
+
+		if usr == nil {
+			return false, nil
+		}
+
+		for _, group := range userGroups {
+			for _, uGroup := range usr.Roles {
+				if strings.EqualFold(bot.UserGroups[group], uGroup) {
+					return true, nil
+				}
+			}
+		}
+
 		return false, nil
 	case "slack":
 		if bot.SlackWorkspaceToken == "" {
 			bot.Log.Debugf("Limiting to usergroups only works if you register " +
 				"your bot as an app with Slack and set the 'slack_workspace_token' property. " +
 				"Restricting access to rule. Unset 'allow_usergroups' and/or 'ignore_usergroups', or set 'slack_workspace_token'.")
+
 			return false, fmt.Errorf("slack_workspace_token not supplied - restricting access")
 		}
 		// Check if we are restricting by usergroup
 		if bot.SlackWorkspaceToken != "" {
 			wsAPI := slack.New(bot.SlackWorkspaceToken)
+
 			for _, usergroupName := range userGroups {
 				// Get the ID of the group from the usergroups the bot is aware of
 				for knownUserGroupName, knownUserGroupID := range bot.UserGroups {
@@ -123,12 +153,15 @@ func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot)
 								return true, nil
 							}
 						}
+
 						break
 					}
 				}
 			}
+
 			wsAPI = nil
 		}
+
 		return false, nil
 	default:
 		bot.Log.Errorf("Chat application %s is not supported", capp)

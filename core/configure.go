@@ -47,22 +47,40 @@ func configureChatApplication(bot *models.Bot) {
 	if err != nil {
 		bot.Log.Warnf("Could not configure bot Name: %s", err.Error())
 	}
+
 	bot.Name = token
 
 	if bot.ChatApplication != "" {
 		switch strings.ToLower(bot.ChatApplication) {
 		case "discord":
-			// Bot token from Discord
+			// Discord bot token
 			token, err := utils.Substitute(bot.DiscordToken, map[string]string{})
 			if err != nil {
 				bot.Log.Warnf("Could not set Discord Token: %s", err.Error())
 				bot.RunChat = false
 			}
+
 			if token == "" {
 				bot.Log.Warnf("Discord Token is empty: '%s'", token)
 				bot.RunChat = false
 			}
+
 			bot.DiscordToken = token
+
+			// Discord Server ID
+			// See https://support.discordapp.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
+			serverID, err := utils.Substitute(bot.DiscordServerID, map[string]string{})
+			if err != nil {
+				bot.Log.Warnf("Could not set Discord Server ID: %s", err.Error())
+				bot.RunChat = false
+			}
+
+			if serverID == "" {
+				bot.Log.Warnf("Discord Server ID is empty: '%s'", serverID)
+				bot.RunChat = false
+			}
+
+			bot.DiscordServerID = serverID
 
 		case "slack":
 			// Slack bot token
@@ -71,10 +89,12 @@ func configureChatApplication(bot *models.Bot) {
 				bot.Log.Warnf("Could not set Slack Token: %s", err.Error())
 				bot.RunChat = false
 			}
+
 			if token == "" {
 				bot.Log.Warnf("Slack Token is empty: %s", token)
 				bot.RunChat = false
 			}
+
 			bot.SlackToken = token
 
 			// Slack verification token
@@ -82,8 +102,10 @@ func configureChatApplication(bot *models.Bot) {
 			if err != nil {
 				bot.Log.Warnf("Could not set Slack Verification Token: %s", err.Error())
 				bot.Log.Warn("Defaulting to use Slack RTM")
+
 				vToken = ""
 			}
+
 			bot.SlackVerificationToken = vToken
 
 			// Slack workspace token
@@ -91,6 +113,7 @@ func configureChatApplication(bot *models.Bot) {
 			if err != nil {
 				bot.Log.Warnf("Could not set Slack Workspace Token: %s", err.Error())
 			}
+
 			bot.SlackWorkspaceToken = wsToken
 
 			// Get Slack Events path
@@ -100,6 +123,7 @@ func configureChatApplication(bot *models.Bot) {
 				bot.Log.Warn("Defaulting to use Slack RTM")
 				bot.SlackVerificationToken = ""
 			}
+
 			bot.SlackEventsCallbackPath = eCallbackPath
 
 			// Get Slack Interactive Components path
@@ -108,10 +132,12 @@ func configureChatApplication(bot *models.Bot) {
 				bot.Log.Errorf("Could not set Slack Interactive Components callback path: %s", err.Error())
 				bot.InteractiveComponents = false
 			}
+
 			if iCallbackPath == "" {
 				bot.Log.Warnf("Slack Interactive Components callback path is empty: %s", iCallbackPath)
 				bot.InteractiveComponents = false
 			}
+
 			bot.SlackInteractionsCallbackPath = iCallbackPath
 
 		default:
@@ -125,18 +151,22 @@ func validateRemoteSetup(bot *models.Bot) {
 	if bot.ChatApplication != "" {
 		bot.RunChat = true
 	}
+
 	if bot.CLI {
 		bot.RunCLI = true
 	}
+
 	if !bot.CLI && bot.ChatApplication == "" {
 		bot.Log.Fatalf("No chat_application specified and cli mode is not enabled. Exiting...")
 	}
+
 	if bot.Scheduler {
 		bot.RunScheduler = true
 		if bot.CLI && bot.ChatApplication == "" {
 			bot.Log.Warn("Scheduler does not support scheduled outputs to CLI mode")
 			bot.RunScheduler = false
 		}
+
 		if bot.ChatApplication == "" {
 			bot.Log.Warn("Scheduler did not find any configured chat applications. Scheduler is closing")
 			bot.RunScheduler = false
