@@ -106,14 +106,9 @@ func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot)
 			return false, err
 		}
 
-		usr = nil
-
 		usr, err = dg.GuildMember(bot.DiscordServerID, currentUserID)
 		if err != nil {
 			bot.Log.Debugf("Error while searching for user. Error: %v", err)
-		}
-
-		if usr == nil {
 			return false, nil
 		}
 
