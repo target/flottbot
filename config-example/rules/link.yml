@@ -1,0 +1,11 @@
+# meta
+name: link
+active: true
+# trigger and args
+hear: /(perma|link)/
+
+format_output: "someone said 'perma' or 'link', see: ${_source.link}"
+direct_message_only: false
+
+output_to_rooms:
+  - general

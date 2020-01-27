@@ -62,7 +62,8 @@ func constructInteractiveComponentMessage(callback slack.AttachmentActionCallbac
 		channel = callback.Channel.ID
 	}
 	contents, mentioned := removeBotMention(text, bot.ID)
-	return populateMessage(message, messageType, channel, contents, callback.MessageTs, callback.MessageTs, mentioned, user, bot)
+
+	return populateMessage(message, messageType, channel, contents, callback.MessageTs, callback.MessageTs, "", mentioned, user, bot)
 }
 
 // getEventsAPIHealthHandler creates and returns the handler for health checks on the Slack Events API reader
@@ -124,7 +125,12 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 			}
 			timestamp := ev.TimeStamp
 			threadTimestamp := ev.ThreadTimeStamp
-			inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, mentioned, user, bot)
+
+			link, err := api.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
+			if err != nil {
+				link = ""
+			}
+			inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
 		}
 	// This is an Event shared between RTM and the Events API
 	case *slack.MemberJoinedChannelEvent:
@@ -375,7 +381,7 @@ func populateUserGroups(bot *models.Bot) {
 }
 
 // populateMessage - populates the 'Message' object to be passed on for processing/sending
-func populateMessage(message models.Message, msgType models.MessageType, channel, text, timeStamp string, threadTimestamp string, mentioned bool, user *slack.User, bot *models.Bot) models.Message {
+func populateMessage(message models.Message, msgType models.MessageType, channel, text, timeStamp, threadTimestamp, link string, mentioned bool, user *slack.User, bot *models.Bot) models.Message {
 	switch msgType {
 	case models.MsgTypeDirect, models.MsgTypeChannel, models.MsgTypePrivateChannel:
 		// Populate message attributes
@@ -388,6 +394,7 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 		message.ThreadTimestamp = threadTimestamp
 		message.BotMentioned = mentioned
 		message.Attributes["ws_token"] = bot.SlackWorkspaceToken
+		message.SourceLink = link
 
 		// If the message read was not a dm, get the name of the channel it came from
 		if msgType != models.MsgTypeDirect {
@@ -401,6 +408,9 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 		// make channel variables available
 		message.Vars["_channel.id"] = message.ChannelID
 		message.Vars["_channel.name"] = message.ChannelName // will be empty if it came via DM
+
+		// make link to trigger message available
+		message.Vars["_source.link"] = message.SourceLink
 
 		// Populate message with user information (i.e. who sent the message)
 		// These will be accessible on rules via ${_user.email}, ${_user.id}, etc.
@@ -495,7 +505,13 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 				}
 				timestamp := ev.Timestamp
 				threadTimestamp := ev.ThreadTimestamp
-				inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, mentioned, user, bot)
+
+				link, err := rtm.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
+				if err != nil {
+					link = ""
+				}
+
+				inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
 			}
 		case *slack.ConnectedEvent:
 			// populate users
