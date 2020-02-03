@@ -83,6 +83,12 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotSlackNoToken.ChatApplication = "slack"
 	validateRemoteSetup(testBotSlackNoToken)
 
+	testBotBadName := new(models.Bot)
+	testBotBadName.CLI = true
+	testBotBadName.ChatApplication = "slack"
+	testBotBadName.Name = "${BOT_NAME}"
+	validateRemoteSetup(testBotBadName)
+
 	testBotSlackBadToken := new(models.Bot)
 	testBotSlackBadToken.CLI = true
 	testBotSlackBadToken.ChatApplication = "slack"
@@ -150,12 +156,21 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotDiscordBadToken.DiscordToken = "${TOKEN}"
 	validateRemoteSetup(testBotDiscordBadToken)
 
-	testBotDiscord := new(models.Bot)
-	testBotDiscord.CLI = true
-	testBotDiscord.ChatApplication = "discord"
-	testBotDiscord.DiscordToken = "${TEST_DISCORD_TOKEN}"
+	testBotDiscordServerID := new(models.Bot)
+	testBotDiscordServerID.CLI = true
+	testBotDiscordServerID.ChatApplication = "discord"
+	testBotDiscordServerID.DiscordToken = "${TEST_DISCORD_TOKEN}"
+	testBotDiscordServerID.DiscordServerID = "${TEST_DISCORD_SERVER_ID}"
 	os.Setenv("TEST_DISCORD_TOKEN", "TESTTOKEN")
-	validateRemoteSetup(testBotDiscord)
+	os.Setenv("TEST_DISCORD_SERVER_ID", "TESTSERVERID")
+	validateRemoteSetup(testBotDiscordServerID)
+
+	testBotDiscordBadServerID := new(models.Bot)
+	testBotDiscordBadServerID.CLI = true
+	testBotDiscordBadServerID.ChatApplication = "discord"
+	testBotDiscordBadServerID.DiscordToken = "${TEST_DISCORD_TOKEN}"
+	testBotDiscordBadServerID.DiscordServerID = "${TOKEN}"
+	validateRemoteSetup(testBotDiscordServerID)
 
 	tests := []struct {
 		name                           string
@@ -166,6 +181,7 @@ func Test_configureChatApplication(t *testing.T) {
 		{"Fail", args{bot: testBot}, false, false},
 		{"Fail - no chat_application not set", args{bot: testBotNoChat}, false, false},
 		{"Fail - Invalid value for chat_application", args{bot: testBotInvalidChat}, false, false},
+		{"Bad Name", args{bot: testBotBadName}, false, false},
 		{"Slack - no token", args{bot: testBotSlackNoToken}, false, false},
 		{"Slack - bad token", args{bot: testBotSlackBadToken}, false, false},
 		{"Slack - bad verification token", args{bot: testBotSlackBadVerificationToken}, false, false},
@@ -176,7 +192,8 @@ func Test_configureChatApplication(t *testing.T) {
 		{"Slack w/ bad events callback", args{bot: testBotSlackEventsCallbackFail}, true, false},
 		{"Discord - no token", args{bot: testBotDiscordNoToken}, false, false},
 		{"Discord - bad token", args{bot: testBotDiscordBadToken}, false, false},
-		{"Discord", args{bot: testBotDiscord}, true, false},
+		{"Discord w/ server id", args{bot: testBotDiscordServerID}, true, false},
+		{"Discord w/ bad server id", args{bot: testBotDiscordBadServerID}, false, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -193,6 +210,7 @@ func Test_configureChatApplication(t *testing.T) {
 
 	os.Unsetenv("TEST_SLACK_TOKEN")
 	os.Unsetenv("TEST_DISCORD_TOKEN")
+	os.Unsetenv("TEST_DISCORD_SERVER_ID")
 	os.Unsetenv("TEST_SLACK_INTERACTIONS_CALLBACK_PATH")
 	os.Unsetenv("TEST_SLACK_INTERACTIONS_CALLBACK_PATH_FAIL")
 }
