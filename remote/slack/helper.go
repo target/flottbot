@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -40,12 +41,27 @@ func constructInteractiveComponentMessage(callback slack.AttachmentActionCallbac
 
 	userNames := strings.Split(callback.User.Name, ".")
 	user := &slack.User{
-		ID:   callback.User.ID,
-		Name: callback.User.Name,
+		ID:       callback.User.ID,
+		TeamID:   callback.User.TeamID,
+		Name:     callback.User.Name,
+		Color:    callback.User.Color,
+		RealName: callback.User.RealName,
+		TZ:       callback.User.TZ,
+		TZLabel:  callback.User.TZLabel,
+		TZOffset: callback.User.TZOffset,
 		Profile: slack.UserProfile{
-			Email:     callback.User.Profile.Email,
-			FirstName: userNames[0],
-			LastName:  userNames[len(userNames)-1],
+			FirstName:             userNames[0],
+			LastName:              userNames[len(userNames)-1],
+			RealNameNormalized:    callback.User.Profile.RealNameNormalized,
+			DisplayName:           callback.User.Profile.DisplayName,
+			DisplayNameNormalized: callback.User.Profile.DisplayName,
+			Email:                 callback.User.Profile.Email,
+			Skype:                 callback.User.Profile.Skype,
+			Phone:                 callback.User.Profile.Phone,
+			Title:                 callback.User.Profile.Title,
+			StatusText:            callback.User.Profile.StatusText,
+			StatusEmoji:           callback.User.Profile.StatusEmoji,
+			Team:                  callback.User.Profile.Team,
 		},
 	}
 	channel := callback.Channel.Name
@@ -415,11 +431,26 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 		// Populate message with user information (i.e. who sent the message)
 		// These will be accessible on rules via ${_user.email}, ${_user.id}, etc.
 		if user != nil { // nil user implies a message from an api/bot (i.e. not an actual user)
-			message.Vars["_user.email"] = user.Profile.Email
+			message.Vars["_user.id"] = user.ID
+			message.Vars["_user.teamid"] = user.TeamID
+			message.Vars["_user.name"] = user.Name
+			message.Vars["_user.color"] = user.Color
+			message.Vars["_user.realname"] = user.RealName
+			message.Vars["_user.tz"] = user.TZ
+			message.Vars["_user.tzlabel"] = user.TZLabel
+			message.Vars["_user.tzoffset"] = strconv.Itoa(user.TZOffset)
 			message.Vars["_user.firstname"] = user.Profile.FirstName
 			message.Vars["_user.lastname"] = user.Profile.LastName
-			message.Vars["_user.name"] = user.Name
-			message.Vars["_user.id"] = user.ID
+			message.Vars["_user.realnamenormalized"] = user.Profile.RealNameNormalized
+			message.Vars["_user.displayname"] = user.Profile.DisplayName
+			message.Vars["_user.displaynamenormalized"] = user.Profile.DisplayNameNormalized
+			message.Vars["_user.email"] = user.Profile.Email
+			message.Vars["_user.skype"] = user.Profile.Skype
+			message.Vars["_user.phone"] = user.Profile.Phone
+			message.Vars["_user.title"] = user.Profile.Title
+			message.Vars["_user.statustext"] = user.Profile.StatusText
+			message.Vars["_user.statusemoji"] = user.Profile.StatusEmoji
+			message.Vars["_user.team"] = user.Profile.Team
 		}
 
 		message.Debug = true // TODO: is this even needed?
