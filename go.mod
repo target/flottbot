@@ -14,8 +14,9 @@ require (
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
-	github.com/nlopes/slack v0.6.0
+	github.com/nlopes/slack v0.6.1-0.20191106133607-d06c2a2b3249
 	github.com/pelletier/go-toml v1.6.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.3.0
 	github.com/robfig/cron v1.2.0
 	github.com/rs/xid v1.2.1
