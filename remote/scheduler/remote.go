@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote"
 )
@@ -30,10 +30,12 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	for {
 		_nil := bot.Rooms[""]
 		if len(bot.Rooms) > 0 {
-			bot.Log.Debugf("Scheduler connected to %s channels%s", strings.Title(bot.ChatApplication), _nil)
+			bot.Log.Debugf("scheduler connected to %s channels: %s", strings.Title(bot.ChatApplication), _nil)
 			break
 		}
 	}
+
+	var job *cron.Cron
 	// Create a list of cron jobs to execute
 	jobs := []*cron.Cron{}
 
@@ -42,26 +44,34 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 		if rule.Active && rule.Schedule != "" {
 			// Pre-checks before executing rule as a cron job
 			if len(rule.OutputToRooms) == 0 && len(rule.OutputToUsers) == 0 {
-				bot.Log.Debug("Scheduling rules requires the 'output_to_rooms' and/or 'output_to_users' fields to be set")
+				bot.Log.Debug("scheduling rules requires the 'output_to_rooms' and/or 'output_to_users' fields to be set")
 				continue
 			} else if len(rule.OutputToRooms) > 0 && len(bot.Rooms) == 0 {
-				bot.Log.Debugf("Could not connect Scheduler to rooms: %s", rule.OutputToRooms)
+				bot.Log.Debugf("could not connect Scheduler to rooms: %s", rule.OutputToRooms)
 				continue
 			} else if rule.Respond != "" || rule.Hear != "" {
-				bot.Log.Debug("Scheduling rules does not allow the 'respond' and 'hear' fields")
+				bot.Log.Debug("sheduling rules does not allow the 'respond' and 'hear' fields")
 				continue
 			}
 
-			// TODO - Regex check for correct cron syntax
+			bot.Log.Debugf("scheduler is adding rule '%s'", rule.Name)
 
-			bot.Log.Debugf("Scheduler is running rule '%s'", rule.Name)
-			cron := cron.New()
+			// check whether we are dealing with quartz spec
+			specFields := strings.Fields(rule.Schedule)
+			if len(specFields) == 6 {
+				job = cron.New(cron.WithSeconds())
+			} else {
+				job = cron.New()
+			}
+
 			scheduleName := rule.Name
 			input := fmt.Sprintf("<@%s> ", bot.ID) // send message as self
 			outputRooms := rule.OutputToRooms
 			outputUsers := rule.OutputToUsers
-			cron.AddFunc(rule.Schedule, func() {
-				// Build message
+
+			_, err := job.AddFunc(rule.Schedule, func() {
+				bot.Log.Debugf("executing scheduler for rule '%s'", scheduleName)
+				// build the message
 				message := models.NewMessage()
 				message.Service = models.MsgServiceScheduler
 				message.Input = input // send message as self
@@ -71,12 +81,18 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 				message.OutputToUsers = outputUsers
 				inputMsgs <- message
 			})
-			jobs = append(jobs, cron)
+
+			if err != nil {
+				bot.Log.Errorf("unable to add schedule: %v", err)
+				continue
+			}
+
+			jobs = append(jobs, job)
 		}
 	}
 
 	if len(jobs) == 0 {
-		bot.Log.Warn("Found no schedule-type rules. Scheduler is closing")
+		bot.Log.Warn("found no schedule-type rules - scheduler is closing")
 		return
 	}
 
@@ -105,5 +121,5 @@ func processJobs(jobs []*cron.Cron, bot *models.Bot) {
 		defer job.Stop()
 	}
 	wg.Wait()
-	bot.Log.Warn("Scheduler is closing")
+	bot.Log.Warn("scheduler is closing")
 }
