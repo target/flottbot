@@ -50,7 +50,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 				bot.Log.Debugf("unable to connect scheduler to these rooms: %s", rule.OutputToRooms)
 				continue
 			} else if rule.Respond != "" || rule.Hear != "" {
-				bot.Log.Debug("sheduling rules does not allow the 'respond' and 'hear' fields")
+				bot.Log.Debug("scheduling rules does not allow the 'respond' and 'hear' fields")
 				continue
 			}
 
