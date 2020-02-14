@@ -17,7 +17,7 @@ func Test_extractFields(t *testing.T) {
 
 	JSONTest := make(map[string]interface{})
 	JSONTest["testing"] = "test"
-	
+
 	JSONArrTest := make([]map[string]interface{}, 0)
 	JSONArrTest = append(JSONArrTest, map[string]interface{}{"testing": "test"})
 
