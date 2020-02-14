@@ -47,7 +47,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 				bot.Log.Debug("scheduling rules requires the 'output_to_rooms' and/or 'output_to_users' fields to be set")
 				continue
 			} else if len(rule.OutputToRooms) > 0 && len(bot.Rooms) == 0 {
-				bot.Log.Debugf("could not connect Scheduler to rooms: %s", rule.OutputToRooms)
+				bot.Log.Debugf("could not connect scheduler to rooms: %s", rule.OutputToRooms)
 				continue
 			} else if rule.Respond != "" || rule.Hear != "" {
 				bot.Log.Debug("sheduling rules does not allow the 'respond' and 'hear' fields")
