@@ -167,7 +167,7 @@ func getEventsAPIEventHandler(api *slack.Client, vToken string, inputMsgs chan<-
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			bot.Log.Errorf("Slack API Server: invalid method %s", r.Method)
-			message := fmt.Sprintf("Oops! I encountered an unexpected HTTP request method: %s. It should be POST.", r.Method)
+			message := "Oops! I encountered an unexpected HTTP verb. It should be POST."
 			sendHTTPResponse(http.StatusMethodNotAllowed, "", message, w, r)
 			return
 		}
@@ -217,7 +217,7 @@ func getInteractiveComponentRuleHandler(verificationToken string, inputMsgs chan
 			bot.Log.Errorf("getInteractiveComponentRuleHandler: Received invalid method: %s", r.Method)
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			w.Header().Set("Content-Type", "text/plain")
-			w.Write([]byte(fmt.Sprintf("Oops! I encountered an unexpected HTTP request method: %s", r.Method)))
+			w.Write([]byte("Oops! I encountered an unexpected HTTP verb"))
 			return
 		}
 
