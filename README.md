@@ -4,7 +4,7 @@
   <h3 align="center">Flottbot</h3>
 </p>
 
---------
+---
 
 [![GoDoc](https://godoc.org/github.com/target/flottbot?status.svg)](https://godoc.org/github.com/target/flottbot)
 [![Build Status](https://travis-ci.org/target/flottbot.svg)](https://travis-ci.org/target/flottbot)
@@ -23,7 +23,7 @@ The philosophy behind flottbot is to create very simple, lightweight, "dumb" bot
 1. [Documentation](#documentation)
 1. [Contributing](#contributing)
 
--------------------
+---
 
 ## Installation
 
@@ -45,7 +45,7 @@ We currently provide a few Docker images:
 
 [target/flottbot:ruby](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and ruby v2.5 installed
 
-[target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.11 installed
+[target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.14 installed
 
 [target/flottbot:python](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and python v3.7 installed
 
@@ -59,10 +59,10 @@ To install using the [Helm](https://helm.sh/) chart located in this repo, clone 
 
 ## Available remotes
 
-| Remote                | Status | Documentation |
-| --------------------- | -------| ------------- |
-| [Slack](https://slack.com) | ✔ | [Docs](https://target.github.io/flottbot-docs/basics/slack/) |
-| [Discord](https://discordapp.com)  | 🚧 | [Docs](https://target.github.io/flottbot-docs/basics/discord/) |
+| Remote                            | Status | Documentation                                                  |
+| --------------------------------- | ------ | -------------------------------------------------------------- |
+| [Slack](https://slack.com)        | ✔      | [Docs](https://target.github.io/flottbot-docs/basics/slack/)   |
+| [Discord](https://discordapp.com) | 🚧     | [Docs](https://target.github.io/flottbot-docs/basics/discord/) |
 
 ✔ = Done 🚧 = in progress
 

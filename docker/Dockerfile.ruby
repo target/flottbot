@@ -1,4 +1,4 @@
-FROM golang:1.13-alpine AS build
+FROM golang:1.14-alpine AS build
 ARG SOURCE_BRANCH
 ARG SOURCE_COMMIT
 WORKDIR /go/src/github.com/target/flottbot/
