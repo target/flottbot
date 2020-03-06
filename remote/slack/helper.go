@@ -10,15 +10,15 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/nlopes/slack"
-	"github.com/nlopes/slack/slackevents"
+	"github.com/slack-go/slack"
+	"github.com/slack-go/slack/slackevents"
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/utils"
 )
 
 /*
 ======================================================================
-Slack helper functions (anything that uses the 'nlopes/slack' package)
+Slack helper functions (anything that uses the 'slack-go/slack' package)
 ======================================================================
 */
 

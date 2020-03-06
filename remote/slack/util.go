@@ -11,7 +11,7 @@ import (
 
 /*
 =======================================================
-Utility functions (does not use 'nlopes/slack' package)
+Utility functions (does not use 'slack-go/slack' package)
 =======================================================
 */
 
