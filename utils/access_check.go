@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/nlopes/slack"
+	"github.com/slack-go/slack"
 	"github.com/target/flottbot/models"
 )
 

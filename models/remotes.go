@@ -1,6 +1,6 @@
 package models
 
-import "github.com/nlopes/slack"
+import "github.com/slack-go/slack"
 
 // Remotes is a struct that holds data for various remotes
 type Remotes struct {

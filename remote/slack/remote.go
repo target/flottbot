@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/nlopes/slack"
+	"github.com/slack-go/slack"
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote"
 )
