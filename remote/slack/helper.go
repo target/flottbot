@@ -165,7 +165,7 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 			}
 		}
 	default:
-		bot.Log.Errorf("getEventsAPIEventHandler: Unrecognized event type: %v", ev)
+		bot.Log.Debugf("getEventsAPIEventHandler: Unrecognized event type: %v", ev)
 	}
 }
 
@@ -601,7 +601,7 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 				bot.Log.Debug("Invalid Authorization. Please double check your Slack token.")
 			}
 		default:
-			bot.Log.Debugf("%+v", ev)
+			bot.Log.Debugf("readFromRTM: Unrecognized event type: %v", ev)
 		}
 	}
 }
