@@ -215,6 +215,35 @@ func Test_configureChatApplication(t *testing.T) {
 	os.Unsetenv("TEST_SLACK_INTERACTIONS_CALLBACK_PATH_FAIL")
 }
 
+func Test_setSlackListenerPort(t *testing.T) {
+	t.Run("slack listener port reads from env var config", func(t *testing.T) {
+		testBotSlackListenerPort := new(models.Bot)
+		os.Setenv("TEST_SLACK_LISTENER_PORT", "TESTPORT")
+		validateRemoteSetup(testBotSlackListenerPort)
+
+		configureChatApplication(testBotSlackListenerPort)
+		expected := "TESTPORT"
+		actual := testBotSlackListenerPort.SlackListenerPort
+		if expected != actual {
+			t.Errorf("configureChatApplication() wanted SlackListenerPort set to %v, but got %v", expected, actual)
+		}
+	})
+
+	t.Run("slack listener port defaults if config is not supplied", func(t *testing.T) {
+		os.Unsetenv("TEST_SLACK_LISTENER_PORT")
+		testBotSlackListenerNoPort := new(models.Bot)
+		testBotSlackListenerNoPort.SlackListenerPort = "${TEST_SLACK_LISTENER_PORT}"
+		validateRemoteSetup(testBotSlackListenerNoPort)
+
+		configureChatApplication(testBotSlackListenerNoPort)
+		expected := defaultSlackListenerPort
+		actual := testBotSlackListenerNoPort.SlackListenerPort
+		if expected != actual {
+			t.Errorf("configureChatApplication() wanted SlackListenerNoPort set to %v, but got %v", expected, actual)
+		}
+	})
+}
+
 func Test_validateRemoteSetup(t *testing.T) {
 	type args struct {
 		bot *models.Bot
@@ -276,6 +305,10 @@ func Test_validateRemoteSetup(t *testing.T) {
 
 			if tt.shouldRunCLI != tt.args.bot.RunCLI {
 				t.Errorf("validateRemoteSetup() wanted RunCLI set to %v, but got %v", tt.shouldRunCLI, tt.args.bot.RunCLI)
+			}
+
+			if tt.shouldRunScheduler != tt.args.bot.RunScheduler {
+				t.Errorf("validateRemoteSetup() wanted RunScheduler set to %v, but got %v", tt.shouldRunScheduler, tt.args.bot.RunScheduler)
 			}
 
 			if tt.shouldRunScheduler != tt.args.bot.RunScheduler {

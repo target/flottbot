@@ -507,9 +507,10 @@ func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models
 	router.HandleFunc(bot.SlackEventsCallbackPath, getEventsAPIEventHandler(api, vToken, inputMsgs, bot)).Methods("POST")
 
 	// Start listening to Slack events
-	go http.ListenAndServe(":3000", router)
-
-	bot.Log.Infof("Slack Events API server is listening to %s", bot.SlackEventsCallbackPath)
+	maskedPort := fmt.Sprintf(":%s", bot.SlackListenerPort)
+	go http.ListenAndServe(maskedPort, router)
+	bot.Log.Infof("Slack Events API server is listening to %s on port %s",
+		bot.SlackEventsCallbackPath, bot.SlackListenerPort)
 }
 
 // readFromRTM utilizes the Slack API client to read messages via RTM.

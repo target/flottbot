@@ -9,6 +9,8 @@ import (
 	"github.com/target/flottbot/utils"
 )
 
+var defaultSlackListenerPort = "3000"
+
 // Configure searches the config directory for the bot.yml to create a Bot object.
 // The Bot object will be passed around to make accessible system-specific information.
 func Configure(bot *models.Bot) {
@@ -139,6 +141,22 @@ func configureChatApplication(bot *models.Bot) {
 			}
 
 			bot.SlackInteractionsCallbackPath = iCallbackPath
+
+			// Get Slack HTTP listener port
+			lPort, err := utils.Substitute(bot.SlackListenerPort, map[string]string{})
+			if err != nil {
+				bot.Log.Errorf("Could not set Slack listener por: %s", err.Error())
+				bot.SlackListenerPort = ""
+			}
+
+			// set slack http listener port from config file or default
+			if lPort == "" {
+				bot.Log.Warnf("Slack listener port is empty: %s", lPort)
+				bot.Log.WithField("defaultSlackListenerPort", defaultSlackListenerPort).Info("Using default slack listener port.")
+				lPort = defaultSlackListenerPort
+			}
+
+			bot.SlackListenerPort = lPort
 
 		default:
 			bot.Log.Errorf("Chat application '%s' is not supported", bot.ChatApplication)
