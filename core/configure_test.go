@@ -216,28 +216,54 @@ func Test_configureChatApplication(t *testing.T) {
 }
 
 func Test_setSlackListenerPort(t *testing.T) {
-	t.Run("slack listener port reads from env var config", func(t *testing.T) {
-		testBotSlackListenerPort := new(models.Bot)
-		os.Setenv("TEST_SLACK_LISTENER_PORT", "TESTPORT")
-		validateRemoteSetup(testBotSlackListenerPort)
+	os.Setenv("TEST_SLACK_TOKEN", "TESTTOKEN")
+	os.Setenv("TEST_SLACK_INTERACTIONS_CALLBACK_PATH", "TESTPATH")
 
-		configureChatApplication(testBotSlackListenerPort)
+	baseBot := func() *models.Bot {
+		bot := new(models.Bot)
+		bot.CLI = true
+		bot.InteractiveComponents = true
+		bot.ChatApplication = "slack"
+		bot.SlackToken = "${TEST_SLACK_TOKEN}"
+		bot.SlackInteractionsCallbackPath = "${TEST_SLACK_INTERACTIONS_CALLBACK_PATH}"
+		return bot
+	}
+
+	t.Run("slack listener port reads from env var config", func(t *testing.T) {
+		bot := baseBot()
+		bot.SlackListenerPort = "${TEST_SLACK_LISTENER_PORT}"
+		os.Setenv("TEST_SLACK_LISTENER_PORT", "TESTPORT")
+		validateRemoteSetup(bot)
+		configureChatApplication(bot)
+
 		expected := "TESTPORT"
-		actual := testBotSlackListenerPort.SlackListenerPort
+		actual := bot.SlackListenerPort
 		if expected != actual {
 			t.Errorf("configureChatApplication() wanted SlackListenerPort set to %v, but got %v", expected, actual)
 		}
 	})
 
 	t.Run("slack listener port defaults if config is not supplied", func(t *testing.T) {
-		os.Unsetenv("TEST_SLACK_LISTENER_PORT")
-		testBotSlackListenerNoPort := new(models.Bot)
-		testBotSlackListenerNoPort.SlackListenerPort = "${TEST_SLACK_LISTENER_PORT}"
-		validateRemoteSetup(testBotSlackListenerNoPort)
+		bot := baseBot()
+		validateRemoteSetup(bot)
+		configureChatApplication(bot)
 
-		configureChatApplication(testBotSlackListenerNoPort)
 		expected := defaultSlackListenerPort
-		actual := testBotSlackListenerNoPort.SlackListenerPort
+		actual := bot.SlackListenerPort
+		if expected != actual {
+			t.Errorf("configureChatApplication() wanted SlackListenerUnsetPortVar set to %v, but got %v", expected, actual)
+		}
+	})
+
+	t.Run("slack listener port defaults if expected env var is empty", func(t *testing.T) {
+		os.Unsetenv("TEST_SLACK_LISTENER_PORT")
+		bot := baseBot()
+		bot.SlackListenerPort = "${TEST_SLACK_LISTENER_PORT}"
+		validateRemoteSetup(bot)
+		configureChatApplication(bot)
+
+		expected := defaultSlackListenerPort
+		actual := bot.SlackListenerPort
 		if expected != actual {
 			t.Errorf("configureChatApplication() wanted SlackListenerNoPort set to %v, but got %v", expected, actual)
 		}

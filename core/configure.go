@@ -150,7 +150,8 @@ func configureChatApplication(bot *models.Bot) {
 			}
 
 			// set slack http listener port from config file or default
-			if lPort == "" {
+			lPortEnvWasUnset := strings.Contains(lPort, "${") // e.g. slack_listener_port: ${PORT}
+			if lPort == "" || lPortEnvWasUnset {
 				bot.Log.Warnf("Slack listener port is empty: %s", lPort)
 				bot.Log.WithField("defaultSlackListenerPort", defaultSlackListenerPort).Info("Using default slack listener port.")
 				lPort = defaultSlackListenerPort
