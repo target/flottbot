@@ -85,85 +85,89 @@ func configureChatApplication(bot *models.Bot) {
 			bot.DiscordServerID = serverID
 
 		case "slack":
-			// Slack bot token
-			token, err := utils.Substitute(bot.SlackToken, map[string]string{})
-			if err != nil {
-				bot.Log.Warnf("Could not set Slack Token: %s", err.Error())
-				bot.RunChat = false
-			}
-
-			if token == "" {
-				bot.Log.Warnf("Slack Token is empty: %s", token)
-				bot.RunChat = false
-			}
-
-			bot.SlackToken = token
-
-			// Slack verification token
-			vToken, err := utils.Substitute(bot.SlackVerificationToken, map[string]string{})
-			if err != nil {
-				bot.Log.Warnf("Could not set Slack Verification Token: %s", err.Error())
-				bot.Log.Warn("Defaulting to use Slack RTM")
-
-				vToken = ""
-			}
-
-			bot.SlackVerificationToken = vToken
-
-			// Slack workspace token
-			wsToken, err := utils.Substitute(bot.SlackWorkspaceToken, map[string]string{})
-			if err != nil {
-				bot.Log.Warnf("Could not set Slack Workspace Token: %s", err.Error())
-			}
-
-			bot.SlackWorkspaceToken = wsToken
-
-			// Get Slack Events path
-			eCallbackPath, err := utils.Substitute(bot.SlackEventsCallbackPath, map[string]string{})
-			if err != nil {
-				bot.Log.Errorf("Could not set Slack Events API callback path: %s", err.Error())
-				bot.Log.Warn("Defaulting to use Slack RTM")
-				bot.SlackVerificationToken = ""
-			}
-
-			bot.SlackEventsCallbackPath = eCallbackPath
-
-			// Get Slack Interactive Components path
-			iCallbackPath, err := utils.Substitute(bot.SlackInteractionsCallbackPath, map[string]string{})
-			if err != nil {
-				bot.Log.Errorf("Could not set Slack Interactive Components callback path: %s", err.Error())
-				bot.InteractiveComponents = false
-			}
-
-			if iCallbackPath == "" {
-				bot.Log.Warnf("Slack Interactive Components callback path is empty: %s", iCallbackPath)
-				bot.InteractiveComponents = false
-			}
-
-			bot.SlackInteractionsCallbackPath = iCallbackPath
-
-			// Get Slack HTTP listener port
-			lPort, err := utils.Substitute(bot.SlackListenerPort, map[string]string{})
-			if err != nil {
-				bot.Log.Errorf("Could not set Slack listener por: %s", err.Error())
-				bot.SlackListenerPort = ""
-			}
-
-			// set slack http listener port from config file or default
-			lPortEnvWasUnset := strings.Contains(lPort, "${") // e.g. slack_listener_port: ${PORT}
-			if lPort == "" || lPortEnvWasUnset {
-				bot.Log.Warnf("Slack listener port is empty: %s", lPort)
-				bot.Log.WithField("defaultSlackListenerPort", defaultSlackListenerPort).Info("Using default slack listener port.")
-				lPort = defaultSlackListenerPort
-			}
-
-			bot.SlackListenerPort = lPort
+			configureSlackBot(bot)
 
 		default:
 			bot.Log.Errorf("Chat application '%s' is not supported", bot.ChatApplication)
 			bot.RunChat = false
 		}
 	}
+}
+
+func configureSlackBot(bot *models.Bot) {
+	// Slack bot token
+	token, err := utils.Substitute(bot.SlackToken, map[string]string{})
+	if err != nil {
+		bot.Log.Warnf("Could not set Slack Token: %s", err.Error())
+		bot.RunChat = false
+	}
+
+	if token == "" {
+		bot.Log.Warnf("Slack Token is empty: %s", token)
+		bot.RunChat = false
+	}
+
+	bot.SlackToken = token
+
+	// Slack verification token
+	vToken, err := utils.Substitute(bot.SlackVerificationToken, map[string]string{})
+	if err != nil {
+		bot.Log.Warnf("Could not set Slack Verification Token: %s", err.Error())
+		bot.Log.Warn("Defaulting to use Slack RTM")
+
+		vToken = ""
+	}
+
+	bot.SlackVerificationToken = vToken
+
+	// Slack workspace token
+	wsToken, err := utils.Substitute(bot.SlackWorkspaceToken, map[string]string{})
+	if err != nil {
+		bot.Log.Warnf("Could not set Slack Workspace Token: %s", err.Error())
+	}
+
+	bot.SlackWorkspaceToken = wsToken
+
+	// Get Slack Events path
+	eCallbackPath, err := utils.Substitute(bot.SlackEventsCallbackPath, map[string]string{})
+	if err != nil {
+		bot.Log.Errorf("Could not set Slack Events API callback path: %s", err.Error())
+		bot.Log.Warn("Defaulting to use Slack RTM")
+		bot.SlackVerificationToken = ""
+	}
+
+	bot.SlackEventsCallbackPath = eCallbackPath
+
+	// Get Slack Interactive Components path
+	iCallbackPath, err := utils.Substitute(bot.SlackInteractionsCallbackPath, map[string]string{})
+	if err != nil {
+		bot.Log.Errorf("Could not set Slack Interactive Components callback path: %s", err.Error())
+		bot.InteractiveComponents = false
+	}
+
+	if iCallbackPath == "" {
+		bot.Log.Warnf("Slack Interactive Components callback path is empty: %s", iCallbackPath)
+		bot.InteractiveComponents = false
+	}
+
+	bot.SlackInteractionsCallbackPath = iCallbackPath
+
+	// Get Slack HTTP listener port
+	lPort, err := utils.Substitute(bot.SlackListenerPort, map[string]string{})
+	if err != nil {
+		bot.Log.Errorf("Could not set Slack listener por: %s", err.Error())
+		bot.SlackListenerPort = ""
+	}
+
+	// set slack http listener port from config file or default
+	lPortEnvWasUnset := strings.Contains(lPort, "${") // e.g. slack_listener_port: ${PORT}
+	if lPort == "" || lPortEnvWasUnset {
+		bot.Log.Warnf("Slack listener port is empty: %s", lPort)
+		bot.Log.WithField("defaultSlackListenerPort", defaultSlackListenerPort).Info("Using default slack listener port.")
+		lPort = defaultSlackListenerPort
+	}
+
+	bot.SlackListenerPort = lPort
 }
 
 func validateRemoteSetup(bot *models.Bot) {
