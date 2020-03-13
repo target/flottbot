@@ -336,10 +336,6 @@ func Test_validateRemoteSetup(t *testing.T) {
 			if tt.shouldRunScheduler != tt.args.bot.RunScheduler {
 				t.Errorf("validateRemoteSetup() wanted RunScheduler set to %v, but got %v", tt.shouldRunScheduler, tt.args.bot.RunScheduler)
 			}
-
-			if tt.shouldRunScheduler != tt.args.bot.RunScheduler {
-				t.Errorf("validateRemoteSetup() wanted RunScheduler set to %v, but got %v", tt.shouldRunScheduler, tt.args.bot.RunScheduler)
-			}
 		})
 	}
 }
