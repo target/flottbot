@@ -53,3 +53,6 @@ metrics: false
 #   ```today```
 #   ```weather <Location>```
 #   ```xkcd```
+
+# If you want to disable help message for unmatched rule
+# disable_no_match_help: true

@@ -870,6 +870,8 @@ func Test_handleNoMatch(t *testing.T) {
 
 	testBotCustomHelp := new(models.Bot)
 	testBotCustomHelp.CustomHelpText = "This is help, foo. \n"
+	testDisabledNoMatchHelp := new(models.Bot)
+	testDisabledNoMatchHelp.DisableNoMatchHelp = true
 
 	tests := []struct {
 		name         string
@@ -880,6 +882,7 @@ func Test_handleNoMatch(t *testing.T) {
 		{"Custom help intro", args{message: testMessage, bot: testBotCustomHelp}, "This is help, foo. \n"},
 		{"1 Rule", args{message: testMessage, bot: testBot, rules: testRules}, fmt.Sprintf("I understand these commands: \n\n • %s", testRules["test"].HelpText)},
 		{"Custom help intro + 1 Rule", args{message: testMessage, bot: testBotCustomHelp, rules: testRules}, "This is help, foo. \n"},
+		{"Disabled help text", args{message: testMessage, bot: testDisabledNoMatchHelp, rules: testRules}, ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -889,9 +892,17 @@ func Test_handleNoMatch(t *testing.T) {
 			tt.args.hitRule = testHitRule
 
 			handleNoMatch(tt.args.outputMsgs, tt.args.message, tt.args.hitRule, tt.args.rules, tt.args.bot)
-			output := <-testOutput
-			if tt.wantHelpText != output.Output {
-				t.Errorf("handleSchedulerServiceRule() wanted helpText to be = %s, but got %s", tt.wantHelpText, output.Output)
+			select {
+			case output := <-testOutput:
+				if tt.wantHelpText != output.Output {
+					t.Errorf("handleSchedulerServiceRule() wanted helpText to be = %s, but got %s", tt.wantHelpText, output.Output)
+				}
+			// Channel empty
+			default:
+				// Expected only for "Disabled help text" test case
+				if tt.name != "Disabled help text" {
+					t.Errorf("handleSchedulerServiceRule() wanted helpText to be = %s, but no message received", tt.wantHelpText)
+				}
 			}
 		})
 	}
