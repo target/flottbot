@@ -25,7 +25,7 @@ all: test build
 #  │ ├┤ └─┐ │ 
 #  ┴ └─┘└─┘ ┴ 
 .PHONY: validate
-validate: fmt vet lint
+validate: getdeps fmt vet lint
 
 .PHONY: getdeps
 getdeps:
@@ -56,12 +56,12 @@ tidy:
 	@go mod tidy
 
 .PHONY: test
-test: validate
+test:
 	@echo "Running unit tests"
 	@go test ./...
 
 .PHONY: test-race
-test-race: validate
+test-race:
 	@echo "Running unit tests with -race"
 	@go test -v -race -covermode=atomic -coverprofile=coverage.out ./...
 
