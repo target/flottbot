@@ -1,0 +1,63 @@
+# name of the action
+name: release
+
+# trigger on push events
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+*"
+
+# pipeline to execute
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:latest
+    steps:
+      - name: clone
+        uses: actions/checkout@v2
+
+      - name: cache
+        uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: create docker images
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          make docker-create-all
+
+      - name: push docker images
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          make docker-push
+
+      - name: build binaries
+        env:
+        run: |
+          make -j3 build-cross
+
+      - name: github release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: upload release assets
+        uses: csexton/release-asset-action@v2
+        with:
+          pattern: "flottbot-*"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          release-url: ${{ steps.create_release.outputs.upload_url }}

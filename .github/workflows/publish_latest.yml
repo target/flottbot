@@ -1,0 +1,31 @@
+# name of the action
+name: publish_latest
+
+# trigger on push events with branch master
+on:
+  push:
+    branches: [master]
+
+# pipeline to execute
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:latest
+    steps:
+      - name: clone
+        uses: actions/checkout@v2
+
+        - name: create docker images
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          make docker-create-all
+
+      - name: push docker images
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          make docker-push-latest
