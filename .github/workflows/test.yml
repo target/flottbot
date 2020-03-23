@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: clone
         uses: actions/checkout@v2
-      
+
       - name: cache
         uses: actions/cache@v1
         with:
@@ -31,11 +31,11 @@ jobs:
       - name: convert to lcov
         uses: jandelgado/gcov2lcov-action@v1.0.0
         with:
-            infile: coverage.out
-            outfile: coverage.lcov
+          infile: coverage.out
+          outfile: coverage.lcov
 
       - name: send to coveralls
-          uses: coverallsapp/github-action@v1.0.1
-          with:
-              github-token: ${{ secrets.GITHUB_TOKEN }}
-              path-to-lcov: coverage.lcov
+        uses: coverallsapp/github-action@v1.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: coverage.lcov

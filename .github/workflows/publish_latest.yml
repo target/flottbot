@@ -16,7 +16,7 @@ jobs:
       - name: clone
         uses: actions/checkout@v2
 
-        - name: create docker images
+      - name: create docker images
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
