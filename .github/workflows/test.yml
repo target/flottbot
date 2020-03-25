@@ -27,8 +27,10 @@ jobs:
 
       - name: test
         run: |
-          make test-race
+          go get github.com/ory/go-acc
+          go-acc ./... --ignore config-example -o coverage.out
 
+        # make test-race
       - name: convert to lcov
         uses: jandelgado/gcov2lcov-action@v1.0.0
         with:
