@@ -27,8 +27,7 @@ jobs:
 
       - name: test
         run: |
-          go get github.com/ory/go-acc
-          go-acc ./... --ignore config-example -o coverage.out
+          make test-race
 
         # make test-race
       - name: convert to lcov
