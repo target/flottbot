@@ -63,7 +63,7 @@ test:
 .PHONY: test-race
 test-race:
 	@echo "Running unit tests with -race"
-	@go test -v -race -covermode=atomic -coverprofile=coverage.out ./...
+	@go test -v -race -coverprofile=coverage.out -coverpkg=./... `go list ./... | grep -v config-example`
 
 .PHONY: clean
 clean: validate tidy
