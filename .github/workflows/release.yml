@@ -16,6 +16,7 @@ jobs:
     steps:
       - name: clone
         uses: actions/checkout@v2
+        run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
       - name: cache
         uses: actions/cache@v1

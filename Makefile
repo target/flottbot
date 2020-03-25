@@ -1,7 +1,7 @@
 PWD := $(shell pwd)
 GOPATH := $(shell go env GOPATH)
 GIT_HASH := $(shell git log -1 --pretty=format:"%H")
-VERSION := $(shell git describe --tags)
+VERSION := $(shell git describe --tags --always)
 GOARCH := $(shell go env GOARCH)
 GOOS := $(shell go env GOOS)
 BUILD_LDFLAGS := -s -w
