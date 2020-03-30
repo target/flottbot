@@ -27,9 +27,6 @@ jobs:
             ${{ runner.os }}-gomod-
 
       - name: create docker images
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           make docker-create-all
 
@@ -40,25 +37,10 @@ jobs:
         run: |
           make docker-push
 
-      - name: build binaries
-        env:
-        run: |
-          make -j3 build-cross
-
-      - name: github release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: run goreleaser
+        uses: goreleaser/goreleaser-action@v1
+        with:
+          version: latest
+          args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: upload release assets
-        uses: csexton/release-asset-action@v2
-        with:
-          pattern: "flottbot-*"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          release-url: ${{ steps.create_release.outputs.upload_url }}

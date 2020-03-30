@@ -86,21 +86,6 @@ build: clean
 	@GO111MODULE=on go build -a \
 		-ldflags '$(BUILD_LDFLAGS)' -o $(PWD)/flottbot ./cmd/flottbot
 
-.PHONY: build-cross
-build-cross: clean $(PLATFORMS)
-
-.PHONY: $(PLATFORMS)
-$(PLATFORMS):
-	@echo "Building for $@"
-	@GO111MODULE=on CGO_ENABLED=0 GOOS=$(os) GOARCH=$(arch) go build -a \
-		-ldflags '$(BUILD_LDFLAGS)' -o $(PWD)/flottbot-$(os)-$(arch) ./cmd/flottbot
-	@echo "Compressing to flottbot-$(os)-$(arch).tgz"
-	@tar czf flottbot-$(os)-$(arch).tgz flottbot-$(os)-$(arch)
-	@echo "Generating checksum for flottbot-$(os)-$(arch).tgz"
-	@shasum -a 256 flottbot-$(os)-$(arch).tgz >> flottbot-$(VERSION)-checksum.txt
-	@echo "Removing flottbot-$(os)-$(arch) binary"
-	-rm -v flottbot-$(os)-$(arch)
-
 # ┌┬┐┌─┐┌─┐┬┌─┌─┐┬─┐
 #  │││ ││  ├┴┐├┤ ├┬┘
 # ─┴┘└─┘└─┘┴ ┴└─┘┴└─
