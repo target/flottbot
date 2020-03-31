@@ -6,9 +6,6 @@ on:
   pull_request:
   push:
 
-env:
-  GOPROXY: "https://gocenter.io"
-
 # pipeline to execute
 jobs:
   test:
