@@ -11,6 +11,7 @@ builds:
     env:
       - CGO_ENABLED=0
       - GO111MODULE=on
+      - GOPROXY=https://gocenter.io
     flags:
       - -a
     ldflags:
@@ -29,6 +30,8 @@ changelog:
     exclude:
       - "^docs"
       - "^test"
+      - Merge pull request
+      - Merge branch
 
 archives:
   - id: traefik
