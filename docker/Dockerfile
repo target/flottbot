@@ -2,6 +2,7 @@ FROM golang:1.14-alpine AS build
 ARG VERSION
 ARG GIT_HASH
 ENV GO111MODULE=on
+ENV GOPROXY=https://gocenter.io
 
 RUN apk add --no-cache ca-certificates
 WORKDIR /src

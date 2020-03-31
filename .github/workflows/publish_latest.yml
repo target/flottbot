@@ -6,6 +6,9 @@ on:
   push:
     branches: [master]
 
+env:
+  GOPROXY: "https://gocenter.io"
+
 # pipeline to execute
 jobs:
   publish:
