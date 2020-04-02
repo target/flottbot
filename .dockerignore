@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env.example
+.idea
+.github
+.vscode
+testdata
+docker
+helm
+Makefile
+LICENSE
+CHANGELOG.md
+flottbot-*

@@ -1,18 +1,25 @@
 FROM golang:1.14-alpine AS build
-ARG SOURCE_BRANCH
-ARG SOURCE_COMMIT
-WORKDIR /go/src/github.com/target/flottbot/
-RUN apk add --no-cache git
+ARG VERSION
+ARG GIT_HASH
 ENV GO111MODULE=on
-COPY / .
+
+RUN apk add --no-cache ca-certificates
+WORKDIR /src
+
+# Allow for caching
+COPY go.mod go.sum ./
 RUN go mod download
+
+COPY / .
+
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -ldflags "-X github.com/target/flottbot/version.Version=${SOURCE_BRANCH} -X github.com/target/flottbot/version.GitHash=${SOURCE_COMMIT}" \
+    go build -a -ldflags "-s -w -X github.com/target/flottbot/version.Version=${VERSION} -X github.com/target/flottbot/version.GitHash=${GIT_HASH}" \
     -o flottbot ./cmd/flottbot
 
-FROM ruby:2.6-alpine
+FROM ruby:2.7-alpine
 RUN apk add --no-cache ruby-dev build-base && mkdir config
-COPY --from=build /go/src/github.com/target/flottbot/flottbot .
+COPY --from=build /src/flottbot /flottbot
+
 EXPOSE 8080 3000 4000
 
 CMD ["/flottbot"]
