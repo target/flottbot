@@ -29,9 +29,11 @@ changelog:
     exclude:
       - "^docs"
       - "^test"
+      - Merge pull request
+      - Merge branch
 
 archives:
-  - id: traefik
+  - id: flottbot
     name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
     format: tar.gz
     format_overrides:
