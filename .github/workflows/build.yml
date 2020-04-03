@@ -1,0 +1,30 @@
+# name of the action
+name: build
+
+# trigger on pull_request or push events
+on:
+  pull_request:
+  push:
+
+# pipeline to execute
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:latest
+    steps:
+      - name: clone
+        uses: actions/checkout@v2
+      - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+
+      - name: cache
+        uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-gomod-
+
+      - name: build
+        run: |
+          make build
