@@ -18,6 +18,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
 
 FROM alpine:3.11
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+RUN true
 COPY --from=build /src/flottbot /flottbot
 
 EXPOSE 3000 4000 8080
