@@ -3,7 +3,6 @@ ARG VERSION
 ARG GIT_HASH
 ENV GO111MODULE=on
 
-RUN apk add --no-cache ca-certificates
 WORKDIR /src
 
 # Allow for caching
@@ -17,8 +16,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     -o flottbot ./cmd/flottbot
 
 FROM alpine:3.11
-COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-RUN true
+RUN apk --no-cache add ca-certificates && mkdir config
 COPY --from=build /src/flottbot /flottbot
 
 EXPOSE 3000 4000 8080
