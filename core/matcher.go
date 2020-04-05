@@ -134,26 +134,29 @@ func handleSchedulerServiceRule(outputMsgs chan<- models.Message, message models
 func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hitRule chan<- models.Rule, rules map[string]models.Rule, bot *models.Bot) {
 	// If bot was addressed or was private messaged, print help text by default
 	if message.Type == models.MsgTypeDirect || message.BotMentioned {
-		bot.Log.Debug("Bot was addressed, but no rule matched. Showing help")
-		// Publish metric as none
-		Prommetric(bot.Name+"-None", bot)
-		// Set custom_help_text if it is set in bot.yml
-		helpMsg := bot.CustomHelpText
-		// If custom_help_text is not set, use default Help Text, for each rule use help_text from rule file
-		if helpMsg == "" {
-			helpMsg = "I understand these commands: \n"
-			// Go through all the rules and collect the help_text
-			for _, rule := range rules {
-				// Is the rule active and does the user want to expose the help for it? 'hear' rules don't show in help by default
-				if rule.Active && rule.Hear == "" && rule.IncludeInHelp && rule.HelpText != "" {
-					helpMsg = helpMsg + fmt.Sprintf("\n • %s", rule.HelpText)
+		// Do not send help message if DisableNoMatchHelp is true
+		if !bot.DisableNoMatchHelp {
+			bot.Log.Debug("Bot was addressed, but no rule matched. Showing help")
+			// Publish metric as none
+			Prommetric(bot.Name+"-None", bot)
+			// Set custom_help_text if it is set in bot.yml
+			helpMsg := bot.CustomHelpText
+			// If custom_help_text is not set, use default Help Text, for each rule use help_text from rule file
+			if helpMsg == "" {
+				helpMsg = "I understand these commands: \n"
+				// Go through all the rules and collect the help_text
+				for _, rule := range rules {
+					// Is the rule active and does the user want to expose the help for it? 'hear' rules don't show in help by default
+					if rule.Active && rule.Hear == "" && rule.IncludeInHelp && rule.HelpText != "" {
+						helpMsg = helpMsg + fmt.Sprintf("\n • %s", rule.HelpText)
+					}
 				}
 			}
+			// Populate output with help text defined above
+			message.Output = helpMsg
+			outputMsgs <- message
+			hitRule <- models.Rule{}
 		}
-		// Populate output with help text defined above
-		message.Output = helpMsg
-		outputMsgs <- message
-		hitRule <- models.Rule{}
 	}
 }
 
