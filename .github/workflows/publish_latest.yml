@@ -10,8 +10,6 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    container:
-      image: golang:latest
     steps:
       - name: clone
         uses: actions/checkout@v2
