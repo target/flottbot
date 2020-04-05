@@ -17,6 +17,7 @@ Implementation for the Remote interface
 
 // Client struct
 type Client struct {
+	ListenerPort      string
 	Token             string
 	VerificationToken string
 	WorkspaceToken    string
