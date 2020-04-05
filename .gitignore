@@ -59,7 +59,7 @@ Temporary Items
 
 .env
 debug
-flottbot
+flottbot*
 !flottbot/
 config/
 
