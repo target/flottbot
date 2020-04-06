@@ -32,6 +32,9 @@ interactive_components: false
 # true: enables users to create and interact with chat platforms interactive components (e.g. Slack message attachments)
 # false (defualt): disables interactive components for all supported chat platform
 
+## heroku deploys require an injected listener port; only works for Slack Apps
+# slack_listener_port: ${PORT}
+
 # for prometheus metrics capabilities
 metrics: false
 # true: enables prometheus metrics on localhost port 8080
@@ -53,3 +56,6 @@ metrics: false
 #   ```today```
 #   ```weather <Location>```
 #   ```xkcd```
+
+# If you want to disable help message for unmatched rule
+# disable_no_match_help: true

@@ -12,6 +12,7 @@ type Bot struct {
 	SlackWorkspaceToken           string            `mapstructure:"slack_workspace_token"`
 	SlackEventsCallbackPath       string            `mapstructure:"slack_events_callback_path"`
 	SlackInteractionsCallbackPath string            `mapstructure:"slack_interactions_callback_path"`
+	SlackListenerPort             string            `mapstructure:"slack_listener_port"`
 	DiscordToken                  string            `mapstructure:"discord_token"`
 	DiscordServerID               string            `mapstructure:"discord_server_id"`
 	Users                         map[string]string `mapstructure:"slack_users"`
@@ -26,6 +27,7 @@ type Bot struct {
 	InteractiveComponents         bool              `mapstructure:"interactive_components,omitempty"`
 	Metrics                       bool              `mapstructure:"metrics,omitempty"`
 	CustomHelpText                string            `mapstructure:"custom_help_text,omitempty"`
+	DisableNoMatchHelp            bool              `mapstructure:"disable_no_match_help,omitempty"`
 	// System
 	Log          logrus.Logger
 	RunChat      bool
