@@ -11,7 +11,6 @@
 [![GitHub release](https://img.shields.io/github/release/target/flottbot.svg)](https://github.com/target/flottbot/releases/latest)
 [![Coverage Status](https://coveralls.io/repos/target/flottbot/badge.svg?branch=master)](https://coveralls.io/r/target/flottbot?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/target/flottbot)](https://goreportcard.com/report/github.com/target/flottbot)
-[![docker](https://img.shields.io/docker/build/target/flottbot.svg)](https://hub.docker.com/r/target/flottbot)
 
 Flottbot is a chatbot framework written in Go. But there's a catch, you don't need to know a lick of Go! Configure your bot via YAML files, extend functionality by writing scripts in your favorite language.
 
@@ -43,11 +42,11 @@ We currently provide a few Docker images:
 
 [target/flottbot](https://hub.docker.com/r/target/flottbot) - Alpine image and flottbot binary installed
 
-[target/flottbot:ruby](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and ruby v2.5 installed
+[target/flottbot:ruby](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and ruby v2.7 installed
 
 [target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.14 installed
 
-[target/flottbot:python](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and python v3.7 installed
+[target/flottbot:python](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and python v3.8 installed
 
 ## Helm Chart
 
