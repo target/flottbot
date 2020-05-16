@@ -16,9 +16,12 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     -o flottbot ./cmd/flottbot
 
 FROM ruby:2.7-alpine
-RUN apk add --no-cache ca-certificates ruby-dev build-base && mkdir config
+ENV USERNAME=flottbot
+ENV UID=900
+RUN apk add --no-cache ca-certificates ruby-dev build-base && mkdir config && adduser -S -u "$UID" "$USERNAME"
 COPY --from=build /src/flottbot /flottbot
 
 EXPOSE 8080 3000 4000
 
+USER ${USERNAME}
 CMD ["/flottbot"]

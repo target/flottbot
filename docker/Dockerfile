@@ -16,9 +16,12 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     -o flottbot ./cmd/flottbot
 
 FROM alpine:3.11
-RUN apk --no-cache add ca-certificates && mkdir config
+ENV USERNAME=flottbot
+ENV UID=900
+RUN apk --no-cache add ca-certificates && mkdir config && adduser -S --u "$UID" "$USERNAME"
 COPY --from=build /src/flottbot /flottbot
 
 EXPOSE 3000 4000 8080
 
+USER ${USERNAME}
 CMD [ "/flottbot" ]
