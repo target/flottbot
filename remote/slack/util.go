@@ -29,7 +29,7 @@ func findKey(m map[string]string, value string) (key string, ok bool) {
 
 // getMessageType - gets the type of message based on where it came from
 func getMessageType(channel string) (models.MessageType, error) {
-	re := regexp.MustCompile(`^(C|D|G)[A-Z0-9]{8}$`) // match known 9-char channel ID types
+	re := regexp.MustCompile(`^(C|D|G)[A-Z0-9]{4,}$`) // match known channel ID types
 	match := re.FindStringSubmatch(channel)
 	if len(match) > 0 {
 		switch match[1] { // [1] grabs the first letter, [0] will grab the entire channel ID

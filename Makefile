@@ -132,7 +132,7 @@ docker-push: docker-login
 	
 	@for flavor in $(DOCKER_FLAVORS); do \
 		echo "Pushing $(DOCKER_IMAGE):$$flavor to docker hub"; \
-		docker push $(DOCKER_IMAGE):$$flavor \
+		docker push $(DOCKER_IMAGE):$$flavor; \
 		docker push $(DOCKER_IMAGE):$$flavor-$(VERSION); \
 	done
 
