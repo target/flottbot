@@ -15,6 +15,7 @@ type Bot struct {
 	SlackListenerPort             string            `mapstructure:"slack_listener_port"`
 	DiscordToken                  string            `mapstructure:"discord_token"`
 	DiscordServerID               string            `mapstructure:"discord_server_id"`
+	TelegramToken                 string            `mapstructure:"telegram_token"`
 	Users                         map[string]string `mapstructure:"slack_users"`
 	UserGroups                    map[string]string `mapstructure:"slack_usergroups"`
 	Rooms                         map[string]string `mapstructure:"slack_channels"`

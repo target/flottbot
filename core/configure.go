@@ -87,6 +87,20 @@ func configureChatApplication(bot *models.Bot) {
 		case "slack":
 			configureSlackBot(bot)
 
+		case "telegram":
+			token, err := utils.Substitute(bot.TelegramToken, map[string]string{})
+			if err != nil {
+				bot.Log.Warnf("Could not set telegram Token: %s", err.Error())
+				bot.RunChat = false
+			}
+
+			if token == "" {
+				bot.Log.Warnf("telegram Token is empty: '%s'", token)
+				bot.RunChat = false
+			}
+
+			bot.TelegramToken = token
+
 		default:
 			bot.Log.Errorf("Chat application '%s' is not supported", bot.ChatApplication)
 			bot.RunChat = false
