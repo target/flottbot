@@ -57,12 +57,13 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 		}
 
 		message := models.NewMessage()
+		message.Timestamp = strconv.FormatInt(update.Message.Time().Unix(), 10)
 		message.Type = models.MsgTypeDirect
 		message.Input = update.Message.Text
+		message.Output = ""
 		message.ID = strconv.Itoa(update.Message.MessageID)
 		message.Service = models.MsgServiceChat
 		message.ChannelID = strconv.FormatInt(update.Message.Chat.ID, 10)
-
 		message.Vars["_user.name"] = update.Message.Chat.UserName
 
 		inputMsgs <- message
