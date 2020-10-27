@@ -50,6 +50,8 @@ We currently provide a few Docker images:
 
 _Note: We highly recommend pinning your image to a version, ie. `target/flottbot:0.5.0` or `target/flottbot:ruby-0.5.0`_
 
+_Note: The images run with the unprivileged `flottbot` user (uid/gid 900) by default_
+
 ## Helm Chart
 
 To install using the [Helm](https://helm.sh/) chart located in this repo, clone this repo, create a [Kubernetes secret](https://kubernetes.io/docs/concepts/configuration/secret/) for your Slack Token in your namespace & install the chart:

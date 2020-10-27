@@ -8,6 +8,7 @@ import (
 	"github.com/target/flottbot/remote/discord"
 	"github.com/target/flottbot/remote/scheduler"
 	"github.com/target/flottbot/remote/slack"
+	"github.com/target/flottbot/remote/telegram"
 )
 
 // Remotes - the purpose of this function is to READ incoming messages from various places, i.e. remotes.
@@ -50,6 +51,13 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 			// Read messages from Slack
 			go remoteSlack.Read(inputMsgs, rules, bot)
 			go remoteSlack.InteractiveComponents(inputMsgs, nil, rules[""], bot)
+		// Setup remote to use the Telegram client to read from Telegram
+		case "telegram":
+			remoteTelegram := &telegram.Client{
+				Token: bot.TelegramToken,
+			}
+			// Read messages from Telegram
+			go remoteTelegram.Read(inputMsgs, rules, bot)
 		default:
 			bot.Log.Errorf("Chat application '%s' is not supported", chatApp)
 		}

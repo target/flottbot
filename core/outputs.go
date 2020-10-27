@@ -7,6 +7,7 @@ import (
 	"github.com/target/flottbot/remote/cli"
 	"github.com/target/flottbot/remote/discord"
 	"github.com/target/flottbot/remote/slack"
+	"github.com/target/flottbot/remote/telegram"
 )
 
 // Outputs determines where messages are output based on fields set in the bot.yml
@@ -43,6 +44,11 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 					remoteSlack.Reaction(message, rule, bot)
 				}
 				remoteSlack.Send(message, bot)
+			case "telegram":
+				remoteTelegram := &telegram.Client{
+					Token: bot.TelegramToken,
+				}
+				remoteTelegram.Send(message, bot)
 			default:
 				bot.Log.Debugf("Chat application %s is not supported", chatApp)
 			}
