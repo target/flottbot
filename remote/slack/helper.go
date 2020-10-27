@@ -638,11 +638,16 @@ func sendChannelMessage(api *slack.Client, channel string, message models.Messag
 
 // sendDirectMessage - sends a message back to the user who dm'ed your bot
 func sendDirectMessage(api *slack.Client, userID string, message models.Message) error {
-	_, _, imChannelID, err := api.OpenIMChannel(userID)
+	params := &slack.OpenConversationParameters{
+		Users: []string{userID},
+	}
+
+	imChannelID, _, _, err := api.OpenConversation(params)
 	if err != nil {
 		return err
 	}
-	return sendMessage(api, message.IsEphemeral, imChannelID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Attributes["ws_token"], message.Remotes.Slack.Attachments)
+
+	return sendMessage(api, message.IsEphemeral, imChannelID.ID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Attributes["ws_token"], message.Remotes.Slack.Attachments)
 }
 
 // sendMessage - does the final send to Slack; adds any Slack-specific message parameters to the message to be sent out
