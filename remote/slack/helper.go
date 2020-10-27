@@ -545,6 +545,7 @@ func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models
 
 // readFromRTM utilizes the Slack API client to read messages via RTM.
 // This method of reading is not preferred and the event-based read should instead be used.
+// nolint:gocyclo // needs refactor
 func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bot) {
 	go rtm.ManageConnection()
 	for {
