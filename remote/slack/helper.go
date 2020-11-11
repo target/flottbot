@@ -149,16 +149,23 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 			inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
 		}
 	// This is an Event shared between RTM and the Events API
-	case *slack.MemberJoinedChannelEvent:
-		// get bot rooms
-		bot.Rooms = getRooms(api)
-		bot.Log.Debugf("%s has joined the channel %s", bot.Name, bot.Rooms[ev.Channel])
-	case *slack.MemberLeftChannelEvent:
-		// remove room
-		delete(bot.Rooms, ev.Channel)
-		bot.Log.Debugf("%s has left the channel %s", bot.Name, bot.Rooms[ev.Channel])
+	case *slackevents.MemberJoinedChannelEvent:
+		// limit to our bot
+		if ev.User == bot.ID {
+			// look up channel info, since 'ev' only gives us ID
+			channel, err := api.GetChannelInfo(ev.Channel)
+			if err != nil {
+				bot.Log.Debugf("unable to fetch channel info for channel joined event: %v", err)
+			} else {
+				// add the room to the lookup
+				if bot.Rooms[channel.Name] == "" {
+					bot.Rooms[channel.Name] = channel.ID
+					bot.Log.Debugf("Joined new channel. %s(%s) added to lookup", channel.Name, channel.ID)
+				}
+			}
+		}
 	default:
-		bot.Log.Errorf("getEventsAPIEventHandler: Unrecognized event type: %v", ev)
+		bot.Log.Debugf("getEventsAPIEventHandler: Unrecognized event type: %v", ev)
 	}
 }
 
@@ -265,16 +272,39 @@ func getInteractiveComponentRuleHandler(verificationToken string, inputMsgs chan
 // getRooms - return a map of rooms
 func getRooms(api *slack.Client) map[string]string {
 	rooms := make(map[string]string)
-	// get public channels
-	channels, _ := api.GetChannels(true)
-	for _, channel := range channels {
-		rooms[channel.Name] = channel.ID
+
+	// we're getting all channel types by default
+	// this can be controlled with permission scopes in Slack:
+	// channels:read, groups:read, im:read, mpim:read
+	cp := slack.GetConversationsParameters{
+		Cursor:          "",
+		ExcludeArchived: "true",
+		Limit:           1000, // this is the maximum value allowed
+		Types:           []string{"public_channel", "private_channel", "mpim", "im"},
 	}
-	// get private channels
-	groups, _ := api.GetGroups(true)
-	for _, group := range groups {
-		rooms[group.Name] = group.ID
+
+	// there's a possibility we need to page through results
+	// the results, so we're looping until there are no more pages
+	for {
+		channels, nc, err := api.GetConversations(&cp)
+		if err != nil {
+			break
+		}
+
+		// populate our channel map
+		for _, channel := range channels {
+			rooms[channel.Name] = channel.ID
+		}
+
+		// no more pages to process? quit the loop
+		if len(nc) == 0 {
+			break
+		}
+
+		// override the cursor
+		cp.Cursor = nc
 	}
+
 	return rooms
 }
 
@@ -515,6 +545,7 @@ func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models
 
 // readFromRTM utilizes the Slack API client to read messages via RTM.
 // This method of reading is not preferred and the event-based read should instead be used.
+// nolint:gocyclo // needs refactor
 func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bot) {
 	go rtm.ManageConnection()
 	for {
@@ -555,11 +586,8 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 			// populate user groups
 			populateUserGroups(bot)
 			bot.Log.Debugf("RTM connection established!")
-		case *slack.GroupJoinedEvent:
+		case *slack.ChannelJoinedEvent:
 			// when the bot joins a channel add it to the internal lookup
-			// NOTE: looks like there is another unsupported event we could use
-			//   Received unmapped event \"member_joined_channel\"
-			// Maybe watch for an update to slack package for future support
 			if bot.Rooms[ev.Channel.Name] == "" {
 				bot.Rooms[ev.Channel.Name] = ev.Channel.ID
 				bot.Log.Debugf("Joined new channel. %s(%s) added to lookup", ev.Channel.Name, ev.Channel.ID)
@@ -574,6 +602,8 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 			if !bot.CLI {
 				bot.Log.Debug("Invalid Authorization. Please double check your Slack token.")
 			}
+		default:
+			bot.Log.Debugf("readFromRTM: Unrecognized event type: %v", ev)
 		}
 	}
 }
@@ -609,11 +639,16 @@ func sendChannelMessage(api *slack.Client, channel string, message models.Messag
 
 // sendDirectMessage - sends a message back to the user who dm'ed your bot
 func sendDirectMessage(api *slack.Client, userID string, message models.Message) error {
-	_, _, imChannelID, err := api.OpenIMChannel(userID)
+	params := &slack.OpenConversationParameters{
+		Users: []string{userID},
+	}
+
+	imChannelID, _, _, err := api.OpenConversation(params)
 	if err != nil {
 		return err
 	}
-	return sendMessage(api, message.IsEphemeral, imChannelID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Attributes["ws_token"], message.Remotes.Slack.Attachments)
+
+	return sendMessage(api, message.IsEphemeral, imChannelID.ID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Attributes["ws_token"], message.Remotes.Slack.Attachments)
 }
 
 // sendMessage - does the final send to Slack; adds any Slack-specific message parameters to the message to be sent out
