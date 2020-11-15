@@ -110,8 +110,18 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	telegramAPI := c.new()
 	chatID, err := strconv.ParseInt(message.ChannelID, 10, 64)
 	if err != nil {
-		bot.Log.Errorf("unable to retrive chat ID %s", message.ChannelID)
+		bot.Log.Errorf("unable to retrieve chat ID %s", message.ChannelID)
 		return
+	}
+
+	// handle directive to only send direct message to user
+	// instead of sending back to originating channel
+	if message.DirectMessageOnly {
+		chatID, err = strconv.ParseInt(message.Vars["_user.id"], 10, 64)
+		if err != nil {
+			bot.Log.Errorf("unable to retrieve user ID %s for direct message", message.Vars["_user.id"])
+			return
+		}
 	}
 
 	msg := tgbotapi.NewMessage(chatID, message.Output)
