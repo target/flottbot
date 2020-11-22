@@ -1,7 +1,9 @@
 package telegram
 
 import (
+	"fmt"
 	"strconv"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/target/flottbot/models"
@@ -52,19 +54,52 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	updates, err := telegramAPI.GetUpdatesChan(u)
 
 	for update := range updates {
-		if update.Message == nil { // ignore any non-Message Updates
+		var m *tgbotapi.Message
+
+		if update.Message != nil {
+			m = update.Message
+		}
+
+		if update.ChannelPost != nil {
+			m = update.ChannelPost
+		}
+
+		if m == nil {
 			continue
 		}
 
+		msg, mentioned := processMessageText(m.Text, bot.Name)
+
+		// support slash commands
+		if len(m.Command()) > 0 {
+			fullCmd := fmt.Sprintf("%s %s", m.Command(), m.CommandArguments())
+			mentioned = true
+			msg = strings.TrimSpace(fullCmd)
+		}
+
 		message := models.NewMessage()
-		message.Timestamp = strconv.FormatInt(update.Message.Time().Unix(), 10)
-		message.Type = models.MsgTypeDirect
-		message.Input = update.Message.Text
+		message.Timestamp = strconv.FormatInt(m.Time().Unix(), 10)
+		message.Type = mapMessageType(*m)
+		message.Input = msg
 		message.Output = ""
-		message.ID = strconv.Itoa(update.Message.MessageID)
+		message.ID = strconv.Itoa(m.MessageID)
 		message.Service = models.MsgServiceChat
-		message.ChannelID = strconv.FormatInt(update.Message.Chat.ID, 10)
-		message.Vars["_user.name"] = update.Message.Chat.UserName
+		message.BotMentioned = mentioned
+		message.ChannelID = strconv.FormatInt(m.Chat.ID, 10)
+
+		// populate message with metadata
+		if m.From != nil {
+			message.Vars["_user.name"] = m.From.UserName
+			message.Vars["_user.firstname"] = m.From.FirstName
+			message.Vars["_user.lastname"] = m.From.LastName
+			message.Vars["_user.id"] = strconv.Itoa(m.From.ID)
+			message.Vars["_user.realnamenormalized"] = fmt.Sprintf("%s %s", m.From.FirstName, m.From.LastName)
+			message.Vars["_user.displayname"] = m.From.UserName
+			message.Vars["_user.displaynamenormalized"] = m.From.UserName
+		}
+
+		message.Vars["_channel.id"] = message.ChannelID
+		message.Vars["_channel.name"] = m.Chat.Title
 
 		inputMsgs <- message
 	}
@@ -75,8 +110,18 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	telegramAPI := c.new()
 	chatID, err := strconv.ParseInt(message.ChannelID, 10, 64)
 	if err != nil {
-		bot.Log.Errorf("unable to retrive chat ID %s", message.ChannelID)
+		bot.Log.Errorf("unable to retrieve chat ID %s", message.ChannelID)
 		return
+	}
+
+	// handle directive to only send direct message to user
+	// instead of sending back to originating channel
+	if message.DirectMessageOnly {
+		chatID, err = strconv.ParseInt(message.Vars["_user.id"], 10, 64)
+		if err != nil {
+			bot.Log.Errorf("unable to retrieve user ID %s for direct message", message.Vars["_user.id"])
+			return
+		}
 	}
 
 	msg := tgbotapi.NewMessage(chatID, message.Output)
