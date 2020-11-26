@@ -56,20 +56,13 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 
 			bot.Log.Debugf("scheduler is adding rule '%s'", rule.Name)
 
-			// check whether we are dealing with quartz spec
-			specFields := strings.Fields(rule.Schedule)
-			if len(specFields) == 6 {
-				job = cron.New(cron.WithSeconds())
-			} else {
-				job = cron.New()
-			}
-
 			scheduleName := rule.Name
 			input := fmt.Sprintf("<@%s> ", bot.ID) // send message as self
 			outputRooms := rule.OutputToRooms
 			outputUsers := rule.OutputToUsers
 
-			_, err := job.AddFunc(rule.Schedule, func() {
+			// prepare the job function
+			jobFunc := func() {
 				bot.Log.Debugf("executing scheduler for rule '%s'", scheduleName)
 				// build the message
 				message := models.NewMessage()
@@ -80,10 +73,29 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 				message.OutputToRooms = outputRooms
 				message.OutputToUsers = outputUsers
 				inputMsgs <- message
-			})
+			}
 
+			// use our logger for cron
+			cronLogger := cron.PrintfLogger(&bot.Log)
+
+			// check if the provided schedule is of standard format, ie. 5 fields
+			_, err := cron.ParseStandard(rule.Schedule)
+			if err == nil {
+				// standard cron
+				job = cron.New(cron.WithChain(cron.SkipIfStillRunning(cronLogger)))
+			} else {
+				// (probably?) quartz cron
+				job = cron.New(cron.WithSeconds(), cron.WithChain(cron.SkipIfStillRunning(cronLogger)))
+			}
+
+			// try to create new cron job
+			_, err = job.AddFunc(rule.Schedule, jobFunc)
 			if err != nil {
-				bot.Log.Errorf("unable to add schedule: %v", err)
+				// typically the error is due to incorrect cron format
+				bot.Log.Errorf("unable to add schedule for rule '%s': verify that the supplied schedule is supported", rule.Name)
+				// more verbose log. note: will probably convey that spec
+				// needs to be 6 fields, although any supported format will work.
+				bot.Log.Debugf("error while adding job: %v", err)
 				continue
 			}
 
