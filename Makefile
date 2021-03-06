@@ -11,12 +11,6 @@ GOLANGCI_LINT_VERSION := "v1.23.8"
 
 DOCKER_IMAGE ?= "target/flottbot"
 DOCKER_FLAVORS ?= golang ruby python
-PLATFORMS ?= linux/amd64 darwin/amd64 windows/amd64
-
-# some helpers for building for each platform
-p = $(subst /, ,$@)
-os = $(word 1, $(p))
-arch = $(word 2, $(p))
 
 .PHONY: all
 all: test build
@@ -38,17 +32,17 @@ getdeps:
 .PHONY: lint
 lint:
 	@echo "Running $@ check"
-	@GO111MODULE=on golangci-lint run
+	@golangci-lint run
 
 .PHONY: fmt
 fmt:
 	@echo "Running $@ check"
-	@GO111MODULE=on go fmt ./...
+	@go fmt ./...
 
 .PHONY: vet
 vet:
 	@echo "Running $@ check"
-	@GO111MODULE=on go vet ./...
+	@go vet ./...
 
 .PHONY: tidy
 tidy:
@@ -59,7 +53,7 @@ tidy:
 ensure-go-acc:
 	@which go-acc 1>/dev/null || \
 		(echo "Installing go-acc" && \
-		GO111MODULE=off go get -u github.com/ory/go-acc)
+		go get -u github.com/ory/go-acc)
 
 .PHONY: test
 test:
@@ -83,7 +77,7 @@ clean: validate tidy
 .PHONY: build
 build: clean
 	@echo "Building flottbot binary to './flottbot'"
-	@GO111MODULE=on go build -a \
+	@go build -a \
 		-ldflags '$(BUILD_LDFLAGS)' -o $(PWD)/flottbot ./cmd/flottbot
 
 # ┌┬┐┌─┐┌─┐┬┌─┌─┐┬─┐
