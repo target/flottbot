@@ -66,6 +66,7 @@ To install using the [Helm](https://helm.sh/) chart located in this repo, clone 
 | --------------------------------- | ------ | -------------------------------------------------------------- |
 | [Slack](https://slack.com)        | ✔      | [Docs](https://target.github.io/flottbot-docs/basics/slack/)   |
 | [Discord](https://discordapp.com) | 🚧     | [Docs](https://target.github.io/flottbot-docs/basics/discord/) |
+| [Telegram](https://telegram.org)  | 🚧     | coming soon                                                    |
 
 ✔ = Done 🚧 = in progress
 
