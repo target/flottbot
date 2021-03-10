@@ -66,3 +66,6 @@ config/
 ### Git ###
 vendor
 _vendor*
+
+### GoReleaser ###
+dist/
