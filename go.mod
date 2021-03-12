@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0
+	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/bwmarrin/discordgo v0.23.2
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
