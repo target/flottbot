@@ -28,6 +28,7 @@ jobs:
       - name: test
         run: |
           make test-race
+          cat coverage.out
 
         # make test-race
       - name: convert to lcov
