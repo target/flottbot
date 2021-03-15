@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/bwmarrin/discordgo v0.23.2
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
+	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.0.1
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/huandu/xstrings v1.3.2 // indirect
