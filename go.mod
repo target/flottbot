@@ -23,7 +23,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/xid v1.2.1
 	github.com/sirupsen/logrus v1.8.1
-	github.com/slack-go/slack v0.8.1
+	github.com/slack-go/slack v0.8.2
 	github.com/spf13/afero v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
