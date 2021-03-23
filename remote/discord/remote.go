@@ -172,9 +172,8 @@ func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message 
 // message is created on any channel that the authenticated bot has access to
 func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) interface{} {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		// Ignore all messages created by bots
-		// This isn't required in this specific example but it's a good practice
-		if m.Author.Bot {
+		// check if we should respond to bot messages
+		if m.Author.Bot && !bot.RespondToBots {
 			return
 		}
 
