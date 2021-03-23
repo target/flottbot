@@ -29,6 +29,7 @@ type Bot struct {
 	Metrics                       bool              `mapstructure:"metrics,omitempty"`
 	CustomHelpText                string            `mapstructure:"custom_help_text,omitempty"`
 	DisableNoMatchHelp            bool              `mapstructure:"disable_no_match_help,omitempty"`
+	RespondToBots                 bool              `mapstructure:"respond_to_bots,omitempty"`
 	// System
 	Log          logrus.Logger
 	RunChat      bool
