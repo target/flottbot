@@ -122,23 +122,36 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 
 	// process the event
 	bot.Log.Debugf("getEventsAPIEventHandler: Received event '%s'", event.Type)
+
 	switch ev := event.Data.(type) {
 	// There are Events API specific MessageEvents
 	// https://api.slack.com/events/message.channels
 	case *slackevents.MessageEvent:
 		senderID := ev.User
-		// Only process messages that aren't from the bot itself
+
+		// check if we should respond to other bot messages
+		if ev.BotID != "" && bot.RespondToBots {
+			senderID = ev.BotID
+		}
+
+		// only process messages that aren't from our bot
 		if senderID != "" && bot.ID != senderID {
 			channel := ev.Channel
 			msgType, err := getMessageType(channel)
 			if err != nil {
 				bot.Log.Debug(err.Error())
 			}
+
 			text, mentioned := removeBotMention(ev.Text, bot.ID)
+
+			// if senderID is a BotID, we could use .GetBotInfo()
+			// but this should also give us information on the sender
+			// including whether it is a bot
 			user, err := api.GetUserInfo(senderID)
-			if err != nil && senderID != "" { // we only care if senderID is not empty and there's an error (senderID == "" could be a thread from a message)
+			if err != nil {
 				bot.Log.Errorf("getEventsAPIEventHandler: Did not get Slack user info: %s", err.Error())
 			}
+
 			timestamp := ev.TimeStamp
 			threadTimestamp := ev.ThreadTimeStamp
 
@@ -146,6 +159,7 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 			if err != nil {
 				link = ""
 			}
+
 			inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
 		}
 	// This is an Event shared between RTM and the Events API
@@ -548,24 +562,37 @@ func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models
 // nolint:gocyclo // needs refactor
 func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bot) {
 	go rtm.ManageConnection()
+
 	for {
 		msg := <-rtm.IncomingEvents
+
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
 			senderID := ev.User
-			// Sometimes message events in RTM don't have a User ID?
-			// Also, only process messages that aren't from the bot itself
+
+			// check if we should respond to other bot messages
+			if ev.BotID != "" && bot.RespondToBots {
+				senderID = ev.BotID
+			}
+
+			// only process messages that aren't from our bot
 			if senderID != "" && bot.ID != senderID {
 				channel := ev.Channel
 				msgType, err := getMessageType(channel)
 				if err != nil {
 					bot.Log.Debug(err.Error())
 				}
+
 				text, mentioned := removeBotMention(ev.Text, bot.ID)
+
+				// if senderID is a BotID, we could use .GetBotInfo()
+				// but this should also give us information on the sender
+				// including whether it is a bot
 				user, err := rtm.GetUserInfo(senderID)
-				if err != nil && senderID != "" { // we only care if senderID is not empty and there's an error (senderID == "" could be a thread from a message)
+				if err != nil {
 					bot.Log.Errorf("Did not get Slack user info: %s", err.Error())
 				}
+
 				timestamp := ev.Timestamp
 				threadTimestamp := ev.ThreadTimestamp
 
