@@ -129,9 +129,20 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 	case *slackevents.MessageEvent:
 		senderID := ev.User
 
-		// check if we should respond to other bot messages
+		// check if message originated from a bot
+		// and whether we should respond to other bot messages
 		if ev.BotID != "" && bot.RespondToBots {
-			senderID = ev.BotID
+			// get bot information to get
+			// the associated user id
+			user, err := api.GetBotInfo(ev.BotID)
+			if err != nil {
+				bot.Log.Infof("unable to retrieve bot info for %s", ev.BotID)
+
+				return
+			}
+
+			// use the bot's user id as the senderID
+			senderID = user.UserID
 		}
 
 		// only process messages that aren't from our bot
@@ -144,9 +155,7 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 
 			text, mentioned := removeBotMention(ev.Text, bot.ID)
 
-			// if senderID is a BotID, we could use .GetBotInfo()
-			// but this should also give us information on the sender
-			// including whether it is a bot
+			// get the full user object for the given ID
 			user, err := api.GetUserInfo(senderID)
 			if err != nil {
 				bot.Log.Errorf("getEventsAPIEventHandler: Did not get Slack user info: %s", err.Error())
@@ -570,9 +579,20 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 		case *slack.MessageEvent:
 			senderID := ev.User
 
-			// check if we should respond to other bot messages
+			// check if message originated from a bot
+			// and whether we should respond to other bot messages
 			if ev.BotID != "" && bot.RespondToBots {
-				senderID = ev.BotID
+				// get bot information to get
+				// the associated user id
+				user, err := rtm.GetBotInfo(ev.BotID)
+				if err != nil {
+					bot.Log.Infof("unable to retrieve bot info for %s", ev.BotID)
+
+					return
+				}
+
+				// use the bot's user id as the senderID
+				senderID = user.UserID
 			}
 
 			// only process messages that aren't from our bot
@@ -585,9 +605,7 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 
 				text, mentioned := removeBotMention(ev.Text, bot.ID)
 
-				// if senderID is a BotID, we could use .GetBotInfo()
-				// but this should also give us information on the sender
-				// including whether it is a bot
+				// get the full user object for the given ID
 				user, err := rtm.GetUserInfo(senderID)
 				if err != nil {
 					bot.Log.Errorf("Did not get Slack user info: %s", err.Error())
