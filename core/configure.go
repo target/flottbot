@@ -123,31 +123,23 @@ func configureSlackBot(bot *models.Bot) {
 
 	bot.SlackToken = token
 
-	// Slack verification token
-	vToken, err := utils.Substitute(bot.SlackVerificationToken, map[string]string{})
+	// Slack signing secret
+	signingSecret, err := utils.Substitute(bot.SlackSigningSecret, map[string]string{})
 	if err != nil {
-		bot.Log.Warnf("Could not set Slack Verification Token: %s", err.Error())
+		bot.Log.Warnf("Could not set Slack Signing Secret: %s", err.Error())
 		bot.Log.Warn("Defaulting to use Slack RTM")
 
-		vToken = ""
+		signingSecret = ""
 	}
 
-	bot.SlackVerificationToken = vToken
-
-	// Slack workspace token
-	wsToken, err := utils.Substitute(bot.SlackWorkspaceToken, map[string]string{})
-	if err != nil {
-		bot.Log.Warnf("Could not set Slack Workspace Token: %s", err.Error())
-	}
-
-	bot.SlackWorkspaceToken = wsToken
+	bot.SlackSigningSecret = signingSecret
 
 	// Get Slack Events path
 	eCallbackPath, err := utils.Substitute(bot.SlackEventsCallbackPath, map[string]string{})
 	if err != nil {
 		bot.Log.Errorf("Could not set Slack Events API callback path: %s", err.Error())
 		bot.Log.Warn("Defaulting to use Slack RTM")
-		bot.SlackVerificationToken = ""
+		bot.SlackSigningSecret = ""
 	}
 
 	bot.SlackEventsCallbackPath = eCallbackPath

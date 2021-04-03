@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -122,39 +121,28 @@ func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot)
 
 		return false, nil
 	case "slack":
-		if bot.SlackWorkspaceToken == "" {
-			bot.Log.Debugf("Limiting to usergroups only works if you register " +
-				"your bot as an app with Slack and set the 'slack_workspace_token' property. " +
-				"Restricting access to rule. Unset 'allow_usergroups' and/or 'ignore_usergroups', or set 'slack_workspace_token'.")
-
-			return false, fmt.Errorf("slack_workspace_token not supplied - restricting access")
-		}
 		// Check if we are restricting by usergroup
-		if bot.SlackWorkspaceToken != "" {
-			wsAPI := slack.New(bot.SlackWorkspaceToken)
+		api := slack.New(bot.SlackToken)
 
-			for _, usergroupName := range userGroups {
-				// Get the ID of the group from the usergroups the bot is aware of
-				for knownUserGroupName, knownUserGroupID := range bot.UserGroups {
-					if knownUserGroupName == usergroupName {
-						// Get the members of the group
-						userGroupMembers, err := wsAPI.GetUserGroupMembers(knownUserGroupID)
-						if err != nil {
-							bot.Log.Debugf("Unable to retrieve user group members, %s", err.Error())
-						}
-						// Check if any of the members are the current user
-						for _, userGroupMemberID := range userGroupMembers {
-							if userGroupMemberID == currentUserID {
-								return true, nil
-							}
-						}
-
-						break
+		for _, usergroupName := range userGroups {
+			// Get the ID of the group from the usergroups the bot is aware of
+			for knownUserGroupName, knownUserGroupID := range bot.UserGroups {
+				if knownUserGroupName == usergroupName {
+					// Get the members of the group
+					userGroupMembers, err := api.GetUserGroupMembers(knownUserGroupID)
+					if err != nil {
+						bot.Log.Debugf("Unable to retrieve user group members, %s", err.Error())
 					}
+					// Check if any of the members are the current user
+					for _, userGroupMemberID := range userGroupMembers {
+						if userGroupMemberID == currentUserID {
+							return true, nil
+						}
+					}
+
+					break
 				}
 			}
-
-			wsAPI = nil
 		}
 
 		return false, nil

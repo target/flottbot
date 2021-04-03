@@ -95,19 +95,12 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotSlackBadToken.SlackToken = "${TOKEN}"
 	validateRemoteSetup(testBotSlackBadToken)
 
-	testBotSlackBadVerificationToken := new(models.Bot)
-	testBotSlackBadVerificationToken.CLI = true
-	testBotSlackBadVerificationToken.ChatApplication = "slack"
-	testBotSlackBadVerificationToken.SlackToken = "${TOKEN}"
-	testBotSlackBadVerificationToken.SlackVerificationToken = "${TEST_BAD_VERIFICATION_TOKEN}"
-	validateRemoteSetup(testBotSlackBadVerificationToken)
-
-	testBotSlackBadWorkspaceToken := new(models.Bot)
-	testBotSlackBadWorkspaceToken.CLI = true
-	testBotSlackBadWorkspaceToken.ChatApplication = "slack"
-	testBotSlackBadWorkspaceToken.SlackToken = "${TOKEN}"
-	testBotSlackBadWorkspaceToken.SlackWorkspaceToken = "${TEST_BAD_WORKSPACE_TOKEN}"
-	validateRemoteSetup(testBotSlackBadWorkspaceToken)
+	testBotSlackBadSigningSecret := new(models.Bot)
+	testBotSlackBadSigningSecret.CLI = true
+	testBotSlackBadSigningSecret.ChatApplication = "slack"
+	testBotSlackBadSigningSecret.SlackToken = "${TOKEN}"
+	testBotSlackBadSigningSecret.SlackSigningSecret = "${TEST_BAD_SIGNING_SECRET}"
+	validateRemoteSetup(testBotSlackBadSigningSecret)
 
 	testBotSlack := new(models.Bot)
 	testBotSlack.CLI = true
@@ -184,8 +177,7 @@ func Test_configureChatApplication(t *testing.T) {
 		{"Bad Name", args{bot: testBotBadName}, false, false},
 		{"Slack - no token", args{bot: testBotSlackNoToken}, false, false},
 		{"Slack - bad token", args{bot: testBotSlackBadToken}, false, false},
-		{"Slack - bad verification token", args{bot: testBotSlackBadVerificationToken}, false, false},
-		{"Slack - bad workspace token", args{bot: testBotSlackBadWorkspaceToken}, false, false},
+		{"Slack - bad signing secret", args{bot: testBotSlackBadSigningSecret}, false, false},
 		{"Slack", args{bot: testBotSlack}, true, false},
 		{"Slack w/ interaction", args{bot: testBotSlackInteraction}, true, true},
 		{"Slack w/ interaction - empty path", args{bot: testBotSlackInteractionFail}, true, false},
