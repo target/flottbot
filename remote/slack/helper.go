@@ -458,17 +458,17 @@ func populateBotUsers(slackUsers []slack.User, bot *models.Bot) {
 // populateUserGroups populates slack user groups
 func populateUserGroups(bot *models.Bot) {
 	userGroups := make(map[string]string)
-	wsAPI := slack.New(bot.SlackToken)
-	ugroups, err := wsAPI.GetUserGroups()
+	api := slack.New(bot.SlackToken)
+
+	ugroups, err := api.GetUserGroups()
 	if err != nil {
-		bot.Log.Debugf("Unable to retrieve usergroups: %s", err.Error())
-		bot.Log.Debug("Please double check your Slack Workspace token")
+		bot.Log.Debugf("unable to retrieve usergroups: %s - confirm you have usergroups:read permission set", err.Error())
 	}
+
 	for _, usergroup := range ugroups {
 		userGroups[usergroup.Handle] = usergroup.ID
 	}
-	// we don't need API anymore
-	wsAPI = nil
+
 	bot.UserGroups = userGroups
 }
 
