@@ -19,7 +19,7 @@ require (
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/prometheus/client_golang v1.10.0
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/rs/xid v1.2.1
+	github.com/rs/xid v1.3.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/slack-go/slack v0.8.2
 	github.com/spf13/afero v1.5.1 // indirect
