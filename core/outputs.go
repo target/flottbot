@@ -32,10 +32,9 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 			case "slack":
 				// Create Slack client
 				remoteSlack := &slack.Client{
-					ListenerPort:      bot.SlackListenerPort,
-					Token:             bot.SlackToken,
-					VerificationToken: bot.SlackVerificationToken,
-					WorkspaceToken:    bot.SlackWorkspaceToken,
+					ListenerPort:  bot.SlackListenerPort,
+					Token:         bot.SlackToken,
+					SigningSecret: bot.SlackSigningSecret,
 				}
 				if service == models.MsgServiceChat {
 					if bot.InteractiveComponents {

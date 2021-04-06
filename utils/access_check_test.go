@@ -37,7 +37,6 @@ func TestCanTrigger(t *testing.T) {
 		{"User not in ignore list", args{"jane.doe", "F123456", models.Rule{IgnoreUsers: []string{"john.doe", "jack.jill"}}, testBot}, true},
 		{"User is allowed but ignored", args{"jane.doe", "F123456", models.Rule{AllowUsers: []string{"jane.doe"}, IgnoreUsers: []string{"jane.doe", "jack.jill"}}, testBot}, false},
 		{"User is not allowed and ignored", args{"john.doe", "F123456", models.Rule{AllowUsers: []string{"jane.doe"}, IgnoreUsers: []string{"john.doe", "jack.jill"}}, testBot}, false},
-		{"Group - Workspace Token not supplied", args{"jane.doe", "F123456", models.Rule{AllowUserGroups: []string{"admins"}}, testBot}, false},
 		{"Group - Discord - Not supported", args{"jane.doe", "F123456", models.Rule{AllowUserGroups: []string{"admins"}}, discordBot}, false},
 		{"Group - Chat network not supported", args{"jane.doe", "F123456", models.Rule{AllowUserGroups: []string{"admins"}}, strangeBot}, false},
 		// TODO: figure out how to test this below:

@@ -17,10 +17,9 @@ Implementation for the Remote interface
 
 // Client struct
 type Client struct {
-	ListenerPort      string
-	Token             string
-	VerificationToken string
-	WorkspaceToken    string
+	ListenerPort  string
+	Token         string
+	SigningSecret string
 }
 
 // validate that Client adheres to remote interface
@@ -78,7 +77,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	}
 
 	// read messages
-	if c.VerificationToken != "" {
+	if c.SigningSecret != "" {
 		if bot.SlackEventsCallbackPath == "" {
 			bot.Log.Error("Need to specify a callback path for the 'slack_events_callback_path' field in the bot.yml (e.g. \"/slack_events/v1/mybot-v1_events\")")
 			bot.Log.Debug("Closing events reader (will not be able to read messages)")
@@ -90,16 +89,16 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 			return
 		}
 		bot.ID = rat.UserID
-		readFromEventsAPI(api, c.VerificationToken, inputMsgs, bot)
+		readFromEventsAPI(api, c.SigningSecret, inputMsgs, bot)
 	} else if c.Token != "" {
 		bot.ID = rat.UserID
 		rtm := api.NewRTM()
 		readFromRTM(rtm, inputMsgs, bot)
 	} else {
 		if !bot.CLI {
-			bot.Log.Fatal("Did not find either Slack Token or Slack Verification Token. Unable to read from Slack")
+			bot.Log.Fatal("Did not find either Slack Token or Slack Signing Secret. Unable to read from Slack")
 		} else {
-			bot.Log.Warn("Slack was specified as your chat_application but no Slack Token or Slack Verification Token was provided")
+			bot.Log.Warn("Slack was specified as your chat_application but no Slack Token or Slack Signing Secret was provided")
 		}
 	}
 }
@@ -112,9 +111,9 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 
 	// check message size and trim if necessary because
 	// slack messages have a hard limit of 4000 characters
-	if len(message.Output) > 4000 {
+	if len(message.Output) > slack.MaxMessageTextLength {
 		contents := message.Output
-		message.Output = contents[:3997] + "..."
+		message.Output = contents[:(slack.MaxMessageTextLength-3)] + "..."
 	}
 
 	// Timestamp message
@@ -135,7 +134,7 @@ var interactionsRouter *mux.Router
 // It will serve as a way for your bot to handle advance messaging, such as message attachments.
 // When your bot is up and running, it will have an http/https endpoint to handle rules for sending attachments.
 func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
-	if bot.InteractiveComponents && c.VerificationToken != "" {
+	if bot.InteractiveComponents && c.SigningSecret != "" {
 		if bot.SlackInteractionsCallbackPath == "" {
 			bot.Log.Error("Need to specify a callback path for the 'slack_interactions_callback_path' field in the bot.yml (e.g. \"/slack_events/v1/mybot_dev-v1_interactions\")")
 			bot.Log.Warn("Closing interactions reader (will not be able to read interactive components)")
@@ -149,7 +148,7 @@ func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message 
 			interactionsRouter.HandleFunc("/interaction_health", getInteractiveComponentHealthHandler(bot)).Methods("GET")
 
 			// Rule handler and endpoint
-			ruleHandle := getInteractiveComponentRuleHandler(c.VerificationToken, inputMsgs, message, rule, bot)
+			ruleHandle := getInteractiveComponentRuleHandler(c.SigningSecret, inputMsgs, message, rule, bot)
 
 			// We use regex for interactions routing for any bot using this framework
 			// e.g. /slack_events/v1/mybot_dev-v1_interactions
