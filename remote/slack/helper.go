@@ -162,6 +162,7 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 
 			link, err := api.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
 			if err != nil {
+				bot.Log.Errorf("unable to retrieve link to message: %s", err.Error())
 				link = ""
 			}
 
@@ -642,6 +643,7 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 
 				link, err := rtm.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
 				if err != nil {
+					bot.Log.Errorf("unable to retrieve link to message: %s", err.Error())
 					link = ""
 				}
 
