@@ -35,6 +35,8 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 	message.Vars["_channel.id"] = channel
 	message.Vars["_channel.name"] = message.ChannelName
 
+	message.Vars["_source.timestamp"] = timeStamp
+
 	// Populate message user sender
 	// These will be accessible on rules via ${_user.email}, etc
 	if user != nil { // nil user implies a message from an api/bot (i.e. not an actual user)
