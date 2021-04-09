@@ -162,6 +162,7 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 
 			link, err := api.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
 			if err != nil {
+				bot.Log.Errorf("unable to retrieve link to message: %s", err.Error())
 				link = ""
 			}
 
@@ -503,6 +504,10 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 		// make link to trigger message available
 		message.Vars["_source.link"] = message.SourceLink
 
+		// make timestamp information available
+		message.Vars["_source.timestamp"] = timeStamp
+		message.Vars["_source.thread_timestamp"] = threadTimestamp
+
 		// Populate message with user information (i.e. who sent the message)
 		// These will be accessible on rules via ${_user.email}, ${_user.id}, etc.
 		if user != nil { // nil user implies a message from an api/bot (i.e. not an actual user)
@@ -638,6 +643,7 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 
 				link, err := rtm.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
 				if err != nil {
+					bot.Log.Errorf("unable to retrieve link to message: %s", err.Error())
 					link = ""
 				}
 

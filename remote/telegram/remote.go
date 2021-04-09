@@ -69,47 +69,52 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 		}
 
 		// check if we should respond to other bot messages
-		if m.From.IsBot && !bot.RespondToBots {
+		if m.From != nil && m.From.IsBot && !bot.RespondToBots {
 			continue
 		}
 
-		// only process messages not from out bot
-		if m.From.ID != botuser.ID {
-			msg, mentioned := processMessageText(m.Text, bot.Name)
-
-			// support slash commands
-			if len(m.Command()) > 0 {
-				fullCmd := fmt.Sprintf("%s %s", m.Command(), m.CommandArguments())
-				mentioned = true
-				msg = strings.TrimSpace(fullCmd)
-			}
-
-			message := models.NewMessage()
-			message.Timestamp = strconv.FormatInt(m.Time().Unix(), 10)
-			message.Type = mapMessageType(*m)
-			message.Input = msg
-			message.Output = ""
-			message.ID = strconv.Itoa(m.MessageID)
-			message.Service = models.MsgServiceChat
-			message.BotMentioned = mentioned
-			message.ChannelID = strconv.FormatInt(m.Chat.ID, 10)
-
-			// populate message with metadata
-			if m.From != nil {
-				message.Vars["_user.name"] = m.From.UserName
-				message.Vars["_user.firstname"] = m.From.FirstName
-				message.Vars["_user.lastname"] = m.From.LastName
-				message.Vars["_user.id"] = strconv.Itoa(m.From.ID)
-				message.Vars["_user.realnamenormalized"] = fmt.Sprintf("%s %s", m.From.FirstName, m.From.LastName)
-				message.Vars["_user.displayname"] = m.From.UserName
-				message.Vars["_user.displaynamenormalized"] = m.From.UserName
-			}
-
-			message.Vars["_channel.id"] = message.ChannelID
-			message.Vars["_channel.name"] = m.Chat.Title
-
-			inputMsgs <- message
+		// only process messages not from our bot
+		// Note: it looks like "From" is not being populated currently
+		if m.From != nil && m.From.ID == botuser.ID {
+			continue
 		}
+
+		msg, mentioned := processMessageText(m.Text, bot.Name)
+
+		// support slash commands
+		if len(m.Command()) > 0 {
+			fullCmd := fmt.Sprintf("%s %s", m.Command(), m.CommandArguments())
+			mentioned = true
+			msg = strings.TrimSpace(fullCmd)
+		}
+
+		message := models.NewMessage()
+		message.Timestamp = strconv.FormatInt(m.Time().Unix(), 10)
+		message.Type = mapMessageType(*m)
+		message.Input = msg
+		message.Output = ""
+		message.ID = strconv.Itoa(m.MessageID)
+		message.Service = models.MsgServiceChat
+		message.BotMentioned = mentioned
+		message.ChannelID = strconv.FormatInt(m.Chat.ID, 10)
+
+		// populate message with metadata
+		if m.From != nil {
+			message.Vars["_user.name"] = m.From.UserName
+			message.Vars["_user.firstname"] = m.From.FirstName
+			message.Vars["_user.lastname"] = m.From.LastName
+			message.Vars["_user.id"] = strconv.Itoa(m.From.ID)
+			message.Vars["_user.realnamenormalized"] = fmt.Sprintf("%s %s", m.From.FirstName, m.From.LastName)
+			message.Vars["_user.displayname"] = m.From.UserName
+			message.Vars["_user.displaynamenormalized"] = m.From.UserName
+		}
+
+		message.Vars["_channel.id"] = message.ChannelID
+		message.Vars["_channel.name"] = m.Chat.Title
+
+		message.Vars["_source.timestamp"] = strconv.Itoa(m.Date)
+
+		inputMsgs <- message
 	}
 }
 
