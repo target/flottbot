@@ -88,6 +88,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	}
 
 	bot.Name = botuser.Username
+	bot.ID = botuser.ID
 
 	foundGuild := false
 
@@ -174,6 +175,11 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// check if we should respond to bot messages
 		if m.Author.Bot && !bot.RespondToBots {
+			return
+		}
+
+		// ignore messages from self
+		if m.Author.ID == bot.ID {
 			return
 		}
 
