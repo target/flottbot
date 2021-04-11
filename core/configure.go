@@ -43,11 +43,14 @@ func initLogger(b *models.Bot) {
 // configureChatApplication configures a user's specified chat application
 // TODO: Refactor to keep remote specifics in remote/
 func configureChatApplication(bot *models.Bot) {
+	// emptyMap for substitute function
+	// (it will only replace from env vars)
+	emptyMap := map[string]string{}
 
 	// update the bot name
-	token, err := utils.Substitute(bot.Name, map[string]string{})
+	token, err := utils.Substitute(bot.Name, emptyMap)
 	if err != nil {
-		bot.Log.Warnf("Could not configure bot Name: %s", err.Error())
+		bot.Log.Warnf("could not configure bot 'name' field: %s", err.Error())
 	}
 
 	bot.Name = token
@@ -56,14 +59,9 @@ func configureChatApplication(bot *models.Bot) {
 		switch strings.ToLower(bot.ChatApplication) {
 		case "discord":
 			// Discord bot token
-			token, err := utils.Substitute(bot.DiscordToken, map[string]string{})
+			token, err := utils.Substitute(bot.DiscordToken, emptyMap)
 			if err != nil {
-				bot.Log.Warnf("Could not set Discord Token: %s", err.Error())
-				bot.RunChat = false
-			}
-
-			if token == "" {
-				bot.Log.Warnf("Discord Token is empty: '%s'", token)
+				bot.Log.Errorf("could not set discord_token: %s", err.Error())
 				bot.RunChat = false
 			}
 
@@ -71,109 +69,113 @@ func configureChatApplication(bot *models.Bot) {
 
 			// Discord Server ID
 			// See https://support.discordapp.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
-			serverID, err := utils.Substitute(bot.DiscordServerID, map[string]string{})
+			serverID, err := utils.Substitute(bot.DiscordServerID, emptyMap)
 			if err != nil {
-				bot.Log.Warnf("Could not set Discord Server ID: %s", err.Error())
-				bot.RunChat = false
-			}
-
-			if serverID == "" {
-				bot.Log.Warnf("Discord Server ID is empty: '%s'", serverID)
+				bot.Log.Errorf("could not set discord_server_id: %s", err.Error())
 				bot.RunChat = false
 			}
 
 			bot.DiscordServerID = serverID
 
+			if !isSet(token, serverID) {
+				bot.Log.Error("bot is not configured correctly for discord - check that discord_token and discord_server_id are set")
+				bot.RunChat = false
+			}
+
 		case "slack":
 			configureSlackBot(bot)
 
 		case "telegram":
-			token, err := utils.Substitute(bot.TelegramToken, map[string]string{})
+			token, err := utils.Substitute(bot.TelegramToken, emptyMap)
 			if err != nil {
-				bot.Log.Warnf("Could not set telegram Token: %s", err.Error())
+				bot.Log.Errorf("could not set telegram_token: %s", err.Error())
 				bot.RunChat = false
 			}
 
-			if token == "" {
-				bot.Log.Warnf("telegram Token is empty: '%s'", token)
+			if !isSet(token) {
+				bot.Log.Error("bot is not configured correctly for telegram - check that telegram_token is set")
 				bot.RunChat = false
 			}
 
 			bot.TelegramToken = token
 
 		default:
-			bot.Log.Errorf("Chat application '%s' is not supported", bot.ChatApplication)
+			bot.Log.Errorf("chat application '%s' is not supported", bot.ChatApplication)
 			bot.RunChat = false
 		}
 	}
 }
 
 func configureSlackBot(bot *models.Bot) {
-	// Slack bot token
-	token, err := utils.Substitute(bot.SlackToken, map[string]string{})
-	if err != nil {
-		bot.Log.Warnf("Could not set Slack Token: %s", err.Error())
-		bot.RunChat = false
-	}
+	// emptyMap for substitute function
+	// (it will only replace from env vars)
+	emptyMap := map[string]string{}
 
-	if token == "" {
-		bot.Log.Warnf("Slack Token is empty: %s", token)
-		bot.RunChat = false
+	// slack_token
+	token, err := utils.Substitute(bot.SlackToken, emptyMap)
+	if err != nil {
+		bot.Log.Errorf("could not set slack_token: %s", err.Error())
 	}
 
 	bot.SlackToken = token
 
-	// Slack signing secret
-	signingSecret, err := utils.Substitute(bot.SlackSigningSecret, map[string]string{})
+	// slack_app_token
+	appToken, err := utils.Substitute(bot.SlackAppToken, emptyMap)
 	if err != nil {
-		bot.Log.Warnf("Could not set Slack Signing Secret: %s", err.Error())
-		bot.Log.Warn("Defaulting to use Slack RTM")
+		bot.Log.Warnf("could not set slack_app_token: %s", err.Error())
+	}
 
-		signingSecret = ""
+	bot.SlackAppToken = appToken
+
+	// slack_signing_secret
+	signingSecret, err := utils.Substitute(bot.SlackSigningSecret, emptyMap)
+	if err != nil {
+		bot.Log.Warnf("could not set slack_signing_secret: %s", err.Error())
 	}
 
 	bot.SlackSigningSecret = signingSecret
 
-	// Get Slack Events path
-	eCallbackPath, err := utils.Substitute(bot.SlackEventsCallbackPath, map[string]string{})
+	// slack_events_callback_path
+	eCallbackPath, err := utils.Substitute(bot.SlackEventsCallbackPath, emptyMap)
 	if err != nil {
-		bot.Log.Errorf("Could not set Slack Events API callback path: %s", err.Error())
-		bot.Log.Warn("Defaulting to use Slack RTM")
-		bot.SlackSigningSecret = ""
+		bot.Log.Warnf("could not set slack_events_callback_path: %s", err.Error())
 	}
 
 	bot.SlackEventsCallbackPath = eCallbackPath
 
-	// Get Slack Interactive Components path
-	iCallbackPath, err := utils.Substitute(bot.SlackInteractionsCallbackPath, map[string]string{})
+	// slack_interactions_callback_path
+	iCallbackPath, err := utils.Substitute(bot.SlackInteractionsCallbackPath, emptyMap)
 	if err != nil {
-		bot.Log.Errorf("Could not set Slack Interactive Components callback path: %s", err.Error())
-		bot.InteractiveComponents = false
-	}
-
-	if iCallbackPath == "" {
-		bot.Log.Warnf("Slack Interactive Components callback path is empty: %s", iCallbackPath)
-		bot.InteractiveComponents = false
+		bot.Log.Warnf("could not set slack_interactions_callback_path: %s", err.Error())
 	}
 
 	bot.SlackInteractionsCallbackPath = iCallbackPath
 
-	// Get Slack HTTP listener port
-	lPort, err := utils.Substitute(bot.SlackListenerPort, map[string]string{})
+	// slack_listener_port
+	lPort, err := utils.Substitute(bot.SlackListenerPort, emptyMap)
 	if err != nil {
-		bot.Log.Errorf("Could not set Slack listener por: %s", err.Error())
-		bot.SlackListenerPort = ""
+		bot.Log.Warnf("could not set slack_listener_port: %s", err.Error())
 	}
 
 	// set slack http listener port from config file or default
-	lPortEnvWasUnset := strings.Contains(lPort, "${") // e.g. slack_listener_port: ${PORT}
-	if lPort == "" || lPortEnvWasUnset {
-		bot.Log.Warnf("Slack listener port is empty: %s", lPort)
-		bot.Log.WithField("defaultSlackListenerPort", defaultSlackListenerPort).Info("Using default slack listener port.")
+	if !isSet(lPort) {
+		bot.Log.Warnf("slack_listener_port not set: %s", lPort)
+		bot.Log.WithField("defaultSlackListenerPort", defaultSlackListenerPort).Info("using default slack listener port.")
 		lPort = defaultSlackListenerPort
 	}
 
 	bot.SlackListenerPort = lPort
+
+	// check for valid setup
+	// needs one of the following to be valid
+	// 1. SLACK_TOKEN + SLACK_APP_TOKEN (socketmode)
+	// 2. SLACK_TOKEN + SLACK_SIGNING_SECRET + SLACK_EVENTS_CALLBACK_PATH (events api)
+	isSocketmode := isSet(token, appToken)
+	isEventsAPI := isSet(token, signingSecret, eCallbackPath)
+	if !isSocketmode && !isEventsAPI {
+		bot.Log.Error("bot is not configured correctly for slack - check that either slack_token and slack_app_token OR slack_token, slack_signing_secret, and slack_events_callback_path are set")
+		bot.RunChat = false
+	}
 }
 
 func validateRemoteSetup(bot *models.Bot) {
@@ -201,4 +203,16 @@ func validateRemoteSetup(bot *models.Bot) {
 			bot.RunScheduler = false
 		}
 	}
+}
+
+// isSet is a helper function to check whether any of the supplied
+// strings is empty or unsubstituted (ie. still in ${<string>} format)
+func isSet(s ...string) bool {
+	for _, v := range s {
+		if v == "" || strings.HasPrefix(v, "${") {
+			return false
+		}
+	}
+
+	return true
 }

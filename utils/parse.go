@@ -34,7 +34,8 @@ func Match(pattern, value string, trimInput bool) (string, bool) {
 }
 
 // Substitute checks given value for variables and looks them up to determine whether we
-// have a matching replacement available
+// have a matching replacement available.
+// If tokens is not supplied, it wil
 func Substitute(value string, tokens map[string]string) (string, error) {
 	var errs []string
 	if match, hits := findVars(value); match {

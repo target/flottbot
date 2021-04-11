@@ -106,7 +106,9 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotSlack.CLI = true
 	testBotSlack.ChatApplication = "slack"
 	testBotSlack.SlackToken = "${TEST_SLACK_TOKEN}"
+	testBotSlack.SlackAppToken = "${TEST_SLACK_APP_TOKEN}"
 	os.Setenv("TEST_SLACK_TOKEN", "TESTTOKEN")
+	os.Setenv("TEST_SLACK_APP_TOKEN", "TESTAPPTOKEN")
 	validateRemoteSetup(testBotSlack)
 
 	testBotSlackInteraction := new(models.Bot)

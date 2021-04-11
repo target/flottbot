@@ -19,6 +19,7 @@ Implementation for the Remote interface
 type Client struct {
 	ListenerPort  string
 	Token         string
+	AppToken      string
 	SigningSecret string
 }
 
@@ -71,35 +72,37 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	// get bot id
 	rat, err := api.AuthTest()
 	if err != nil {
-		bot.Log.Errorf("The Slack bot token that was provided was invalid or is unauthorized")
-		bot.Log.Warn("Closing Slack message reader")
+		bot.Log.Error("the slack_token that was provided was invalid or is unauthorized - closing Slack message reader")
+
 		return
 	}
 
-	// read messages
+	// set the bot ID
+	bot.ID = rat.UserID
+
+	// handle SocketMode
+	// assuming SocketMode if slack_app_token is provided
+	if c.AppToken != "" {
+		// create new slack client
+		sm := slack.New(
+			bot.SlackToken,
+			slack.OptionDebug(true),
+			slack.OptionAppLevelToken(bot.SlackAppToken),
+		)
+
+		readFromSocketMode(sm, inputMsgs, bot)
+	}
+
+	// handle Events API setup
+	// assuming Events API setup if slack_signing_secret is provided
 	if c.SigningSecret != "" {
-		if bot.SlackEventsCallbackPath == "" {
-			bot.Log.Error("Need to specify a callback path for the 'slack_events_callback_path' field in the bot.yml (e.g. \"/slack_events/v1/mybot-v1_events\")")
-			bot.Log.Debug("Closing events reader (will not be able to read messages)")
-			return
-		}
-		if !isValidPath(bot.SlackEventsCallbackPath) { // valid path e.g. /slack_events/v1/mybot_dev-v1_events
-			bot.Log.Error("Invalid events path. Please double check your path value/syntax (e.g. \"/slack_events/v1/mybot_dev-v1_events\")")
-			bot.Log.Debug("Closing events reader (will not be able to read messages)")
-			return
-		}
-		bot.ID = rat.UserID
 		readFromEventsAPI(api, c.SigningSecret, inputMsgs, bot)
-	} else if c.Token != "" {
-		bot.ID = rat.UserID
-		rtm := api.NewRTM()
-		readFromRTM(rtm, inputMsgs, bot)
-	} else {
-		if !bot.CLI {
-			bot.Log.Fatal("Did not find either Slack Token or Slack Signing Secret. Unable to read from Slack")
-		} else {
-			bot.Log.Warn("Slack was specified as your chat_application but no Slack Token or Slack Signing Secret was provided")
-		}
+	}
+
+	// slack is not configured correctly and cli is set to false
+	// TODO: move this out of the remote setup
+	if c.AppToken == "" && c.SigningSecret == "" && !bot.CLI {
+		bot.Log.Fatal("")
 	}
 }
 
