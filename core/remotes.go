@@ -45,6 +45,7 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 			// Create Slack client
 			remoteSlack := &slack.Client{
 				Token:         bot.SlackToken,
+				AppToken:      bot.SlackAppToken,
 				SigningSecret: bot.SlackSigningSecret,
 			}
 			// Read messages from Slack

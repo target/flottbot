@@ -102,7 +102,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	// slack is not configured correctly and cli is set to false
 	// TODO: move this out of the remote setup
 	if c.AppToken == "" && c.SigningSecret == "" && !bot.CLI {
-		bot.Log.Fatal("")
+		bot.Log.Fatal("CLI mode is disabled and tokens are not set up correctly to run the bot")
 	}
 }
 
