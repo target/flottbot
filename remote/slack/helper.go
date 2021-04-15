@@ -169,12 +169,11 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 
 			inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
 		}
-	// This is an Event shared between RTM and the Events API
 	case *slackevents.MemberJoinedChannelEvent:
 		// limit to our bot
 		if ev.User == bot.ID {
 			// look up channel info, since 'ev' only gives us ID
-			channel, err := api.GetChannelInfo(ev.Channel)
+			channel, err := api.GetConversationInfo(ev.Channel, false)
 			if err != nil {
 				bot.Log.Debugf("unable to fetch channel info for channel joined event: %v", err)
 			} else {
@@ -613,6 +612,9 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 	go func() {
 		for evt := range client.Events {
 			switch evt.Type {
+			case socketmode.EventTypeHello:
+				// handle "hello" event
+				continue
 			case socketmode.EventTypeEventsAPI:
 				eventsAPIEvent, ok := evt.Data.(slackevents.EventsAPIEvent)
 				if !ok {
@@ -634,6 +636,22 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 					case *slackevents.MessageEvent:
 						senderID := ev.User
 
+						// check if message originated from a bot
+						// and whether we should respond to other bot messages
+						if ev.BotID != "" && bot.RespondToBots {
+							// get bot information to get
+							// the associated user id
+							user, err := sm.GetBotInfo(ev.BotID)
+							if err != nil {
+								bot.Log.Infof("unable to retrieve bot info for %s", ev.BotID)
+
+								return
+							}
+
+							// use the bot's user id as the senderID
+							senderID = user.UserID
+						}
+
 						// only process message that are not from our bot
 						if senderID != "" && bot.ID != senderID {
 							channel := ev.Channel
@@ -649,9 +667,8 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 							text, mentioned := removeBotMention(ev.Text, bot.ID)
 
 							// get information on the user
-							// TODO: will need to add method to get botInfo, see events api implementation
 							user, err := sm.GetUserInfo(senderID)
-							if err != nil && senderID != "" { // we only care if senderID is not empty and there's an error (senderID == "" could be a thread from a message)
+							if err != nil {
 								bot.Log.Errorf("did not get Slack user info: %s", err.Error())
 							}
 
@@ -665,10 +682,24 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 
 							inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
 						}
-						// TODO: need channel joined event
+					case *slackevents.MemberJoinedChannelEvent:
+						// limit to our bot
+						if ev.User == bot.ID {
+							// look up channel info, since 'ev' only gives us ID
+							channel, err := sm.GetConversationInfo(ev.Channel, false)
+							if err != nil {
+								bot.Log.Debugf("unable to fetch channel info for channel joined event: %v", err)
+							} else {
+								// add the room to the lookup
+								if bot.Rooms[channel.Name] == "" {
+									bot.Rooms[channel.Name] = channel.ID
+									bot.Log.Debugf("Joined new channel. %s(%s) added to lookup", channel.Name, channel.ID)
+								}
+							}
+						}
 					}
 				default:
-					bot.Log.Warn("unsupported events API event received")
+					bot.Log.Warnf("unsupported events API event received: %s", eventsAPIEvent.Type)
 				}
 			case socketmode.EventTypeConnecting:
 				bot.Log.Info("connecting to Slack via SocketMode...")
