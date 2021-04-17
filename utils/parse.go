@@ -33,9 +33,9 @@ func Match(pattern, value string, trimInput bool) (string, bool) {
 	return strings.Trim(input, " "), regx.MatchString(value)
 }
 
-// Substitute checks given value for variables and looks them up to determine whether we
-// have a matching replacement available.
-// If tokens is not supplied, it wil
+// Substitute checks given value for variables and looks them up
+// to determine whether we have a matching replacement available,
+// either in the supplied map, or from environment variables.
 func Substitute(value string, tokens map[string]string) (string, error) {
 	var errs []string
 	if match, hits := findVars(value); match {
