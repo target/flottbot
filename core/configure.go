@@ -206,7 +206,7 @@ func validateRemoteSetup(bot *models.Bot) {
 }
 
 // isSet is a helper function to check whether any of the supplied
-// strings is empty or unsubstituted (ie. still in ${<string>} format)
+// strings are empty or unsubstituted (ie. still in ${<string>} format)
 func isSet(s ...string) bool {
 	for _, v := range s {
 		if v == "" || strings.HasPrefix(v, "${") {
