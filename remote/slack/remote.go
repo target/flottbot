@@ -80,8 +80,8 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	// set the bot ID
 	bot.ID = rat.UserID
 
-	// handle SocketMode
-	// assuming SocketMode if slack_app_token is provided
+	// handle Socket Mode
+	// assuming Socket Mode if slack_app_token is provided
 	if c.AppToken != "" {
 		// create new slack client
 		sm := slack.New(

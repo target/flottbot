@@ -168,11 +168,11 @@ func configureSlackBot(bot *models.Bot) {
 
 	// check for valid setup
 	// needs one of the following to be valid
-	// 1. SLACK_TOKEN + SLACK_APP_TOKEN (socketmode)
+	// 1. SLACK_TOKEN + SLACK_APP_TOKEN (socket mode)
 	// 2. SLACK_TOKEN + SLACK_SIGNING_SECRET + SLACK_EVENTS_CALLBACK_PATH (events api)
-	isSocketmode := isSet(token, appToken)
+	isSocketMode := isSet(token, appToken)
 	isEventsAPI := isSet(token, signingSecret, eCallbackPath)
-	if !isSocketmode && !isEventsAPI {
+	if !isSocketMode && !isEventsAPI {
 		bot.Log.Error("bot is not configured correctly for slack - check that either slack_token and slack_app_token OR slack_token, slack_signing_secret, and slack_events_callback_path are set")
 		bot.RunChat = false
 	}

@@ -161,10 +161,10 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 			timestamp := ev.TimeStamp
 			threadTimestamp := ev.ThreadTimeStamp
 
+			// get the link to the message, will be empty string if there's an error
 			link, err := api.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
 			if err != nil {
 				bot.Log.Errorf("unable to retrieve link to message: %s", err.Error())
-				link = ""
 			}
 
 			inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
@@ -176,16 +176,14 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 			channel, err := api.GetConversationInfo(ev.Channel, false)
 			if err != nil {
 				bot.Log.Debugf("unable to fetch channel info for channel joined event: %v", err)
-			} else {
-				// add the room to the lookup
-				if bot.Rooms[channel.Name] == "" {
-					bot.Rooms[channel.Name] = channel.ID
-					bot.Log.Debugf("Joined new channel. %s(%s) added to lookup", channel.Name, channel.ID)
-				}
 			}
+
+			// add the room to the lookup
+			bot.Rooms[channel.Name] = channel.ID
+			bot.Log.Debugf("joined new channel. %s (%s) added to lookup", channel.Name, channel.ID)
 		}
 	default:
-		bot.Log.Debugf("getEventsAPIEventHandler: Unrecognized event type: %v", ev)
+		bot.Log.Debugf("getEventsAPIEventHandler: unrecognized event type: %v", ev)
 	}
 }
 
@@ -529,7 +527,6 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 			message.Vars["_user.team"] = user.Profile.Team
 		}
 
-		message.Debug = true // TODO: is this even needed?
 		return message
 	default:
 		bot.Log.Debugf("Read message of unsupported type '%T'. Unable to populate message attributes", msgType)
@@ -564,22 +561,26 @@ func processInteractiveComponentRule(rule models.Rule, message *models.Message, 
 // This method of reading is preferred over the RTM method.
 func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models.Message, bot *models.Bot) {
 	// get the current users
-	su, err := api.GetUsers()
+	users, err := api.GetUsers()
 	if err != nil {
-		bot.Log.Errorf("")
+		bot.Log.Errorf("error getting users: %v", err)
 	}
 
 	// add users to the bot
-	populateUsers(su, bot)
+	if users != nil {
+		populateUsers(users, bot)
+	}
 
 	// get the user groups
-	sug, err := api.GetUserGroups()
+	usergroups, err := api.GetUserGroups()
 	if err != nil {
-		bot.Log.Errorf("")
+		bot.Log.Errorf("error getting user groups: %v", err)
 	}
 
 	// add user groups to the bot
-	populateUserGroups(sug, bot)
+	if usergroups != nil {
+		populateUserGroups(usergroups, bot)
+	}
 
 	// Create router for the events server
 	router := mux.NewRouter()
@@ -597,7 +598,7 @@ func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models
 		bot.SlackEventsCallbackPath, bot.SlackListenerPort)
 }
 
-// readFromSocketMode reads messages from Slack's SocketMode
+// readFromSocketMode reads messages from Slack's Socket Mode
 //
 // https://api.slack.com/apis/connections/socket
 // nolint:gocyclo // needs refactor
@@ -657,7 +658,6 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 							channel := ev.Channel
 
 							// determine the message type
-							// TODO: user ev.ChannelType ?
 							msgType, err := getMessageType(channel)
 							if err != nil {
 								bot.Log.Debug(err.Error())
@@ -675,9 +675,10 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 							timestamp := ev.TimeStamp
 							threadTimestamp := ev.ThreadTimeStamp
 
+							// get the link to the message, will be empty string if there's an error
 							link, err := sm.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
 							if err != nil {
-								link = ""
+								bot.Log.Errorf("unable to retrieve link to message: %s", err.Error())
 							}
 
 							inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
@@ -689,23 +690,23 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 							channel, err := sm.GetConversationInfo(ev.Channel, false)
 							if err != nil {
 								bot.Log.Debugf("unable to fetch channel info for channel joined event: %v", err)
-							} else {
-								// add the room to the lookup
-								if bot.Rooms[channel.Name] == "" {
-									bot.Rooms[channel.Name] = channel.ID
-									bot.Log.Debugf("Joined new channel. %s(%s) added to lookup", channel.Name, channel.ID)
-								}
 							}
+
+							// add the room to the lookup
+							bot.Rooms[channel.Name] = channel.ID
+							bot.Log.Debugf("joined new channel. %s (%s) added to lookup", channel.Name, channel.ID)
 						}
 					}
 				default:
 					bot.Log.Warnf("unsupported events API event received: %s", eventsAPIEvent.Type)
 				}
 			case socketmode.EventTypeConnecting:
-				bot.Log.Info("connecting to Slack via SocketMode...")
+				bot.Log.Info("connecting to Slack via Socket Mode...")
 			case socketmode.EventTypeConnectionError:
 				bot.Log.Error("connection failed - retrying later...")
 			case socketmode.EventTypeConnected:
+				bot.Log.Info("connected to Slack with Socket Mode.")
+
 				// get users
 				users, err := sm.GetUsers()
 				if err != nil {
@@ -713,7 +714,9 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 				}
 
 				// add users to bot
-				populateUsers(users, bot)
+				if users != nil {
+					populateUsers(users, bot)
+				}
 
 				// get user groups
 				usergroups, err := sm.GetUserGroups()
@@ -722,9 +725,9 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 				}
 
 				// add user groups to bot
-				populateUserGroups(usergroups, bot)
-
-				bot.Log.Info("connected to Slack with SocketMode.")
+				if usergroups != nil {
+					populateUserGroups(usergroups, bot)
+				}
 			default:
 				bot.Log.Warnf("unhandled event type received: %s", evt.Type)
 			}
