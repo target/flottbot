@@ -325,7 +325,7 @@ func getRooms(api *slack.Client) map[string]string {
 	// channels:read, groups:read, im:read, mpim:read
 	cp := slack.GetConversationsParameters{
 		Cursor:          "",
-		ExcludeArchived: "true",
+		ExcludeArchived: true,
 		Limit:           1000, // this is the maximum value allowed
 		Types:           []string{"public_channel", "private_channel", "mpim", "im"},
 	}

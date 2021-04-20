@@ -80,10 +80,9 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	// set the bot ID
 	bot.ID = rat.UserID
 
-	// handle Socket Mode
-	// assuming Socket Mode if slack_app_token is provided
 	if c.AppToken != "" {
-		// create new slack client
+		// handle Socket Mode
+		// assuming Socket Mode if slack_app_token is provided
 		sm := slack.New(
 			bot.SlackToken,
 			slack.OptionDebug(true),
@@ -91,11 +90,9 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 		)
 
 		readFromSocketMode(sm, inputMsgs, bot)
-	}
-
-	// handle Events API setup
-	// assuming Events API setup if slack_signing_secret is provided
-	if c.SigningSecret != "" {
+	} else if c.SigningSecret != "" {
+		// handle Events API setup
+		// assuming Events API setup if slack_signing_secret is provided
 		readFromEventsAPI(api, c.SigningSecret, inputMsgs, bot)
 	}
 
