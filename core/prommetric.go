@@ -31,11 +31,11 @@ func Prommetric(input string, bot *models.Bot) {
 			// metrics health check handler
 			promHealthHandle := func(w http.ResponseWriter, r *http.Request) {
 				if r.Method != http.MethodGet {
-					bot.Log.Errorf("Prometheus Server: invalid method %s", r.Method)
+					bot.Log.Error().Msgf("Prometheus Server: invalid method %s", r.Method)
 					w.WriteHeader(http.StatusMethodNotAllowed)
 					return
 				}
-				bot.Log.Info("Prometheus Server: health check hit!")
+				bot.Log.Info().Msg("Prometheus Server: health check hit!")
 				w.WriteHeader(http.StatusOK)
 				w.Write([]byte("OK"))
 			}
@@ -47,7 +47,7 @@ func Prommetric(input string, bot *models.Bot) {
 
 			// start prometheus server
 			go http.ListenAndServe(":8080", promRouter)
-			bot.Log.Info("Prometheus Server: serving metrics at /metrics")
+			bot.Log.Info().Msg("Prometheus Server: serving metrics at /metrics")
 		} else {
 			botResponseCollector.With(prometheus.Labels{"rulename": input}).Inc()
 		}

@@ -2,10 +2,8 @@ package core
 
 import (
 	"os"
-	"reflect"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/target/flottbot/models"
 )
 
@@ -31,30 +29,9 @@ func TestInitLogger(t *testing.T) {
 		}
 		t.Run(tt.name, func(t *testing.T) {
 			initLogger(tt.args.bot)
-			if tt.want != tt.args.bot.Log.Level.String() {
-				t.Errorf("initLogger() wanted level set at %s, but got %s", tt.want, tt.args.bot.Log.Level.String())
+			if tt.want != tt.args.bot.Log.GetLevel().String() {
+				t.Errorf("initLogger() wanted level set at %s, but got %s", tt.want, tt.args.bot.Log.GetLevel().String())
 			}
-		})
-	}
-
-	// Test setting the JSON formatter
-	jsonTests := []struct {
-		name string
-		args args
-		want bool
-	}{
-		{"JSON logging set", args{testBot}, true},
-		{"JSON logging not set", args{testBot}, false},
-	}
-	for _, tt := range jsonTests {
-		testBot.LogJSON = tt.want
-		t.Run(tt.name, func(t *testing.T) {
-			initLogger(tt.args.bot)
-			equals := reflect.DeepEqual(tt.args.bot.Log.Formatter, logrus.JSONFormatter{})
-			if equals {
-				t.Errorf("initLogger() wanted to set JSON logging formatter to %t, but got %t", tt.want, equals)
-			}
-
 		})
 	}
 }

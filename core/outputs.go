@@ -23,7 +23,7 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 			switch chatApp {
 			case "discord":
 				if service == models.MsgServiceScheduler {
-					bot.Log.Warn("Scheduler does not currently support Discord")
+					bot.Log.Warn().Msg("Scheduler does not currently support Discord")
 					break
 				}
 				remoteDiscord := &discord.Client{Token: bot.DiscordToken}
@@ -49,15 +49,15 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 				}
 				remoteTelegram.Send(message, bot)
 			default:
-				bot.Log.Debugf("Chat application %s is not supported", chatApp)
+				bot.Log.Debug().Msgf("Chat application %s is not supported", chatApp)
 			}
 		case models.MsgServiceCLI:
 			remoteCLI := &cli.Client{}
 			remoteCLI.Send(message, bot)
 		case models.MsgServiceUnknown:
-			bot.Log.Error("Found unknown service")
+			bot.Log.Error().Msg("Found unknown service")
 		default:
-			bot.Log.Errorf("No service found")
+			bot.Log.Error().Msg("No service found")
 		}
 	}
 }
