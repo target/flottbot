@@ -32,7 +32,7 @@ func initLogger(b *models.Bot) {
 	b.Log = zerolog.New(os.Stdout).Level(zerolog.ErrorLevel)
 
 	if b.Debug {
-		b.Log.Level(zerolog.DebugLevel)
+		b.Log = zerolog.New(os.Stdout).Level(zerolog.DebugLevel)
 	}
 }
 
