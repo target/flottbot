@@ -40,10 +40,10 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 		msgRef := slack.NewRefToMessage(message.ChannelID, message.Timestamp)
 		// Remove bot reaction from message
 		if err := api.RemoveReaction(rule.RemoveReaction, msgRef); err != nil {
-			bot.Log.Errorf("Could not add reaction '%s'", err)
+			bot.Log.Error().Msgf("Could not add reaction '%s'", err)
 			return
 		}
-		bot.Log.Debugf("Removed reaction '%s' for rule %s", rule.RemoveReaction, rule.Name)
+		bot.Log.Debug().Msgf("Removed reaction '%s' for rule %s", rule.RemoveReaction, rule.Name)
 	}
 	if rule.Reaction != "" {
 		// Init api client
@@ -52,10 +52,10 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 		msgRef := slack.NewRefToMessage(message.ChannelID, message.Timestamp)
 		// React with desired reaction
 		if err := api.AddReaction(rule.Reaction, msgRef); err != nil {
-			bot.Log.Errorf("Could not add reaction '%s'", err)
+			bot.Log.Error().Msgf("Could not add reaction '%s'", err)
 			return
 		}
-		bot.Log.Debugf("Added reaction '%s' for rule %s", rule.Reaction, rule.Name)
+		bot.Log.Debug().Msgf("Added reaction '%s' for rule %s", rule.Reaction, rule.Name)
 	}
 }
 
@@ -71,21 +71,21 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	// get bot id
 	rat, err := api.AuthTest()
 	if err != nil {
-		bot.Log.Errorf("The Slack bot token that was provided was invalid or is unauthorized")
-		bot.Log.Warn("Closing Slack message reader")
+		bot.Log.Error().Msg("The Slack bot token that was provided was invalid or is unauthorized")
+		bot.Log.Warn().Msg("Closing Slack message reader")
 		return
 	}
 
 	// read messages
 	if c.SigningSecret != "" {
 		if bot.SlackEventsCallbackPath == "" {
-			bot.Log.Error("Need to specify a callback path for the 'slack_events_callback_path' field in the bot.yml (e.g. \"/slack_events/v1/mybot-v1_events\")")
-			bot.Log.Debug("Closing events reader (will not be able to read messages)")
+			bot.Log.Error().Msg("Need to specify a callback path for the 'slack_events_callback_path' field in the bot.yml (e.g. \"/slack_events/v1/mybot-v1_events\")")
+			bot.Log.Debug().Msg("Closing events reader (will not be able to read messages)")
 			return
 		}
 		if !isValidPath(bot.SlackEventsCallbackPath) { // valid path e.g. /slack_events/v1/mybot_dev-v1_events
-			bot.Log.Error("Invalid events path. Please double check your path value/syntax (e.g. \"/slack_events/v1/mybot_dev-v1_events\")")
-			bot.Log.Debug("Closing events reader (will not be able to read messages)")
+			bot.Log.Error().Msg("Invalid events path. Please double check your path value/syntax (e.g. \"/slack_events/v1/mybot_dev-v1_events\")")
+			bot.Log.Debug().Msg("Closing events reader (will not be able to read messages)")
 			return
 		}
 		bot.ID = rat.UserID
@@ -96,16 +96,16 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 		readFromRTM(rtm, inputMsgs, bot)
 	} else {
 		if !bot.CLI {
-			bot.Log.Fatal("Did not find either Slack Token or Slack Signing Secret. Unable to read from Slack")
+			bot.Log.Fatal().Msg("Did not find either Slack Token or Slack Signing Secret. Unable to read from Slack")
 		} else {
-			bot.Log.Warn("Slack was specified as your chat_application but no Slack Token or Slack Signing Secret was provided")
+			bot.Log.Warn().Msg("Slack was specified as your chat_application but no Slack Token or Slack Signing Secret was provided")
 		}
 	}
 }
 
 // Send implementation to satisfy remote interface
 func (c *Client) Send(message models.Message, bot *models.Bot) {
-	bot.Log.Debugf("Sending message %s", message.ID)
+	bot.Log.Debug().Msgf("Sending message %s", message.ID)
 
 	api := c.new()
 
@@ -124,7 +124,7 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	case models.MsgTypeDirect, models.MsgTypeChannel, models.MsgTypePrivateChannel:
 		send(api, message, bot)
 	default:
-		bot.Log.Warn("Received unknown message type - no message to send")
+		bot.Log.Warn().Msg("Received unknown message type - no message to send")
 	}
 }
 
@@ -136,8 +136,8 @@ var interactionsRouter *mux.Router
 func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
 	if bot.InteractiveComponents && c.SigningSecret != "" {
 		if bot.SlackInteractionsCallbackPath == "" {
-			bot.Log.Error("Need to specify a callback path for the 'slack_interactions_callback_path' field in the bot.yml (e.g. \"/slack_events/v1/mybot_dev-v1_interactions\")")
-			bot.Log.Warn("Closing interactions reader (will not be able to read interactive components)")
+			bot.Log.Error().Msg("Need to specify a callback path for the 'slack_interactions_callback_path' field in the bot.yml (e.g. \"/slack_events/v1/mybot_dev-v1_interactions\")")
+			bot.Log.Warn().Msg("Closing interactions reader (will not be able to read interactive components)")
 			return
 		}
 		if interactionsRouter == nil {
@@ -153,15 +153,15 @@ func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message 
 			// We use regex for interactions routing for any bot using this framework
 			// e.g. /slack_events/v1/mybot_dev-v1_interactions
 			if !isValidPath(bot.SlackInteractionsCallbackPath) {
-				bot.Log.Error("Invalid events path. Please double check your path value/syntax (e.g. \"/slack_events/v1/mybot_dev-v1_interactions\")")
-				bot.Log.Warn("Closing interaction components reader (will not be able to read interactive components)")
+				bot.Log.Error().Msg("Invalid events path. Please double check your path value/syntax (e.g. \"/slack_events/v1/mybot_dev-v1_interactions\")")
+				bot.Log.Warn().Msg("Closing interaction components reader (will not be able to read interactive components)")
 				return
 			}
 			interactionsRouter.HandleFunc(bot.SlackInteractionsCallbackPath, ruleHandle).Methods("POST")
 
 			// start Interactive Components server
 			go http.ListenAndServe(":4000", interactionsRouter)
-			bot.Log.Infof("Slack Interactive Components server is listening to %s", bot.SlackInteractionsCallbackPath)
+			bot.Log.Info().Msgf("Slack Interactive Components server is listening to %s", bot.SlackInteractionsCallbackPath)
 		}
 
 		// Process the hit rule for Interactive Components, e.g. interactive messages

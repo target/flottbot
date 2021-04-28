@@ -1,6 +1,6 @@
 package models
 
-import "github.com/sirupsen/logrus"
+import "github.com/rs/zerolog"
 
 // Bot is a struct representation of bot.yml
 type Bot struct {
@@ -23,14 +23,13 @@ type Bot struct {
 	Scheduler                     bool              `mapstructure:"scheduler,omitempty"`
 	ChatApplication               string            `mapstructure:"chat_application" binding:"required"`
 	Debug                         bool              `mapstructure:"debug,omitempty"`
-	LogJSON                       bool              `mapstructure:"log_json,omitempty"`
 	InteractiveComponents         bool              `mapstructure:"interactive_components,omitempty"`
 	Metrics                       bool              `mapstructure:"metrics,omitempty"`
 	CustomHelpText                string            `mapstructure:"custom_help_text,omitempty"`
 	DisableNoMatchHelp            bool              `mapstructure:"disable_no_match_help,omitempty"`
 	RespondToBots                 bool              `mapstructure:"respond_to_bots,omitempty"`
 	// System
-	Log          logrus.Logger
+	Log          zerolog.Logger
 	RunChat      bool
 	RunCLI       bool
 	RunScheduler bool
