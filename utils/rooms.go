@@ -15,7 +15,7 @@ func GetRoomIDs(wantRooms []string, bot *models.Bot) []string {
 		if roomMatch != "" {
 			rooms = append(rooms, roomMatch)
 		} else {
-			bot.Log.Debugf("Room '%s' does not exist", room)
+			bot.Log.Debug().Msgf("Room '%s' does not exist", room)
 		}
 	}
 

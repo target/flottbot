@@ -75,15 +75,15 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 	if rule.Respond != "" || rule.Hear != "" {
 		// You can only use 'respond' OR 'hear'
 		if rule.Respond != "" && rule.Hear != "" {
-			bot.Log.Debugf("Rule '%s' has both 'hear' and 'match' or 'respond' defined. Please choose one or the other", rule.Name)
+			bot.Log.Debug().Msgf("Rule '%s' has both 'hear' and 'match' or 'respond' defined. Please choose one or the other", rule.Name)
 		}
 		// Args are not implemented for 'hear'
 		if rule.Hear != "" && len(rule.Args) > 0 {
-			bot.Log.Debugf("Rule '%s' has both 'args' and 'hear' set. To use 'args', use 'respond' instead of 'hear'", rule.Name)
+			bot.Log.Debug().Msgf("Rule '%s' has both 'args' and 'hear' set. To use 'args', use 'respond' instead of 'hear'", rule.Name)
 		}
 
 		if hit && message.ThreadTimestamp != "" && rule.IgnoreThreads {
-			bot.Log.Debug("Response suppressed due to 'ignore_threads' being set")
+			bot.Log.Debug().Msg("Response suppressed due to 'ignore_threads' being set")
 			return true, true
 		}
 
@@ -93,7 +93,7 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 		}
 
 		if hit {
-			bot.Log.Debugf("Found rule match '%s' for input '%s'", rule.Name, message.Input)
+			bot.Log.Debug().Msgf("Found rule match '%s' for input '%s'", rule.Name, message.Input)
 			// Don't go through more rules if rule is matched
 			match, stopSearch = true, true
 			// Publish metric to prometheus - metricname will be combination of bot name and rule name
@@ -136,7 +136,7 @@ func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hit
 	if message.Type == models.MsgTypeDirect || message.BotMentioned {
 		// Do not send help message if DisableNoMatchHelp is true
 		if !bot.DisableNoMatchHelp {
-			bot.Log.Debug("Bot was addressed, but no rule matched. Showing help")
+			bot.Log.Debug().Msg("Bot was addressed, but no rule matched. Showing help")
 			// Publish metric as none
 			Prommetric(bot.Name+"-None", bot)
 			// Set custom_help_text if it is set in bot.yml
@@ -250,15 +250,15 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 		switch strings.ToLower(action.Type) {
 		// HTTP actions.
 		case "get", "post", "put":
-			bot.Log.Debugf("Executing action '%s'...", action.Name)
+			bot.Log.Debug().Msgf("Executing action '%s'...", action.Name)
 			err = handleHTTP(action, &message, bot)
 		// Exec (script) actions
 		case "exec":
-			bot.Log.Debugf("Executing action '%s'...", action.Name)
+			bot.Log.Debug().Msgf("Executing action '%s'...", action.Name)
 			err = handleExec(action, &message, bot)
 		// Normal message/log actions
 		case "message", "log":
-			bot.Log.Debugf("Executing action '%s'...", action.Name)
+			bot.Log.Debug().Msgf("Executing action '%s'...", action.Name)
 			// Log actions cannot direct message users by default
 			directive := rule.DirectMessageOnly
 			if action.Type == "log" {
@@ -269,7 +269,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 			err = handleMessage(action, outputMsgs, &copy, directive, rule.StartMessageThread, hitRule, bot)
 		// Fallback to error if action type is invalid
 		default:
-			bot.Log.Errorf("The rule '%s' of type %s is not a supported action", action.Name, action.Type)
+			bot.Log.Error().Msgf("The rule '%s' of type %s is not a supported action", action.Name, action.Type)
 		}
 
 		// Handle reaction update
@@ -277,7 +277,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 
 		// Handle error
 		if err != nil {
-			bot.Log.Error(err)
+			bot.Log.Error().Msg(err.Error())
 		}
 	}
 
@@ -296,7 +296,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 	// After running through all the actions, compose final message
 	val, err := craftResponse(rule, message, bot)
 	if err != nil {
-		bot.Log.Error(err)
+		bot.Log.Error().Msg(err.Error())
 		message.Output = err.Error()
 		outputMsgs <- message
 	} else {
@@ -327,12 +327,12 @@ func craftResponse(rule models.Rule, msg models.Message, bot *models.Bot) (strin
 		if len(rule.OutputToUsers) == 0 {
 			return "", errors.New(msg)
 		}
-		bot.Log.Warn(msg)
+		bot.Log.Warn().Msg(msg)
 	}
 
 	// Simple warning that we will ignore 'output_to_rooms' when 'direct_message_only' is set
 	if rule.DirectMessageOnly && len(rule.OutputToRooms) > 0 {
-		bot.Log.Debugf("The rule '%s' has 'direct_message_only' set, 'output_to_rooms' will be ignored", rule.Name)
+		bot.Log.Debug().Msgf("The rule '%s' has 'direct_message_only' set, 'output_to_rooms' will be ignored", rule.Name)
 	}
 
 	// Use FormatOutput as source for output and find variables and replace content the variable exists
@@ -392,11 +392,11 @@ func handleHTTP(action models.Action, msg *models.Message, bot *models.Bot) erro
 
 	// Just a friendly debugger warning on failed requests
 	if resp.Status >= 400 {
-		bot.Log.Debugf("Error in request made by action '%s'. %s returned %d with response: `%s`", action.Name, action.URL, resp.Status, resp.Raw)
+		bot.Log.Debug().Msgf("Error in request made by action '%s'. %s returned %d with response: `%s`", action.Name, action.URL, resp.Status, resp.Raw)
 	}
 
 	// Always store raw response
-	bot.Log.Debugf("Successfully executed action '%s'", action.Name)
+	bot.Log.Debug().Msgf("Successfully executed action '%s'", action.Name)
 	// Set explicit variables to make raw response output, http status code accessible in rules
 	msg.Vars["_raw_http_output"] = resp.Raw
 	msg.Vars["_raw_http_status"] = strconv.Itoa(resp.Status)
@@ -454,7 +454,7 @@ func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *
 	msg.Output = output
 	// Send to desired room(s)
 	if direct && len(action.LimitToRooms) > 0 { // direct=true and limit_to_rooms is specified
-		bot.Log.Debugf("You have specified to send only direct messages. The 'limit_to_rooms' field on the '%s' action will be ignored", action.Name)
+		bot.Log.Debug().Msgf("You have specified to send only direct messages. The 'limit_to_rooms' field on the '%s' action will be ignored", action.Name)
 	} else if !direct && len(action.LimitToRooms) > 0 { // direct=false and limit_to_rooms is specified
 		msg.OutputToRooms = utils.GetRoomIDs(action.LimitToRooms, bot)
 
@@ -487,7 +487,7 @@ func updateReaction(action models.Action, rule *models.Rule, vars map[string]str
 		if strings.Contains(action.Reaction, "{{") {
 			reaction, err := utils.Substitute(action.Reaction, vars)
 			if err != nil {
-				bot.Log.Error(err)
+				bot.Log.Error().Msg(err.Error())
 				return
 			}
 			action.Reaction = reaction
@@ -497,7 +497,7 @@ func updateReaction(action models.Action, rule *models.Rule, vars map[string]str
 
 			t, err = template.New("update_reaction").Funcs(sprig.FuncMap()).Parse(action.Reaction)
 			if err != nil {
-				bot.Log.Errorf("Failed to update Reaction %s", rule.Reaction)
+				bot.Log.Error().Msgf("Failed to update Reaction %s", rule.Reaction)
 				return
 			}
 			buf := new(bytes.Buffer)
