@@ -34,7 +34,7 @@ $ go get -u github.com/target/flottbot/cmd/flottbot
 
 ### Binaries
 
-Binaries for Linux, macOS, and Windows are available as [Github Releases](https://github.com/target/flottbot/releases/latest).
+Binaries for Linux, macOS, and Windows are available as [Github Releases](/target/flottbot/releases/latest).
 
 ## Docker Images
 
@@ -86,4 +86,4 @@ Inspired by [Hexbot.io](https://github.com/mmcquillan/hex)
 
 ## Contributors
 
-* [List of contributors](graphs/contributors)
+* [List of contributors](/target/flottbot/graphs/contributors)
