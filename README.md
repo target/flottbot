@@ -86,4 +86,4 @@ Inspired by [Hexbot.io](https://github.com/mmcquillan/hex)
 
 ## Contributors
 
-* [List of contributors][contribute]
+* [List of contributors](graphs/contributors)
