@@ -115,6 +115,24 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotDiscordBadServerID.DiscordServerID = "${TOKEN}"
 	validateRemoteSetup(testBotDiscordServerID)
 
+	testBotTelegram := new(models.Bot)
+	testBotTelegram.CLI = true
+	testBotTelegram.ChatApplication = "telegram"
+	testBotTelegram.TelegramToken = "${TEST_TELEGRAM_TOKEN}"
+	os.Setenv("TEST_TELEGRAM_TOKEN", "TESTTOKEN")
+	validateRemoteSetup(testBotTelegram)
+
+	testBotTelegramNoToken := new(models.Bot)
+	testBotTelegramNoToken.CLI = true
+	testBotTelegramNoToken.ChatApplication = "telegram"
+	validateRemoteSetup(testBotTelegramNoToken)
+
+	testBotTelegramBadToken := new(models.Bot)
+	testBotTelegramBadToken.CLI = true
+	testBotTelegramBadToken.ChatApplication = "telegram"
+	testBotTelegramBadToken.TelegramToken = "${TOKEN}"
+	validateRemoteSetup(testBotTelegramBadToken)
+
 	tests := []struct {
 		name                           string
 		args                           args
@@ -133,6 +151,9 @@ func Test_configureChatApplication(t *testing.T) {
 		{"Discord - bad token", args{bot: testBotDiscordBadToken}, false, false},
 		{"Discord w/ server id", args{bot: testBotDiscordServerID}, true, false},
 		{"Discord w/ bad server id", args{bot: testBotDiscordBadServerID}, false, false},
+		{"Telegram", args{bot: testBotTelegram}, true, false},
+		{"Telegram - no token", args{bot: testBotTelegramNoToken}, false, false},
+		{"Telegram - bad token", args{bot: testBotTelegramBadToken}, false, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
