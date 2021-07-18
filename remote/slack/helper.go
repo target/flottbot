@@ -121,6 +121,8 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 	bot.Log.Debug().Msgf("getEventsAPIEventHandler: received event '%s'", event.Type)
 
 	switch ev := event.Data.(type) {
+	// Ignoring app_mention events
+	case *slackevents.AppMentionEvent:
 	// There are Events API specific MessageEvents
 	// https://api.slack.com/events/message.channels
 	case *slackevents.MessageEvent:
