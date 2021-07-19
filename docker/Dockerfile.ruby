@@ -14,7 +14,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
   go build -a -ldflags "-s -w -X github.com/target/flottbot/version.Version=${VERSION} -X github.com/target/flottbot/version.GitHash=${GIT_HASH}" \
   -o flottbot ./cmd/flottbot
 
-FROM ruby:2.7-alpine
+FROM ruby:3.0-alpine
 ENV USERNAME=flottbot
 ENV GROUP=flottbot
 ENV UID=900
