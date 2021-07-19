@@ -8,6 +8,7 @@ type Bot struct {
 	ID                            string            `mapstructure:"id"`
 	Name                          string            `mapstructure:"name" binding:"required"`
 	SlackToken                    string            `mapstructure:"slack_token"`
+	SlackAppToken                 string            `mapstructure:"slack_app_token"`
 	SlackSigningSecret            string            `mapstructure:"slack_signing_secret"`
 	SlackEventsCallbackPath       string            `mapstructure:"slack_events_callback_path"`
 	SlackInteractionsCallbackPath string            `mapstructure:"slack_interactions_callback_path"`

@@ -4,18 +4,16 @@ To ensure that all developers follow the same guidelines for development, we hav
 
 ### Prerequisites
 
-- [Golang](https://golang.org/dl/) - the source code is written in Go.
-- [dep](https://github.com/golang/dep) - our Go dependency management tool.
-- Slack API token - obtain a Slack API token for development by creating a bot integration.
+- [Go(lang)](https://golang.org/dl/) - the source code is written in Go.
+- Slack API Token
+- Slack App Token
 
 ### Development Process
 
 - Clone this repository to your Go workspace:
 
 ```sh
-# Make sure you are running go 1.11 or later
-# if you plan to clone into your current GOPATH then set the environment variable GO111MODULE=on
-# this will tell go to use the new modules support
+# Make sure you are running go 1.16 or later
 
 # Clone the project
 git clone git@github.com:target/flottbot.git somepath/flottbot
@@ -37,7 +35,7 @@ make build
 
 ```sh
 # Checkout a branch for your work
-git checkout -b name_of_your_branch
+git switch -c name_of_your_branch
 
 # Code away!
 ```
@@ -45,8 +43,9 @@ git checkout -b name_of_your_branch
 - Build the project and run locally:
 
 ```sh
-# Export your Slack API token (the token below is redacted)
+# Export your Slack Token and Slack App Token (the tokens below is redacted)
 export SLACK_TOKEN=xoxb-xxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxx
+export SLACK_APP_TOKEN=xapp-x-xxxxxxxxx-xxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 # Build the binary and run flottbot
 make run
@@ -74,7 +73,7 @@ DEBU[0001] Connection established!
 
 - Submit a PR for your changes.
 
-- After the Travis build passes and you have an approved review, we will merge your PR.
+- After the Github Actions build passes and you have an approved review, we will merge your PR.
 
 - We will tag a release for flottbot when the desired functionality is present and stable.
   - Production images of your changes will be published to Docker Hub and new binaries will be built and made available via Github Releases

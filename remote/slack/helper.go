@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
+	"github.com/slack-go/slack/socketmode"
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/utils"
 )
@@ -120,6 +121,8 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 	bot.Log.Debug().Msgf("getEventsAPIEventHandler: received event '%s'", event.Type)
 
 	switch ev := event.Data.(type) {
+	// Ignoring app_mention events
+	case *slackevents.AppMentionEvent:
 	// There are Events API specific MessageEvents
 	// https://api.slack.com/events/message.channels
 	case *slackevents.MessageEvent:
@@ -160,32 +163,29 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 			timestamp := ev.TimeStamp
 			threadTimestamp := ev.ThreadTimeStamp
 
+			// get the link to the message, will be empty string if there's an error
 			link, err := api.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
 			if err != nil {
-				bot.Log.Error().Msgf("unable to retrieve link to message: %s", err)
-				link = ""
+				bot.Log.Error().Msgf("unable to retrieve link to message: %s", err.Error())
 			}
 
 			inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
 		}
-	// This is an Event shared between RTM and the Events API
 	case *slackevents.MemberJoinedChannelEvent:
 		// limit to our bot
 		if ev.User == bot.ID {
 			// look up channel info, since 'ev' only gives us ID
-			channel, err := api.GetChannelInfo(ev.Channel)
+			channel, err := api.GetConversationInfo(ev.Channel, false)
 			if err != nil {
-				bot.Log.Debug().Msgf("unable to fetch channel info for channel joined event: %s", err)
-			} else {
-				// add the room to the lookup
-				if bot.Rooms[channel.Name] == "" {
-					bot.Rooms[channel.Name] = channel.ID
-					bot.Log.Debug().Msgf("Joined new channel. %s(%s) added to lookup", channel.Name, channel.ID)
-				}
+				bot.Log.Debug().Msgf("unable to fetch channel info for channel joined event: %v", err)
 			}
+
+			// add the room to the lookup
+			bot.Rooms[channel.Name] = channel.ID
+			bot.Log.Debug().Msgf("joined new channel. %s (%s) added to lookup", channel.Name, channel.ID)
 		}
 	default:
-		bot.Log.Debug().Msgf("getEventsAPIEventHandler: Unrecognized event type: %v", ev)
+		bot.Log.Debug().Msgf("getEventsAPIEventHandler: unrecognized event type: %v", ev)
 	}
 }
 
@@ -327,7 +327,7 @@ func getRooms(api *slack.Client) map[string]string {
 	// channels:read, groups:read, im:read, mpim:read
 	cp := slack.GetConversationsParameters{
 		Cursor:          "",
-		ExcludeArchived: "true",
+		ExcludeArchived: true,
 		Limit:           1000, // this is the maximum value allowed
 		Types:           []string{"public_channel", "private_channel", "mpim", "im"},
 	}
@@ -443,33 +443,29 @@ func handleNonDirectMessage(api *slack.Client, users []slack.User, message model
 	return nil
 }
 
-// populateBotUsers populates slack users
-func populateBotUsers(slackUsers []slack.User, bot *models.Bot) {
-	if len(slackUsers) > 0 {
-		users := make(map[string]string)
+// populateUsers populates slack users
+func populateUsers(su []slack.User, bot *models.Bot) {
+	users := make(map[string]string)
 
-		for _, user := range slackUsers {
-			users[user.Name] = user.ID
-		}
-
-		bot.Users = users
+	// create a map of users
+	for _, user := range su {
+		users[user.Name] = user.ID
 	}
+
+	// add users to bot
+	bot.Users = users
 }
 
 // populateUserGroups populates slack user groups
-func populateUserGroups(bot *models.Bot) {
+func populateUserGroups(sug []slack.UserGroup, bot *models.Bot) {
 	userGroups := make(map[string]string)
-	api := slack.New(bot.SlackToken)
 
-	ugroups, err := api.GetUserGroups()
-	if err != nil {
-		bot.Log.Debug().Msgf("unable to retrieve usergroups: %s - confirm you have usergroups:read permission set", err)
-	}
-
-	for _, usergroup := range ugroups {
+	// create a map of usergroups
+	for _, usergroup := range sug {
 		userGroups[usergroup.Handle] = usergroup.ID
 	}
 
+	// add usergroups to bot
 	bot.UserGroups = userGroups
 }
 
@@ -533,7 +529,6 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 			message.Vars["_user.team"] = user.Profile.Team
 		}
 
-		message.Debug = true // TODO: is this even needed?
 		return message
 	default:
 		bot.Log.Debug().Msgf("Read message of unsupported type '%T'. Unable to populate message attributes", msgType)
@@ -568,14 +563,26 @@ func processInteractiveComponentRule(rule models.Rule, message *models.Message, 
 // This method of reading is preferred over the RTM method.
 func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models.Message, bot *models.Bot) {
 	// get the current users
-	su, err := getSlackUsers(api, models.Message{})
+	users, err := api.GetUsers()
 	if err != nil {
-		bot.Log.Error().Msg(err.Error())
+		bot.Log.Error().Msgf("error getting users: %v", err)
 	}
-	// populate users
-	populateBotUsers(su, bot)
-	// populate user groups
-	populateUserGroups(bot)
+
+	// add users to the bot
+	if users != nil {
+		populateUsers(users, bot)
+	}
+
+	// get the user groups
+	usergroups, err := api.GetUserGroups()
+	if err != nil {
+		bot.Log.Error().Msgf("error getting user groups: %v", err)
+	}
+
+	// add user groups to the bot
+	if usergroups != nil {
+		populateUserGroups(usergroups, bot)
+	}
 
 	// Create router for the events server
 	router := mux.NewRouter()
@@ -593,92 +600,143 @@ func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models
 		bot.SlackEventsCallbackPath, bot.SlackListenerPort)
 }
 
-// readFromRTM utilizes the Slack API client to read messages via RTM.
-// This method of reading is not preferred and the event-based read should instead be used.
+// readFromSocketMode reads messages from Slack's Socket Mode
+//
+// https://api.slack.com/apis/connections/socket
 // nolint:gocyclo // needs refactor
-func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bot) {
-	go rtm.ManageConnection()
+func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *models.Bot) {
+	// setup the client
+	client := socketmode.New(
+		sm,
+		socketmode.OptionDebug(bot.Debug),
+	)
 
-	for {
-		msg := <-rtm.IncomingEvents
+	// spawn anonymous goroutine
+	go func() {
+		for evt := range client.Events {
+			switch evt.Type {
+			case socketmode.EventTypeHello:
+				// handle "hello" event
+				continue
+			case socketmode.EventTypeEventsAPI:
+				eventsAPIEvent, ok := evt.Data.(slackevents.EventsAPIEvent)
+				if !ok {
+					bot.Log.Warn().Msgf("ignored: %+v", evt)
 
-		switch ev := msg.Data.(type) {
-		case *slack.MessageEvent:
-			senderID := ev.User
-
-			// check if message originated from a bot
-			// and whether we should respond to other bot messages
-			if ev.BotID != "" && bot.RespondToBots {
-				// get bot information to get
-				// the associated user id
-				user, err := rtm.GetBotInfo(ev.BotID)
-				if err != nil {
-					bot.Log.Info().Msgf("unable to retrieve bot info for %s", ev.BotID)
-
-					return
+					continue
 				}
 
-				// use the bot's user id as the senderID
-				senderID = user.UserID
-			}
+				bot.Log.Debug().Msgf("event received: %+v", eventsAPIEvent)
 
-			// only process messages that aren't from our bot
-			if senderID != "" && bot.ID != senderID {
-				channel := ev.Channel
-				msgType, err := getMessageType(channel)
+				// acknowledge event to Slack
+				client.Ack(*evt.Request)
+
+				switch eventsAPIEvent.Type {
+				case slackevents.CallbackEvent:
+					innerEvent := eventsAPIEvent.InnerEvent
+
+					switch ev := innerEvent.Data.(type) {
+					case *slackevents.MessageEvent:
+						senderID := ev.User
+
+						// check if message originated from a bot
+						// and whether we should respond to other bot messages
+						if ev.BotID != "" && bot.RespondToBots {
+							// get bot information to get
+							// the associated user id
+							user, err := sm.GetBotInfo(ev.BotID)
+							if err != nil {
+								bot.Log.Info().Msgf("unable to retrieve bot info for %s", ev.BotID)
+
+								return
+							}
+
+							// use the bot's user id as the senderID
+							senderID = user.UserID
+						}
+
+						// only process message that are not from our bot
+						if senderID != "" && bot.ID != senderID {
+							channel := ev.Channel
+
+							// determine the message type
+							msgType, err := getMessageType(channel)
+							if err != nil {
+								bot.Log.Debug().Msg(err.Error())
+							}
+
+							// remove the bot mention from the user input
+							text, mentioned := removeBotMention(ev.Text, bot.ID)
+
+							// get information on the user
+							user, err := sm.GetUserInfo(senderID)
+							if err != nil {
+								bot.Log.Error().Msgf("did not get Slack user info: %s", err.Error())
+							}
+
+							timestamp := ev.TimeStamp
+							threadTimestamp := ev.ThreadTimeStamp
+
+							// get the link to the message, will be empty string if there's an error
+							link, err := sm.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
+							if err != nil {
+								bot.Log.Error().Msgf("unable to retrieve link to message: %s", err.Error())
+							}
+
+							inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
+						}
+					case *slackevents.MemberJoinedChannelEvent:
+						// limit to our bot
+						if ev.User == bot.ID {
+							// look up channel info, since 'ev' only gives us ID
+							channel, err := sm.GetConversationInfo(ev.Channel, false)
+							if err != nil {
+								bot.Log.Debug().Msgf("unable to fetch channel info for channel joined event: %v", err)
+							}
+
+							// add the room to the lookup
+							bot.Rooms[channel.Name] = channel.ID
+							bot.Log.Debug().Msgf("joined new channel. %s (%s) added to lookup", channel.Name, channel.ID)
+						}
+					}
+				default:
+					bot.Log.Warn().Msgf("unsupported events API event received: %s", eventsAPIEvent.Type)
+				}
+			case socketmode.EventTypeConnecting:
+				bot.Log.Info().Msg("connecting to Slack via Socket Mode...")
+			case socketmode.EventTypeConnectionError:
+				bot.Log.Error().Msg("connection failed - retrying later...")
+			case socketmode.EventTypeConnected:
+				bot.Log.Info().Msg("connected to Slack with Socket Mode.")
+
+				// get users
+				users, err := sm.GetUsers()
 				if err != nil {
-					bot.Log.Debug().Msg(err.Error())
+					bot.Log.Error().Msgf("unable to get users: %v", err)
 				}
 
-				text, mentioned := removeBotMention(ev.Text, bot.ID)
-
-				// get the full user object for the given ID
-				user, err := rtm.GetUserInfo(senderID)
-				if err != nil {
-					bot.Log.Error().Msgf("Did not get Slack user info: %s", err)
+				// add users to bot
+				if users != nil {
+					populateUsers(users, bot)
 				}
 
-				timestamp := ev.Timestamp
-				threadTimestamp := ev.ThreadTimestamp
-
-				link, err := rtm.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
+				// get user groups
+				usergroups, err := sm.GetUserGroups()
 				if err != nil {
-					bot.Log.Error().Msgf("unable to retrieve link to message: %s", err)
-					link = ""
+					bot.Log.Error().Msgf("unable to get user groups: %v", err)
 				}
 
-				inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
+				// add user groups to bot
+				if usergroups != nil {
+					populateUserGroups(usergroups, bot)
+				}
+			default:
+				bot.Log.Warn().Msgf("unhandled event type received: %s", evt.Type)
 			}
-		case *slack.ConnectedEvent:
-			// populate users
-			users, err := rtm.GetUsers()
-			if err != nil {
-				bot.Log.Error().Msgf("Unable to get users: %s", err)
-			}
-			populateBotUsers(users, bot)
-			// populate user groups
-			populateUserGroups(bot)
-			bot.Log.Debug().Msg("RTM connection established!")
-		case *slack.ChannelJoinedEvent:
-			// when the bot joins a channel add it to the internal lookup
-			if bot.Rooms[ev.Channel.Name] == "" {
-				bot.Rooms[ev.Channel.Name] = ev.Channel.ID
-				bot.Log.Debug().Msgf("Joined new channel. %s(%s) added to lookup", ev.Channel.Name, ev.Channel.ID)
-			}
-		case *slack.HelloEvent:
-			// ignore - this is the very first initial event sent when connecting to Slack
-		case *slack.RTMError:
-			bot.Log.Error().Msg(ev.Error())
-		case *slack.ConnectionErrorEvent:
-			bot.Log.Error().Msgf("RTM connection error: %+v", ev)
-		case *slack.InvalidAuthEvent:
-			if !bot.CLI {
-				bot.Log.Debug().Msg("Invalid Authorization. Please double check your Slack token.")
-			}
-		default:
-			bot.Log.Debug().Msgf("readFromRTM: Unrecognized event type: %v", ev)
 		}
-	}
+	}()
+
+	client.Run()
 }
 
 // send - handles the sending logic of a message going to Slack

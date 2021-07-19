@@ -30,6 +30,11 @@ spec:
               secretKeyRef:
                 name: slack
                 key: SLACK_TOKEN
+          - name: SLACK_APP_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: slack_app
+                key: SLACK_APP_TOKEN
           volumeMounts:
           - name: bot
             mountPath: /config/bot.yml

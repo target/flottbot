@@ -28,13 +28,13 @@ The philosophy behind flottbot is to create very simple, lightweight, "dumb" bot
 
 ### Using go
 
-```bash
-go get -u github.com/target/flottbot/cmd/flottbot
+```sh
+$ go get -u github.com/target/flottbot/cmd/flottbot
 ```
 
 ### Binaries
 
-Binaries for Linux, macOS, and Windows are available as [Github Releases](https://github.com/target/flottbot/releases/latest).
+Binaries for Linux, macOS, and Windows are available as [Github Releases](/target/flottbot/releases/latest).
 
 ## Docker Images
 
@@ -46,7 +46,7 @@ We currently provide a few Docker images:
 
 [target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.16 installed
 
-[target/flottbot:python](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and python v3.8 installed
+[target/flottbot:python](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and python v3.9 installed
 
 _Note: We highly recommend pinning your image to a version, ie. `target/flottbot:0.5.0` or `target/flottbot:ruby-0.5.0`_
 
@@ -54,10 +54,10 @@ _Note: The images run with the unprivileged `flottbot` user (uid/gid 900) by def
 
 ## Helm Chart
 
-To install using the [Helm](https://helm.sh/) chart located in this repo, clone this repo, create a [Kubernetes secret](https://kubernetes.io/docs/concepts/configuration/secret/) for your Slack Token in your namespace & install the chart:
+To install using the [Helm](https://helm.sh/) chart located in this repo, clone this repo, create [Kubernetes secrets](https://kubernetes.io/docs/concepts/configuration/secret/) for your Slack Token and Slack App Token in your namespace & install the chart:
 
-```bash
-   helm install helm/flottbot/
+```sh
+$ helm install helm/flottbot/
 ```
 
 ## Available remotes
@@ -84,9 +84,6 @@ Please do! Check [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for info.
 
 Inspired by [Hexbot.io](https://github.com/mmcquillan/hex)
 
-## Authors
+## Contributors
 
-- [David May](https://github.com/wass3r)
-- [Sean Quinn](https://github.com/sjqnn)
-- [Raphael Santo Domingo](https://github.com/pa3ng)
-- [Jordan Sussman](https://github.com/JordanSussman)
+* [List of contributors](/target/flottbot/graphs/contributors)

@@ -83,37 +83,10 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotSlack.CLI = true
 	testBotSlack.ChatApplication = "slack"
 	testBotSlack.SlackToken = "${TEST_SLACK_TOKEN}"
+	testBotSlack.SlackAppToken = "${TEST_SLACK_APP_TOKEN}"
 	os.Setenv("TEST_SLACK_TOKEN", "TESTTOKEN")
+	os.Setenv("TEST_SLACK_APP_TOKEN", "TESTAPPTOKEN")
 	validateRemoteSetup(testBotSlack)
-
-	testBotSlackInteraction := new(models.Bot)
-	testBotSlackInteraction.CLI = true
-	testBotSlackInteraction.InteractiveComponents = true
-	testBotSlackInteraction.ChatApplication = "slack"
-	testBotSlackInteraction.SlackToken = "${TEST_SLACK_TOKEN}"
-	testBotSlackInteraction.SlackInteractionsCallbackPath = "${TEST_SLACK_INTERACTIONS_CALLBACK_PATH}"
-	os.Setenv("TEST_SLACK_TOKEN", "TESTTOKEN")
-	os.Setenv("TEST_SLACK_INTERACTIONS_CALLBACK_PATH", "TESTPATH")
-	validateRemoteSetup(testBotSlackInteraction)
-
-	testBotSlackInteractionFail := new(models.Bot)
-	testBotSlackInteractionFail.CLI = true
-	testBotSlackInteractionFail.InteractiveComponents = true
-	testBotSlackInteractionFail.ChatApplication = "slack"
-	testBotSlackInteractionFail.SlackToken = "${TEST_SLACK_TOKEN}"
-	testBotSlackInteractionFail.SlackInteractionsCallbackPath = "${TEST_SLACK_INTERACTIONS_CALLBACK_PATH_FAIL}"
-	os.Setenv("TEST_SLACK_TOKEN", "TESTTOKEN")
-	os.Setenv("TEST_SLACK_INTERACTIONS_CALLBACK_PATH_FAIL", "")
-	validateRemoteSetup(testBotSlackInteractionFail)
-
-	testBotSlackEventsCallbackFail := new(models.Bot)
-	testBotSlackEventsCallbackFail.CLI = true
-	testBotSlackEventsCallbackFail.InteractiveComponents = true
-	testBotSlackEventsCallbackFail.ChatApplication = "slack"
-	testBotSlackEventsCallbackFail.SlackToken = "${TEST_SLACK_TOKEN}"
-	testBotSlackEventsCallbackFail.SlackInteractionsCallbackPath = "${TEST_SLACK_INTERACTIONS_CALLBACK_PATH_FAIL}"
-	testBotSlackEventsCallbackFail.SlackEventsCallbackPath = "${TEST_SLACK_EVENTS_CALLBACK_PATH_FAIL}"
-	validateRemoteSetup(testBotSlackEventsCallbackFail)
 
 	testBotDiscordNoToken := new(models.Bot)
 	testBotDiscordNoToken.CLI = true
@@ -142,6 +115,24 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotDiscordBadServerID.DiscordServerID = "${TOKEN}"
 	validateRemoteSetup(testBotDiscordServerID)
 
+	testBotTelegram := new(models.Bot)
+	testBotTelegram.CLI = true
+	testBotTelegram.ChatApplication = "telegram"
+	testBotTelegram.TelegramToken = "${TEST_TELEGRAM_TOKEN}"
+	os.Setenv("TEST_TELEGRAM_TOKEN", "TESTTOKEN")
+	validateRemoteSetup(testBotTelegram)
+
+	testBotTelegramNoToken := new(models.Bot)
+	testBotTelegramNoToken.CLI = true
+	testBotTelegramNoToken.ChatApplication = "telegram"
+	validateRemoteSetup(testBotTelegramNoToken)
+
+	testBotTelegramBadToken := new(models.Bot)
+	testBotTelegramBadToken.CLI = true
+	testBotTelegramBadToken.ChatApplication = "telegram"
+	testBotTelegramBadToken.TelegramToken = "${TOKEN}"
+	validateRemoteSetup(testBotTelegramBadToken)
+
 	tests := []struct {
 		name                           string
 		args                           args
@@ -156,13 +147,13 @@ func Test_configureChatApplication(t *testing.T) {
 		{"Slack - bad token", args{bot: testBotSlackBadToken}, false, false},
 		{"Slack - bad signing secret", args{bot: testBotSlackBadSigningSecret}, false, false},
 		{"Slack", args{bot: testBotSlack}, true, false},
-		{"Slack w/ interaction", args{bot: testBotSlackInteraction}, true, true},
-		{"Slack w/ interaction - empty path", args{bot: testBotSlackInteractionFail}, true, false},
-		{"Slack w/ bad events callback", args{bot: testBotSlackEventsCallbackFail}, true, false},
 		{"Discord - no token", args{bot: testBotDiscordNoToken}, false, false},
 		{"Discord - bad token", args{bot: testBotDiscordBadToken}, false, false},
 		{"Discord w/ server id", args{bot: testBotDiscordServerID}, true, false},
 		{"Discord w/ bad server id", args{bot: testBotDiscordBadServerID}, false, false},
+		{"Telegram", args{bot: testBotTelegram}, true, false},
+		{"Telegram - no token", args{bot: testBotTelegramNoToken}, false, false},
+		{"Telegram - bad token", args{bot: testBotTelegramBadToken}, false, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -180,8 +171,6 @@ func Test_configureChatApplication(t *testing.T) {
 	os.Unsetenv("TEST_SLACK_TOKEN")
 	os.Unsetenv("TEST_DISCORD_TOKEN")
 	os.Unsetenv("TEST_DISCORD_SERVER_ID")
-	os.Unsetenv("TEST_SLACK_INTERACTIONS_CALLBACK_PATH")
-	os.Unsetenv("TEST_SLACK_INTERACTIONS_CALLBACK_PATH_FAIL")
 }
 
 func Test_setSlackListenerPort(t *testing.T) {
