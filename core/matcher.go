@@ -208,7 +208,7 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 		requiredArgs = len(rule.Args) - optionalArgs
 		// Are we expecting a number of args but don't have as many as the rule defines? Send a helpful message
 		if len(rule.Args) > 0 && requiredArgs > len(args) {
-			message.Output = fmt.Sprintf("you might be missing an argument or two - this is what I'm looking for\n```%s```", rule.HelpText)
+			message.Output = fmt.Sprintf("you might be missing an argument or two - this is what i'm looking for\n```%s```", rule.HelpText)
 			return false
 		}
 		// Go through the supplied args and make them available as variables

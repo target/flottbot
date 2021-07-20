@@ -31,20 +31,22 @@ func Configure(bot *models.Bot) {
 // initLogger sets log configuration for the bot
 func initLogger(b *models.Bot) {
 	var out io.Writer
+	var level zerolog.Level
 
-	// default destination
+	// defaults
 	out = os.Stdout
+	level = zerolog.InfoLevel
 
 	// for CLI, use zerolog's ConsoleWriter
 	if b.CLI {
 		out = zerolog.ConsoleWriter{Out: os.Stderr}
 	}
 
-	b.Log = zerolog.New(out).With().Timestamp().Logger().Level(zerolog.InfoLevel)
-
 	if b.Debug {
-		b.Log.Level(zerolog.DebugLevel)
+		level = zerolog.DebugLevel
 	}
+
+	b.Log = zerolog.New(out).With().Timestamp().Logger().Level(level)
 }
 
 // configureChatApplication configures a user's specified chat application
@@ -180,7 +182,7 @@ func configureSlackBot(bot *models.Bot) {
 	isSocketMode := isSet(token, appToken)
 	isEventsAPI := isSet(token, signingSecret, eCallbackPath)
 	if !isSocketMode && !isEventsAPI {
-		bot.Log.Error().Msg("must have either 'slack_token', 'slack_app_token' or 'slack_token', 'slack_signing_secret', and 'slack_events_callback_path' set")
+		bot.Log.Fatal().Msg("must have either 'slack_token', 'slack_app_token' or 'slack_token', 'slack_signing_secret', and 'slack_events_callback_path' set")
 		bot.RunChat = false
 	}
 }
