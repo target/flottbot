@@ -151,7 +151,7 @@ func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot)
 
 		return false, nil
 	default:
-		bot.Log.Fatal().Msgf("chat application '%s' is not supported", capp)
+		bot.Log.Error().Msgf("chat application '%s' is not supported", capp)
 		return false, nil
 	}
 }

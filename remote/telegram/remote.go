@@ -46,7 +46,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 
 	botuser, err := telegramAPI.GetMe()
 	if err != nil {
-		bot.Log.Fatal().Msg("failed to initialize telegram client")
+		bot.Log.Error().Msg("failed to initialize telegram client")
 		return
 	}
 	bot.Name = botuser.UserName

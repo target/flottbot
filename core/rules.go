@@ -22,7 +22,7 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 	bot.Log.Debug().Msg("looking for rules directory...")
 	searchDir, err := utils.PathExists(path.Join("config", "rules"))
 	if err != nil {
-		bot.Log.Fatal().Msgf("could not parse rules: %v", err)
+		bot.Log.Error().Msgf("could not parse rules: %v", err)
 	}
 
 	// Loop through the rules directory and create a list of rules
@@ -35,7 +35,7 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 		return nil
 	})
 	if err != nil {
-		bot.Log.Fatal().Msgf("could not parse rules: %v", err)
+		bot.Log.Error().Msgf("could not parse rules: %v", err)
 	}
 
 	// If the rules directory is empty, log a warning and exit the function
@@ -58,11 +58,11 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 		rule := models.Rule{}
 		err = ruleConf.Unmarshal(&rule)
 		if err != nil {
-			log.Fatal().Msg(err.Error())
+			log.Error().Msg(err.Error())
 		}
 		err = validateRule(bot, &rule)
 		if err != nil {
-			log.Fatal().Msg(err.Error())
+			log.Error().Msg(err.Error())
 		}
 		(*rules)[ruleFile] = rule
 	}

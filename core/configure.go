@@ -182,7 +182,7 @@ func configureSlackBot(bot *models.Bot) {
 	isSocketMode := isSet(token, appToken)
 	isEventsAPI := isSet(token, signingSecret, eCallbackPath)
 	if !isSocketMode && !isEventsAPI {
-		bot.Log.Fatal().Msg("must have either 'slack_token', 'slack_app_token' or 'slack_token', 'slack_signing_secret', and 'slack_events_callback_path' set")
+		bot.Log.Error().Msg("must have either 'slack_token', 'slack_app_token' or 'slack_token', 'slack_signing_secret', and 'slack_events_callback_path' set")
 		bot.RunChat = false
 	}
 }
@@ -197,7 +197,7 @@ func validateRemoteSetup(bot *models.Bot) {
 	}
 
 	if !bot.CLI && bot.ChatApplication == "" {
-		bot.Log.Fatal().Msgf("no i'chat_application specified' and cli mode is not enabled. exiting...")
+		bot.Log.Error().Msgf("no 'chat_application' specified and cli mode is not enabled. exiting...")
 	}
 
 	if bot.Scheduler {
