@@ -60,7 +60,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		bot.Log.Debug().Msgf("Error reading standard input: %s", err)
+		bot.Log.Error().Msgf("Error reading standard input: %v", err)
 	}
 }
 

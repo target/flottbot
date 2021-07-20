@@ -30,7 +30,7 @@ func TestInitLogger(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			initLogger(tt.args.bot)
 			if tt.want != tt.args.bot.Log.GetLevel().String() {
-				t.Errorf("initLogger() wanted level set at %s, but got %s", tt.want, tt.args.bot.Log.GetLevel().String())
+				t.Errorf("initLogger() wanted level set at '%s', but got '%s'", tt.want, tt.args.bot.Log.GetLevel().String())
 			}
 		})
 	}

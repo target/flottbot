@@ -86,4 +86,4 @@ Inspired by [Hexbot.io](https://github.com/mmcquillan/hex)
 
 ## Contributors
 
-* [List of contributors](/target/flottbot/graphs/contributors)
+* [List of contributors](https://github.com/target/flottbot/graphs/contributors)

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"io"
 	"os"
 	"strings"
 
@@ -16,7 +17,7 @@ var defaultSlackListenerPort = "3000"
 // Configure searches the config directory for the bot.yml to create a Bot object.
 // The Bot object will be passed around to make accessible system-specific information.
 func Configure(bot *models.Bot) {
-	log.Info().Msg("Configuring bot...")
+	log.Info().Msg("configuring bot...")
 
 	initLogger(bot)
 
@@ -24,15 +25,25 @@ func Configure(bot *models.Bot) {
 
 	configureChatApplication(bot)
 
-	bot.Log.Info().Msgf("Configured bot '%s'!", bot.Name)
+	bot.Log.Info().Msgf("configured bot '%s'!", bot.Name)
 }
 
 // initLogger sets log configuration for the bot
 func initLogger(b *models.Bot) {
-	b.Log = zerolog.New(os.Stdout).Level(zerolog.ErrorLevel)
+	var out io.Writer
+
+	// default destination
+	out = os.Stdout
+
+	// for CLI, use zerolog's ConsoleWriter
+	if b.CLI {
+		out = zerolog.ConsoleWriter{Out: os.Stderr}
+	}
+
+	b.Log = zerolog.New(out).With().Timestamp().Logger().Level(zerolog.InfoLevel)
 
 	if b.Debug {
-		b.Log = zerolog.New(os.Stdout).Level(zerolog.DebugLevel)
+		b.Log.Level(zerolog.DebugLevel)
 	}
 }
 
@@ -57,7 +68,7 @@ func configureChatApplication(bot *models.Bot) {
 			// Discord bot token
 			token, err := utils.Substitute(bot.DiscordToken, emptyMap)
 			if err != nil {
-				bot.Log.Error().Msgf("could not set discord_token: %s", err.Error())
+				bot.Log.Error().Msgf("could not set 'discord_token': %s", err.Error())
 				bot.RunChat = false
 			}
 
@@ -67,14 +78,14 @@ func configureChatApplication(bot *models.Bot) {
 			// See https://support.discordapp.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
 			serverID, err := utils.Substitute(bot.DiscordServerID, emptyMap)
 			if err != nil {
-				bot.Log.Error().Msgf("could not set discord_server_id: %s", err.Error())
+				bot.Log.Error().Msgf("could not set 'discord_server_id': %s", err.Error())
 				bot.RunChat = false
 			}
 
 			bot.DiscordServerID = serverID
 
 			if !isSet(token, serverID) {
-				bot.Log.Error().Msg("bot is not configured correctly for discord - check that discord_token and discord_server_id are set")
+				bot.Log.Error().Msg("bot is not configured correctly for discord - check that 'discord_token' and 'discord_server_id' are set")
 				bot.RunChat = false
 			}
 
@@ -84,12 +95,12 @@ func configureChatApplication(bot *models.Bot) {
 		case "telegram":
 			token, err := utils.Substitute(bot.TelegramToken, emptyMap)
 			if err != nil {
-				bot.Log.Error().Msgf("could not set telegram_token: %s", err.Error())
+				bot.Log.Error().Msgf("could not set 'telegram_token': %s", err.Error())
 				bot.RunChat = false
 			}
 
 			if !isSet(token) {
-				bot.Log.Error().Msg("bot is not configured correctly for telegram - check that telegram_token is set")
+				bot.Log.Error().Msg("bot is not configured correctly for telegram - check that 'telegram_token' is set")
 				bot.RunChat = false
 			}
 
@@ -110,7 +121,7 @@ func configureSlackBot(bot *models.Bot) {
 	// slack_token
 	token, err := utils.Substitute(bot.SlackToken, emptyMap)
 	if err != nil {
-		bot.Log.Error().Msgf("could not set slack_token: %s", err.Error())
+		bot.Log.Error().Msgf("could not set 'slack_token': %s", err.Error())
 	}
 
 	bot.SlackToken = token
@@ -118,7 +129,7 @@ func configureSlackBot(bot *models.Bot) {
 	// slack_app_token
 	appToken, err := utils.Substitute(bot.SlackAppToken, emptyMap)
 	if err != nil {
-		bot.Log.Warn().Msgf("could not set slack_app_token: %s", err.Error())
+		bot.Log.Warn().Msgf("could not set 'slack_app_token': %s", err.Error())
 	}
 
 	bot.SlackAppToken = appToken
@@ -126,7 +137,7 @@ func configureSlackBot(bot *models.Bot) {
 	// slack_signing_secret
 	signingSecret, err := utils.Substitute(bot.SlackSigningSecret, emptyMap)
 	if err != nil {
-		bot.Log.Warn().Msgf("could not set slack_signing_secret: %s", err.Error())
+		bot.Log.Warn().Msgf("could not set 'slack_signing_secret': %s", err.Error())
 	}
 
 	bot.SlackSigningSecret = signingSecret
@@ -134,7 +145,7 @@ func configureSlackBot(bot *models.Bot) {
 	// slack_events_callback_path
 	eCallbackPath, err := utils.Substitute(bot.SlackEventsCallbackPath, emptyMap)
 	if err != nil {
-		bot.Log.Warn().Msgf("could not set slack_events_callback_path: %s", err.Error())
+		bot.Log.Warn().Msgf("could not set 'slack_events_callback_path': %s", err.Error())
 	}
 
 	bot.SlackEventsCallbackPath = eCallbackPath
@@ -142,7 +153,7 @@ func configureSlackBot(bot *models.Bot) {
 	// slack_interactions_callback_path
 	iCallbackPath, err := utils.Substitute(bot.SlackInteractionsCallbackPath, emptyMap)
 	if err != nil {
-		bot.Log.Warn().Msgf("could not set slack_interactions_callback_path: %s", err.Error())
+		bot.Log.Warn().Msgf("could not set 'slack_interactions_callback_path': %s", err.Error())
 	}
 
 	bot.SlackInteractionsCallbackPath = iCallbackPath
@@ -150,12 +161,12 @@ func configureSlackBot(bot *models.Bot) {
 	// slack_listener_port
 	lPort, err := utils.Substitute(bot.SlackListenerPort, emptyMap)
 	if err != nil {
-		bot.Log.Warn().Msgf("could not set slack_listener_port: %s", err.Error())
+		bot.Log.Warn().Msgf("could not set 'slack_listener_port': %s", err.Error())
 	}
 
 	// set slack http listener port from config file or default
 	if !isSet(lPort) {
-		bot.Log.Warn().Msgf("slack_listener_port not set: %s", lPort)
+		bot.Log.Warn().Msgf("'slack_listener_port' not set: %s", lPort)
 		bot.Log.Info().Str("defaultSlackListenerPort", defaultSlackListenerPort).Msg("using default slack listener port.")
 		lPort = defaultSlackListenerPort
 	}
@@ -169,7 +180,7 @@ func configureSlackBot(bot *models.Bot) {
 	isSocketMode := isSet(token, appToken)
 	isEventsAPI := isSet(token, signingSecret, eCallbackPath)
 	if !isSocketMode && !isEventsAPI {
-		bot.Log.Error().Msg("bot is not configured correctly for slack - check that either slack_token and slack_app_token OR slack_token, slack_signing_secret, and slack_events_callback_path are set")
+		bot.Log.Error().Msg("must have either 'slack_token', 'slack_app_token' or 'slack_token', 'slack_signing_secret', and 'slack_events_callback_path' set")
 		bot.RunChat = false
 	}
 }
@@ -184,18 +195,18 @@ func validateRemoteSetup(bot *models.Bot) {
 	}
 
 	if !bot.CLI && bot.ChatApplication == "" {
-		bot.Log.Fatal().Msgf("No chat_application specified and cli mode is not enabled. Exiting...")
+		bot.Log.Fatal().Msgf("no i'chat_application specified' and cli mode is not enabled. exiting...")
 	}
 
 	if bot.Scheduler {
 		bot.RunScheduler = true
 		if bot.CLI && bot.ChatApplication == "" {
-			bot.Log.Warn().Msg("Scheduler does not support scheduled outputs to CLI mode")
+			bot.Log.Warn().Msg("scheduler does not support scheduled outputs to cli mode")
 			bot.RunScheduler = false
 		}
 
 		if bot.ChatApplication == "" {
-			bot.Log.Warn().Msg("Scheduler did not find any configured chat applications. Scheduler is closing")
+			bot.Log.Warn().Msg("scheduler did not find any configured chat applications - scheduler is closing")
 			bot.RunScheduler = false
 		}
 	}

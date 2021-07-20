@@ -46,7 +46,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 
 	botuser, err := telegramAPI.GetMe()
 	if err != nil {
-		bot.Log.Error().Msg("Failed to initialize Telegram client")
+		bot.Log.Fatal().Msg("failed to initialize telegram client")
 		return
 	}
 	bot.Name = botuser.UserName
@@ -123,7 +123,7 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	telegramAPI := c.new()
 	chatID, err := strconv.ParseInt(message.ChannelID, 10, 64)
 	if err != nil {
-		bot.Log.Error().Msgf("unable to retrieve chat ID %s", message.ChannelID)
+		bot.Log.Error().Msgf("unable to retrieve chat id '%s'", message.ChannelID)
 		return
 	}
 
@@ -132,7 +132,7 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	if message.DirectMessageOnly {
 		chatID, err = strconv.ParseInt(message.Vars["_user.id"], 10, 64)
 		if err != nil {
-			bot.Log.Error().Msgf("unable to retrieve user ID %s for direct message", message.Vars["_user.id"])
+			bot.Log.Error().Msgf("unable to retrieve user id '%s' for direct message", message.Vars["_user.id"])
 			return
 		}
 	}
