@@ -26,7 +26,7 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 	if msgType != models.MsgTypeDirect {
 		name, ok := findKey(bot.Rooms, channel)
 		if !ok {
-			bot.Log.Warn().Msgf("Could not find name of channel '%s'.", channel)
+			bot.Log.Error().Msgf("could not find name of channel '%s'", channel)
 		}
 
 		message.ChannelName = name
@@ -55,12 +55,12 @@ func send(dg *discordgo.Session, message models.Message, bot *models.Bot) {
 	if message.DirectMessageOnly {
 		err := handleDirectMessage(dg, message, bot)
 		if err != nil {
-			bot.Log.Error().Msgf("Problem sending message: %s", err)
+			bot.Log.Error().Msgf("problem sending message: %v", err)
 		}
 	} else {
 		err := handleNonDirectMessage(dg, message, bot)
 		if err != nil {
-			bot.Log.Error().Msgf("Problem sending message: %s", err)
+			bot.Log.Error().Msgf("problem sending message: %v", err)
 		}
 	}
 }
@@ -69,14 +69,14 @@ func send(dg *discordgo.Session, message models.Message, bot *models.Bot) {
 func handleDirectMessage(dg *discordgo.Session, message models.Message, bot *models.Bot) error {
 	// Is output to rooms set?
 	if len(message.OutputToRooms) > 0 {
-		bot.Log.Warn().Msg("You have specified 'direct_message_only' as 'true' and provided 'output_to_rooms'." +
-			" Messages will not be sent to listed rooms. If you want to send messages to these rooms," +
-			" please set 'direct_message_only' to 'false'.")
+		bot.Log.Warn().Msg("you have specified 'direct_message_only' as 'true' and provided 'output_to_rooms' -" +
+			" messages will not be sent to listed rooms - if you want to send messages to these rooms," +
+			" please set 'direct_message_only' to 'false'")
 	}
 	// Is output to users set?
 	if len(message.OutputToUsers) > 0 {
-		bot.Log.Warn().Msg("You have specified 'direct_message_only' as 'true' and provided 'output_to_users'." +
-			" Messages will not be sent to the listed users (other than you). If you want to send messages to other users," +
+		bot.Log.Warn().Msg("you have specified 'direct_message_only' as 'true' and provided 'output_to_users' -" +
+			" messages will not be sent to the listed users (other than you) - if you want to send messages to other users," +
 			" please set 'direct_message_only' to 'false'.")
 	}
 
