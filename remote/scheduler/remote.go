@@ -30,7 +30,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	for {
 		_nil := bot.Rooms[""]
 		if len(bot.Rooms) > 0 {
-			bot.Log.Debug().Msgf("scheduler connected to %s channels: %s", strings.Title(bot.ChatApplication), _nil)
+			bot.Log.Info().Msgf("scheduler connected to '%s' channels: %s", strings.Title(bot.ChatApplication), _nil)
 			break
 		}
 	}
@@ -44,17 +44,17 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 		if rule.Active && rule.Schedule != "" {
 			// Pre-checks before executing rule as a cron job
 			if len(rule.OutputToRooms) == 0 && len(rule.OutputToUsers) == 0 {
-				bot.Log.Debug().Msg("scheduling rules require the 'output_to_rooms' and/or 'output_to_users' fields to be set")
+				bot.Log.Error().Msg("scheduling rules require the 'output_to_rooms' and/or 'output_to_users' fields to be set")
 				continue
 			} else if len(rule.OutputToRooms) > 0 && len(bot.Rooms) == 0 {
-				bot.Log.Debug().Msgf("unable to connect scheduler to these rooms: %s", rule.OutputToRooms)
+				bot.Log.Error().Msgf("unable to connect scheduler to these rooms: %s", rule.OutputToRooms)
 				continue
 			} else if rule.Respond != "" || rule.Hear != "" {
-				bot.Log.Debug().Msg("scheduling rules does not allow the 'respond' and 'hear' fields")
+				bot.Log.Error().Msg("scheduling rules does not allow the 'respond' and 'hear' fields")
 				continue
 			}
 
-			bot.Log.Debug().Msgf("scheduler is adding rule '%s'", rule.Name)
+			bot.Log.Info().Msgf("scheduler is adding rule '%s'", rule.Name)
 
 			scheduleName := rule.Name
 			input := fmt.Sprintf("<@%s> ", bot.ID) // send message as self
@@ -63,7 +63,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 
 			// prepare the job function
 			jobFunc := func() {
-				bot.Log.Debug().Msgf("executing scheduler for rule '%s'", scheduleName)
+				bot.Log.Info().Msgf("executing scheduler for rule '%s'", scheduleName)
 				// build the message
 				message := models.NewMessage()
 				message.Service = models.MsgServiceScheduler
@@ -96,7 +96,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 					Msgf("unable to add schedule for rule '%s': verify that the supplied schedule is supported", rule.Name)
 				// more verbose log. note: will probably convey that spec
 				// needs to be 6 fields, although any supported format will work.
-				bot.Log.Debug().Msgf("error while adding job: %s", err)
+				bot.Log.Debug().Msgf("error while adding job: %v", err)
 				continue
 			}
 

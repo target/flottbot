@@ -754,10 +754,10 @@ func Test_handleChatServiceRule(t *testing.T) {
 		{"respond rule - hit false", args{rule: rule, hit: false}, false, false, "", map[string]string{}},
 		{"respond rule - hit true - valid", args{rule: rule, hit: true, bot: testBot, message: testMessage, processedInput: "arg1 arg2"}, true, true, "hmm, the 'format_output' field in your configuration is empty", map[string]string{"arg1": "arg1", "arg2": "arg2"}},
 		{"respond rule - hit true - bot not mentioned", args{rule: rule, hit: true, bot: testBot, message: testMessageBotNotMentioned, processedInput: "arg1 arg2"}, false, false, "", map[string]string{}},
-		{"respond rule - hit true - valid - not enough args", args{rule: rule, hit: true, bot: testBot, message: testMessageNotEnoughArgs, processedInput: "arg1"}, true, true, "You might be missing an argument or two. This is what I'm looking for\n```foo <arg1> <arg2>```", map[string]string{}},
+		{"respond rule - hit true - valid - not enough args", args{rule: rule, hit: true, bot: testBot, message: testMessageNotEnoughArgs, processedInput: "arg1"}, true, true, "you might be missing an argument or two - this is what i'm looking for\n```foo <arg1> <arg2>```", map[string]string{}},
 		{"respond rule - hit true - valid optional arg", args{rule: ruleOpt, hit: true, bot: testBot, message: testMessageOptionalArgs, processedInput: "arg1"}, true, true, "", map[string]string{"arg1": "arg1"}},
 		{"respond rule - hit true - valid vargs", args{rule: ruleVarg, hit: true, bot: testBot, message: testMessageVargs, processedInput: "arg1 arg2 arg3 arg4"}, true, true, "", map[string]string{"arg1": "arg1", "argv": "arg2 arg3 arg4"}},
-		{"respond rule - hit true - invalid", args{rule: rule, hit: true, bot: testBot, message: testMessage}, true, true, "You might be missing an argument or two. This is what I'm looking for\n```foo <arg1> <arg2>```", map[string]string{}},
+		{"respond rule - hit true - invalid", args{rule: rule, hit: true, bot: testBot, message: testMessage}, true, true, "you might be missing an argument or two - this is what i'm looking for\n```foo <arg1> <arg2>```", map[string]string{}},
 		{"hear rule - ignore thread", args{rule: ruleIgnoreThread, hit: true, bot: testBot, message: testMessageIgnoreThread}, true, true, "", map[string]string{}},
 	}
 	for _, tt := range tests {

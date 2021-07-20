@@ -28,7 +28,7 @@ func PathExists(p string) (string, error) {
 		if os.IsNotExist(err) {
 			return "", fmt.Errorf(errPathNotExists.Error(), p, fullPath)
 		}
-		return "", fmt.Errorf("%s: %s", errPathOther.Error(), err)
+		return "", fmt.Errorf("%s: %v", errPathOther.Error(), err)
 	}
 
 	return fullPath, nil

@@ -12,25 +12,20 @@ func TestInitLogger(t *testing.T) {
 		bot *models.Bot
 	}
 
-	testBot := new(models.Bot)
-
 	// Test setting the error and debug level flags
 	levelTests := []struct {
 		name string
 		args args
 		want string
 	}{
-		{"error level set", args{testBot}, "error"},
-		{"debug level set", args{testBot}, "debug"},
+		{"error level set", args{bot: &models.Bot{}}, "info"},
+		{"debug level set", args{bot: &models.Bot{Debug: true}}, "debug"},
 	}
 	for _, tt := range levelTests {
-		if tt.want == "debug" {
-			testBot.Debug = true
-		}
 		t.Run(tt.name, func(t *testing.T) {
 			initLogger(tt.args.bot)
 			if tt.want != tt.args.bot.Log.GetLevel().String() {
-				t.Errorf("initLogger() wanted level set at %s, but got %s", tt.want, tt.args.bot.Log.GetLevel().String())
+				t.Errorf("initLogger() wanted level set at '%s', but got '%s'", tt.want, tt.args.bot.Log.GetLevel().String())
 			}
 		})
 	}
