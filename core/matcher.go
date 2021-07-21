@@ -478,16 +478,23 @@ func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *
 	}
 
 	msg.Output = output
+
+	// bridge for deprecation of LimitToRooms on action
+	if len(action.LimitToRooms) > 0 && len(action.OutputToRooms) == 0 {
+		bot.Log.Warn().Msgf("'limit_to_rooms' on actions is deprecated and will be removed in the next version - update action '%s' to use `output_to_rooms' instead", action.Name)
+		action.OutputToRooms = action.LimitToRooms[:]
+	}
+
 	// Send to desired room(s)
-	if direct && len(action.LimitToRooms) > 0 { // direct=true and limit_to_rooms is specified
+	if direct && len(action.OutputToRooms) > 0 { // direct=true and limit_to_rooms is specified
 		bot.Log.Debug().Msgf("'direct_message_only' is set - 'limit_to_rooms' field on the '%s' action will be ignored", action.Name)
-	} else if !direct && len(action.LimitToRooms) > 0 { // direct=false and limit_to_rooms is specified
-		msg.OutputToRooms = utils.GetRoomIDs(action.LimitToRooms, bot)
+	} else if !direct && len(action.OutputToRooms) > 0 { // direct=false and limit_to_rooms is specified
+		msg.OutputToRooms = utils.GetRoomIDs(action.OutputToRooms, bot)
 
 		if len(msg.OutputToRooms) == 0 {
 			return errors.New("the rooms defined in 'limit_to_rooms' do not exist")
 		}
-	} else if !direct && len(action.LimitToRooms) == 0 { // direct=false and no limit_to_rooms is specified
+	} else if !direct && len(action.OutputToRooms) == 0 { // direct=false and no limit_to_rooms is specified
 		msg.OutputToRooms = []string{msg.ChannelID}
 	}
 	// Else: direct=true and no limit_to_rooms is specified
