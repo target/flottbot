@@ -87,6 +87,35 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 			return true, true
 		}
 
+		// check if limit_to_rooms is set on the rule
+		if hit && len(rule.LimitToRooms) > 0 {
+			bot.Log.Debug().Msgf("rule '%s' has 'limit_to_rooms' set - checking whether message should be processed further", rule.Name)
+			// do we have a channel name to work with?
+			if message.ChannelName != "" {
+				// keep track of whether room is in list
+				isInLimitToRooms := false
+
+				for _, room := range rule.LimitToRooms {
+					if strings.EqualFold(room, message.ChannelName) {
+						// found the room in the list,
+						// stop looking
+						isInLimitToRooms = true
+						break
+					}
+				}
+
+				// if the room the message came from is not
+				// in the list of rooms the rule is limited to
+				// suppress the response
+				if !isInLimitToRooms {
+					bot.Log.Debug().Msgf("rule '%s' was matched but skipped due to message not coming from a room defined in 'limit_to_rooms'", rule.Name)
+					return true, false
+				}
+			}
+
+			bot.Log.Debug().Msgf("rule '%s' has 'limit_to_rooms' set, but the message didn't include the channel name to compare against", rule.Name)
+		}
+
 		// if it's a 'respond' rule, make sure the bot was mentioned
 		if hit && rule.Respond != "" && !message.BotMentioned && message.Type != models.MsgTypeDirect {
 			return match, stopSearch
