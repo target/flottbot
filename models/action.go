@@ -12,7 +12,8 @@ type Action struct {
 	Auth             []Auth                 `mapstructure:"auth"`
 	ExposeJSONFields map[string]string      `mapstructure:"expose_json_fields"`
 	Response         string                 `mapstructure:"response"`
-	LimitToRooms     []string               `mapstructure:"limit_to_rooms"`
+	LimitToRooms     []string               `mapstructure:"limit_to_rooms"` // deprecated
+	OutputToRooms    []string               `mapstructure:"output_to_rooms"`
 	Message          string                 `mapstructure:"message"`
 	Reaction         string                 `mapstructure:"update_reaction" binding:"omitempty"`
 }

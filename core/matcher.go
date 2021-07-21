@@ -70,6 +70,7 @@ func getProccessedInputAndHitValue(messageInput, ruleRespondValue, ruleHearValue
 }
 
 // handleChatServiceRule handles the processing logic for a rule that came from either the chat application or CLI remote
+// nolint:gocyclo // mark for refactor
 func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Message, hitRule chan<- models.Rule, rule models.Rule, processedInput string, hit bool, bot *models.Bot) (bool, bool) {
 	match, stopSearch := false, false
 	if rule.Respond != "" || rule.Hear != "" {
@@ -85,6 +86,35 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 		if hit && message.ThreadTimestamp != "" && rule.IgnoreThreads {
 			bot.Log.Debug().Msg("response suppressed due to 'ignore_threads' being set")
 			return true, true
+		}
+
+		// check if limit_to_rooms is set on the rule
+		if hit && len(rule.LimitToRooms) > 0 {
+			bot.Log.Debug().Msgf("rule '%s' has 'limit_to_rooms' set - checking whether message should be processed further", rule.Name)
+			// do we have a channel name to work with?
+			if message.ChannelName != "" {
+				// keep track of whether room is in list
+				isInLimitToRooms := false
+
+				for _, room := range rule.LimitToRooms {
+					if strings.EqualFold(room, message.ChannelName) {
+						// found the room in the list,
+						// stop looking
+						isInLimitToRooms = true
+						break
+					}
+				}
+
+				// if the room the message came from is not
+				// in the list of rooms the rule is limited to
+				// suppress the response
+				if !isInLimitToRooms {
+					bot.Log.Debug().Msgf("rule '%s' was matched but skipped due to message not coming from a room defined in 'limit_to_rooms'", rule.Name)
+					return true, false
+				}
+			}
+
+			bot.Log.Debug().Msgf("rule '%s' has 'limit_to_rooms' set, but the message didn't include the channel name to compare against", rule.Name)
 		}
 
 		// if it's a 'respond' rule, make sure the bot was mentioned
@@ -449,16 +479,23 @@ func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *
 	}
 
 	msg.Output = output
+
+	// bridge for deprecation of LimitToRooms on action
+	if len(action.LimitToRooms) > 0 && len(action.OutputToRooms) == 0 {
+		bot.Log.Warn().Msgf("'limit_to_rooms' on actions is deprecated and will be removed in the next version - update action '%s' to use `output_to_rooms' instead", action.Name)
+		action.OutputToRooms = action.LimitToRooms[:]
+	}
+
 	// Send to desired room(s)
-	if direct && len(action.LimitToRooms) > 0 { // direct=true and limit_to_rooms is specified
+	if direct && len(action.OutputToRooms) > 0 { // direct=true and limit_to_rooms is specified
 		bot.Log.Debug().Msgf("'direct_message_only' is set - 'limit_to_rooms' field on the '%s' action will be ignored", action.Name)
-	} else if !direct && len(action.LimitToRooms) > 0 { // direct=false and limit_to_rooms is specified
-		msg.OutputToRooms = utils.GetRoomIDs(action.LimitToRooms, bot)
+	} else if !direct && len(action.OutputToRooms) > 0 { // direct=false and limit_to_rooms is specified
+		msg.OutputToRooms = utils.GetRoomIDs(action.OutputToRooms, bot)
 
 		if len(msg.OutputToRooms) == 0 {
 			return errors.New("the rooms defined in 'limit_to_rooms' do not exist")
 		}
-	} else if !direct && len(action.LimitToRooms) == 0 { // direct=false and no limit_to_rooms is specified
+	} else if !direct && len(action.OutputToRooms) == 0 { // direct=false and no limit_to_rooms is specified
 		msg.OutputToRooms = []string{msg.ChannelID}
 	}
 	// Else: direct=true and no limit_to_rooms is specified
