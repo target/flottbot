@@ -69,7 +69,7 @@ func getProccessedInputAndHitValue(messageInput, ruleRespondValue, ruleHearValue
 	return processedInput, hit
 }
 
-// handleChatServiceRule handles the processing logic for a rule that came from either the chat application or CLI remote\
+// handleChatServiceRule handles the processing logic for a rule that came from either the chat application or CLI remote
 // nolint:gocyclo // mark for refactor
 func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Message, hitRule chan<- models.Rule, rule models.Rule, processedInput string, hit bool, bot *models.Bot) (bool, bool) {
 	match, stopSearch := false, false
