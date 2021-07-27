@@ -69,7 +69,7 @@ DEBU[0001] Connection established!
 
 - You should now see your bot online in your Slack Workspace where you can manually test your changes.
 
-- Satisfied with your contribution? Record your changes in the [changelog](https://github.com/target/flottbot/blob/master/CHANGELOG.md).
+- Satisfied with your contribution? Record your changes in the [changelog](/CHANGELOG.md).
 
 - Submit a PR for your changes.
 
