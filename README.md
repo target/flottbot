@@ -9,7 +9,7 @@
 [![GoDoc](https://godoc.org/github.com/target/flottbot?status.svg)](https://godoc.org/github.com/target/flottbot)
 [![Build Status](https://github.com/target/flottbot/workflows/release/badge.svg)](https://github.com/target/flottbot/workflows/release)
 [![GitHub release](https://img.shields.io/github/release/target/flottbot.svg)](https://github.com/target/flottbot/releases/latest)
-[![Coverage Status](https://coveralls.io/repos/target/flottbot/badge.svg?branch=master)](https://coveralls.io/r/target/flottbot?branch=master)
+[![Coverage Status](https://coveralls.io/repos/target/flottbot/badge.svg?branch=main)](https://coveralls.io/r/target/flottbot?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/target/flottbot)](https://goreportcard.com/report/github.com/target/flottbot)
 
 Flottbot is a chatbot framework written in Go. But there's a catch, you don't need to know a lick of Go! Configure your bot via YAML files, extend functionality by writing scripts in your favorite language.
