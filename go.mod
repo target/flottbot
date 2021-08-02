@@ -17,7 +17,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/xid v1.3.0
 	github.com/rs/zerolog v1.23.0
-	github.com/slack-go/slack v0.9.3
+	github.com/slack-go/slack v0.9.4
 	github.com/spf13/viper v1.8.1
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
