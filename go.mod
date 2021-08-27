@@ -16,7 +16,7 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/xid v1.3.0
-	github.com/rs/zerolog v1.23.0
+	github.com/rs/zerolog v1.24.0
 	github.com/slack-go/slack v0.9.4
 	github.com/spf13/viper v1.8.1
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
