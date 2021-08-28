@@ -7,7 +7,7 @@ GOOS := $(shell go env GOOS)
 BUILD_LDFLAGS := -s -w
 BUILD_LDFLAGS += -X github.com/target/flottbot/version.Version=${VERSION}
 BUILD_LDFLAGS += -X github.com/target/flottbot/version.GitHash=${GIT_HASH}
-GOLANGCI_LINT_VERSION := "v1.23.8"
+GOLANGCI_LINT_VERSION := "v1.42.0"
 
 DOCKER_IMAGE ?= "target/flottbot"
 DOCKER_FLAVORS ?= golang ruby python
