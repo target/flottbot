@@ -11,7 +11,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: golang:latest
+      image: golang:1.17
     steps:
       - name: clone
         uses: actions/checkout@v2
