@@ -1,7 +1,6 @@
 package slack
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -12,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
+	"github.com/slack-go/slack/socketmode"
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/utils"
 )
@@ -36,7 +36,7 @@ func constructInteractiveComponentMessage(callback slack.AttachmentActionCallbac
 	message := models.NewMessage()
 	messageType, err := getMessageType(callback.Channel.ID)
 	if err != nil {
-		bot.Log.Debug(err.Error())
+		bot.Log.Error().Msg(err.Error())
 	}
 
 	userNames := strings.Split(callback.User.Name, ".")
@@ -71,7 +71,7 @@ func constructInteractiveComponentMessage(callback slack.AttachmentActionCallbac
 
 	msgType, err := getMessageType(callback.Channel.ID)
 	if err != nil {
-		bot.Log.Debug(err.Error())
+		bot.Log.Error().Msg(err.Error())
 	}
 
 	if msgType == models.MsgTypePrivateChannel {
@@ -86,117 +86,166 @@ func constructInteractiveComponentMessage(callback slack.AttachmentActionCallbac
 func getEventsAPIHealthHandler(bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
-			bot.Log.Errorf("getEventsAPIHealthHandler: Received invalid method: %s", r.Method)
+			bot.Log.Error().Msgf("received invalid method: %s", r.Method)
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}
-		bot.Log.Info("Bot event health endpoint hit!")
+		bot.Log.Debug().Msg("bot event health endpoint hit")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	}
 }
 
-func sendHTTPResponse(status int, contentType string, message string, w http.ResponseWriter, r *http.Request) {
-	if contentType == "" {
-		contentType = "text/plain"
-	}
+func sendHTTPResponse(status int, message string, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(status)
-	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte(message))
 }
 
-func handleURLVerification(body string, w http.ResponseWriter, r *http.Request) {
+func handleURLVerification(body []byte, w http.ResponseWriter, r *http.Request) {
 	var slackResponse *slackevents.ChallengeResponse
 	statusCode := http.StatusOK
-	err := json.Unmarshal([]byte(body), &slackResponse)
+	err := json.Unmarshal(body, &slackResponse)
 	if err != nil {
 		statusCode = http.StatusInternalServerError
 	}
 
-	sendHTTPResponse(statusCode, "", slackResponse.Challenge, w, r)
+	sendHTTPResponse(statusCode, slackResponse.Challenge, w, r)
 }
 
 func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bot *models.Bot, inputMsgs chan<- models.Message, w http.ResponseWriter, r *http.Request) {
 	// write back to the event to ensure the event does not trigger again
-	sendHTTPResponse(http.StatusOK, "", "{}", w, r)
+	sendHTTPResponse(http.StatusOK, "{}", w, r)
 
 	// process the event
-	bot.Log.Debugf("getEventsAPIEventHandler: Received event '%s'", event.Type)
+	bot.Log.Info().Msgf("received event: %s", event.Type)
+
 	switch ev := event.Data.(type) {
+	// Ignoring app_mention events
+	case *slackevents.AppMentionEvent:
 	// There are Events API specific MessageEvents
 	// https://api.slack.com/events/message.channels
 	case *slackevents.MessageEvent:
 		senderID := ev.User
-		// Only process messages that aren't from the bot itself
+
+		// check if message originated from a bot
+		// and whether we should respond to other bot messages
+		if ev.BotID != "" && bot.RespondToBots {
+			// get bot information to get
+			// the associated user id
+			user, err := api.GetBotInfo(ev.BotID)
+			if err != nil {
+				bot.Log.Error().Msgf("unable to retrieve bot info for '%s'", ev.BotID)
+
+				return
+			}
+
+			// use the bot's user id as the senderID
+			senderID = user.UserID
+		}
+
+		// only process messages that aren't from our bot
 		if senderID != "" && bot.ID != senderID {
 			channel := ev.Channel
 			msgType, err := getMessageType(channel)
 			if err != nil {
-				bot.Log.Debug(err.Error())
+				bot.Log.Error().Msg(err.Error())
 			}
+
 			text, mentioned := removeBotMention(ev.Text, bot.ID)
+
+			// get the full user object for the given ID
 			user, err := api.GetUserInfo(senderID)
-			if err != nil && senderID != "" { // we only care if senderID is not empty and there's an error (senderID == "" could be a thread from a message)
-				bot.Log.Errorf("getEventsAPIEventHandler: Did not get Slack user info: %s", err.Error())
+			if err != nil {
+				bot.Log.Error().Msgf("error getting slack user info: %v", err)
 			}
+
 			timestamp := ev.TimeStamp
 			threadTimestamp := ev.ThreadTimeStamp
 
+			// get the link to the message, will be empty string if there's an error
 			link, err := api.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
 			if err != nil {
-				link = ""
+				bot.Log.Error().Msgf("unable to retrieve link to message: '%s'", err.Error())
 			}
+
 			inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
 		}
-	// This is an Event shared between RTM and the Events API
 	case *slackevents.MemberJoinedChannelEvent:
 		// limit to our bot
 		if ev.User == bot.ID {
 			// look up channel info, since 'ev' only gives us ID
-			channel, err := api.GetChannelInfo(ev.Channel)
+			channel, err := api.GetConversationInfo(ev.Channel, false)
 			if err != nil {
-				bot.Log.Debugf("unable to fetch channel info for channel joined event: %v", err)
-			} else {
-				// add the room to the lookup
-				if bot.Rooms[channel.Name] == "" {
-					bot.Rooms[channel.Name] = channel.ID
-					bot.Log.Debugf("Joined new channel. %s(%s) added to lookup", channel.Name, channel.ID)
-				}
+				bot.Log.Error().Msgf("unable to fetch channel info for channel joined event: %v", err)
 			}
+
+			// add the room to the lookup
+			bot.Rooms[channel.Name] = channel.ID
+			bot.Log.Info().Msgf("joined new channel - %s (%s) added to lookup", channel.Name, channel.ID)
 		}
 	default:
-		bot.Log.Debugf("getEventsAPIEventHandler: Unrecognized event type: %v", ev)
+		bot.Log.Debug().Msgf("unrecognized event type: %v", ev)
 	}
 }
 
 // getEventsAPIEventHandler creates and returns the handler for events coming from the the Slack Events API reader
-func getEventsAPIEventHandler(api *slack.Client, vToken string, inputMsgs chan<- models.Message, bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
+func getEventsAPIEventHandler(api *slack.Client, signingSecret string, inputMsgs chan<- models.Message, bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// silently throw away anything that's not a POST
 		if r.Method != http.MethodPost {
-			bot.Log.Errorf("Slack API Server: invalid method %s", r.Method)
-			message := "Oops! I encountered an unexpected HTTP verb. It should be POST."
-			sendHTTPResponse(http.StatusMethodNotAllowed, "", message, w, r)
+			bot.Log.Error().Msg("slack: method not allowed")
+			sendHTTPResponse(http.StatusMethodNotAllowed, "method not allowed", w, r)
 			return
 		}
 
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(r.Body)
-		body := buf.String()
-
-		eventsAPIEvent, err := slackevents.ParseEvent(json.RawMessage(body), slackevents.OptionVerifyToken(&slackevents.TokenComparator{VerificationToken: vToken}))
+		// read in the body of the incoming payload
+		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			bot.Log.Errorf("Slack API Server: There was an error reading an event: %s", err)
-			sendHTTPResponse(http.StatusInternalServerError, "", "Oops! There was an error with the Slack events API", w, r)
+			bot.Log.Error().Msg("slack: error reading request body")
+			sendHTTPResponse(http.StatusBadRequest, "error reading request body", w, r)
 			return
 		}
 
-		// accept challenge response
-		if eventsAPIEvent.Type == slackevents.URLVerification {
-			bot.Log.Debug("Slack API Server: Received Slack challenge request. Sending challenge acceptance.")
-			handleURLVerification(body, w, r)
+		// create a new secrets verifier with
+		// the request header and signing secret
+		sv, err := slack.NewSecretsVerifier(r.Header, signingSecret)
+		if err != nil {
+			bot.Log.Error().Msg("slack: error creating secrets verifier")
+			sendHTTPResponse(http.StatusBadRequest, "error creating secrets verifier", w, r)
+			return
 		}
 
-		// process the event
+		// write the request body's hash
+		if _, err := sv.Write(body); err != nil {
+			bot.Log.Error().Msg("slack: error while writing body")
+			sendHTTPResponse(http.StatusInternalServerError, "error while writing body", w, r)
+			return
+		}
+
+		// validate signing secret with computed hash
+		if err := sv.Ensure(); err != nil {
+			bot.Log.Error().Msg("slack: request unauthorized")
+			sendHTTPResponse(http.StatusUnauthorized, "request unauthorized", w, r)
+			return
+		}
+
+		// parse the event from the request
+		eventsAPIEvent, err := slackevents.ParseEvent(json.RawMessage(body), slackevents.OptionNoVerifyToken())
+		if err != nil {
+			bot.Log.Error().Msg("slack: error while parsing event")
+			sendHTTPResponse(http.StatusInternalServerError, "error while parsing event", w, r)
+			return
+		}
+
+		// validate a URLVerification event with signing secret
+		if eventsAPIEvent.Type == slackevents.URLVerification {
+			bot.Log.Debug().Msg("slack: received slack challenge request - sending challenge response...")
+			handleURLVerification(body, w, r)
+
+		}
+
+		// process regular Callback events
 		if eventsAPIEvent.Type == slackevents.CallbackEvent {
 			handleCallBack(api, eventsAPIEvent.InnerEvent, bot, inputMsgs, w, r)
 		}
@@ -207,21 +256,21 @@ func getEventsAPIEventHandler(api *slack.Client, vToken string, inputMsgs chan<-
 func getInteractiveComponentHealthHandler(bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
-			bot.Log.Errorf("getInteractiveComponentHealthHandler: Received invalid method %s", r.Method)
+			bot.Log.Error().Msgf("received invalid method: %s", r.Method)
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}
-		bot.Log.Info("Bot interaction health endpoint hit!")
+		bot.Log.Debug().Msg("bot interaction health endpoint hit")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	}
 }
 
 // getInteractiveComponentRuleHandler creates and returns the handler for processing and sending out messages from the Interactive Component server
-func getInteractiveComponentRuleHandler(verificationToken string, inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
+func getInteractiveComponentRuleHandler(signingSecret string, inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			bot.Log.Errorf("getInteractiveComponentRuleHandler: Received invalid method: %s", r.Method)
+			bot.Log.Error().Msgf("received invalid method: %s", r.Method)
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			w.Header().Set("Content-Type", "text/plain")
 			w.Write([]byte("Oops! I encountered an unexpected HTTP verb"))
@@ -230,17 +279,17 @@ func getInteractiveComponentRuleHandler(verificationToken string, inputMsgs chan
 
 		buff, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			bot.Log.Errorf("getInteractiveComponentRuleHandler: Failed to read request body: %s", err.Error())
+			bot.Log.Error().Msgf("failed to read request body: %v", err)
 		}
 
 		contents, err := sanitizeContents(buff)
 		if err != nil {
-			bot.Log.Debugf("failed to sanitize content: %v", err)
+			bot.Log.Error().Msgf("failed to sanitize content: %v", err)
 		}
 
 		var callback slack.AttachmentActionCallback
 		if err := json.Unmarshal([]byte(contents), &callback); err != nil {
-			bot.Log.Errorf("getInteractiveComponentRuleHandler: Failed to decode callback json\n %s\n because %s", contents, err)
+			bot.Log.Error().Msgf("failed to decode callback json '%s': %v", contents, err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Header().Set("Content-Type", "text/plain")
 			w.Write([]byte("Oops! Looks like I failed to decode some JSON in the backend. Please contact admins for more info!"))
@@ -248,11 +297,11 @@ func getInteractiveComponentRuleHandler(verificationToken string, inputMsgs chan
 		}
 
 		// Only accept message from slack with valid token
-		if callback.Token != verificationToken {
-			bot.Log.Errorf("getInteractiveComponentRuleHandler: Invalid token %s", callback.Token)
+		if callback.Token != bot.SlackSigningSecret {
+			bot.Log.Error().Msg("invalid 'slack_signing_secret'")
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Header().Set("Content-Type", "text/plain")
-			w.Write([]byte("Sorry, but I didn't recognize your verification token! Perhaps check if it's a valid token."))
+			w.Write([]byte("Sorry, but I didn't recognize your signing secret! Perhaps check if it's a valid secret."))
 			return
 		}
 
@@ -265,7 +314,7 @@ func getInteractiveComponentRuleHandler(verificationToken string, inputMsgs chan
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("Rodger that!"))
 
-		bot.Log.Debugf("getInteractiveComponentRuleHandler: triggering rule: %s", rule.Name)
+		bot.Log.Info().Msgf("triggering rule: %s", rule.Name)
 	}
 }
 
@@ -278,7 +327,7 @@ func getRooms(api *slack.Client) map[string]string {
 	// channels:read, groups:read, im:read, mpim:read
 	cp := slack.GetConversationsParameters{
 		Cursor:          "",
-		ExcludeArchived: "true",
+		ExcludeArchived: true,
 		Limit:           1000, // this is the maximum value allowed
 		Types:           []string{"public_channel", "private_channel", "mpim", "im"},
 	}
@@ -330,7 +379,7 @@ func getUserID(email string, users []slack.User, bot *models.Bot) string {
 			return u.ID
 		}
 	}
-	bot.Log.Errorf("Could not find user '%s'", email)
+	bot.Log.Error().Msgf("could not find user '%s'", email)
 	return ""
 }
 
@@ -338,15 +387,15 @@ func getUserID(email string, users []slack.User, bot *models.Bot) string {
 func handleDirectMessage(api *slack.Client, message models.Message, bot *models.Bot) error {
 	// Is output to rooms set?
 	if len(message.OutputToRooms) > 0 {
-		bot.Log.Warn("You have specified 'direct_message_only' as 'true' and provided 'output_to_rooms'." +
-			" Messages will not be sent to listed rooms. If you want to send messages to these rooms," +
-			" please set 'direct_message_only' to 'false'.")
+		bot.Log.Warn().Msg("you have specified 'direct_message_only' as 'true' and provided 'output_to_rooms' -" +
+			" messages will not be sent to listed rooms - if you want to send messages to these rooms," +
+			" please set 'direct_message_only' to 'false'")
 	}
 	// Is output to users set?
 	if len(message.OutputToUsers) > 0 {
-		bot.Log.Warn("You have specified 'direct_message_only' as 'true' and provided 'output_to_users'." +
-			" Messages will not be sent to the listed users (other than you). If you want to send messages to other users," +
-			" please set 'direct_message_only' to 'false'.")
+		bot.Log.Warn().Msg("you have specified 'direct_message_only' as 'true' and provided 'output_to_users' -" +
+			" messages will not be sent to the listed users (other than you) - if you want to send messages to other users," +
+			" please set 'direct_message_only' to 'false'")
 	}
 	// Respond back to user via direct message
 	return sendDirectMessage(api, message.Vars["_user.id"], message)
@@ -373,7 +422,7 @@ func handleNonDirectMessage(api *slack.Client, users []slack.User, message model
 			if userID != "" {
 				// If 'direct_message_only' is 'false' but the user listed himself in the 'output_to_users'
 				if userID == message.Vars["_user.id"] && !message.DirectMessageOnly {
-					bot.Log.Warn("You have specified 'direct_message_only' as 'false' but listed yourself in 'output_to_users'")
+					bot.Log.Warn().Msg("you have specified 'direct_message_only' as 'false' but listed yourself in 'output_to_users'")
 				}
 				// Respond back to these users via direct message
 				err := sendDirectMessage(api, userID, message)
@@ -394,36 +443,30 @@ func handleNonDirectMessage(api *slack.Client, users []slack.User, message model
 	return nil
 }
 
-// populateBotUsers populates slack users
-func populateBotUsers(slackUsers []slack.User, bot *models.Bot) {
-	if len(slackUsers) > 0 {
-		users := make(map[string]string)
+// populateUsers populates slack users
+func populateUsers(su []slack.User, bot *models.Bot) {
+	users := make(map[string]string)
 
-		for _, user := range slackUsers {
-			users[user.Name] = user.ID
-		}
-
-		bot.Users = users
+	// create a map of users
+	for _, user := range su {
+		users[user.Name] = user.ID
 	}
+
+	// add users to bot
+	bot.Users = users
 }
 
 // populateUserGroups populates slack user groups
-func populateUserGroups(bot *models.Bot) {
-	if bot.SlackWorkspaceToken != "" {
-		userGroups := make(map[string]string)
-		wsAPI := slack.New(bot.SlackWorkspaceToken)
-		ugroups, err := wsAPI.GetUserGroups()
-		if err != nil {
-			bot.Log.Debugf("Unable to retrieve usergroups: %s", err.Error())
-			bot.Log.Debug("Please double check your Slack Workspace token")
-		}
-		for _, usergroup := range ugroups {
-			userGroups[usergroup.Handle] = usergroup.ID
-		}
-		// we don't need API anymore
-		wsAPI = nil
-		bot.UserGroups = userGroups
+func populateUserGroups(sug []slack.UserGroup, bot *models.Bot) {
+	userGroups := make(map[string]string)
+
+	// create a map of usergroups
+	for _, usergroup := range sug {
+		userGroups[usergroup.Handle] = usergroup.ID
 	}
+
+	// add usergroups to bot
+	bot.UserGroups = userGroups
 }
 
 // populateMessage - populates the 'Message' object to be passed on for processing/sending
@@ -439,14 +482,13 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 		message.Timestamp = timeStamp
 		message.ThreadTimestamp = threadTimestamp
 		message.BotMentioned = mentioned
-		message.Attributes["ws_token"] = bot.SlackWorkspaceToken
 		message.SourceLink = link
 
 		// If the message read was not a dm, get the name of the channel it came from
 		if msgType != models.MsgTypeDirect {
 			name, ok := findKey(bot.Rooms, channel)
 			if !ok {
-				bot.Log.Warnf("populateMessage: Could not find name of channel '%s'.", channel)
+				bot.Log.Error().Msgf("could not find name of channel '%s'", channel)
 			}
 			message.ChannelName = name
 		}
@@ -457,6 +499,10 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 
 		// make link to trigger message available
 		message.Vars["_source.link"] = message.SourceLink
+
+		// make timestamp information available
+		message.Vars["_source.timestamp"] = timeStamp
+		message.Vars["_source.thread_timestamp"] = threadTimestamp
 
 		// Populate message with user information (i.e. who sent the message)
 		// These will be accessible on rules via ${_user.email}, ${_user.id}, etc.
@@ -483,10 +529,9 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 			message.Vars["_user.team"] = user.Profile.Team
 		}
 
-		message.Debug = true // TODO: is this even needed?
 		return message
 	default:
-		bot.Log.Debugf("Read message of unsupported type '%T'. Unable to populate message attributes", msgType)
+		bot.Log.Debug().Msgf("read message of unsupported type '%T' - unable to populate message attributes", msgType)
 		return message
 	}
 }
@@ -497,13 +542,13 @@ func processInteractiveComponentRule(rule models.Rule, message *models.Message, 
 		// Get slack attachments from hit rule and append to outgoing message
 		config := rule.Remotes.Slack
 		if config.Attachments != nil {
-			bot.Log.Debugf("Found attachment for rule '%s'", rule.Name)
+			bot.Log.Debug().Msgf("found attachment for rule '%s'", rule.Name)
 			config.Attachments[0].CallbackID = message.ID
 			if len(config.Attachments[0].Actions) > 0 {
 				for i, action := range config.Attachments[0].Actions {
 					actionValue, err := utils.Substitute(action.Value, message.Vars)
 					if err != nil {
-						bot.Log.Warn(err)
+						bot.Log.Warn().Msg(err.Error())
 					}
 					config.Attachments[0].Actions[i].Value = actionValue
 				}
@@ -518,14 +563,26 @@ func processInteractiveComponentRule(rule models.Rule, message *models.Message, 
 // This method of reading is preferred over the RTM method.
 func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models.Message, bot *models.Bot) {
 	// get the current users
-	su, err := getSlackUsers(api, models.Message{})
+	users, err := api.GetUsers()
 	if err != nil {
-		bot.Log.Error(err)
+		bot.Log.Error().Msgf("error getting users: %v", err)
 	}
-	// populate users
-	populateBotUsers(su, bot)
-	// populate user groups
-	populateUserGroups(bot)
+
+	// add users to the bot
+	if users != nil {
+		populateUsers(users, bot)
+	}
+
+	// get the user groups
+	usergroups, err := api.GetUserGroups()
+	if err != nil {
+		bot.Log.Error().Msgf("error getting user groups: %v", err)
+	}
+
+	// add user groups to the bot
+	if usergroups != nil {
+		populateUserGroups(usergroups, bot)
+	}
 
 	// Create router for the events server
 	router := mux.NewRouter()
@@ -539,102 +596,173 @@ func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models
 	// Start listening to Slack events
 	maskedPort := fmt.Sprintf(":%s", bot.SlackListenerPort)
 	go http.ListenAndServe(maskedPort, router)
-	bot.Log.Infof("Slack Events API server is listening to %s on port %s",
+	bot.Log.Info().Msgf("slack events api server is listening to '%s' on port '%s'",
 		bot.SlackEventsCallbackPath, bot.SlackListenerPort)
 }
 
-// readFromRTM utilizes the Slack API client to read messages via RTM.
-// This method of reading is not preferred and the event-based read should instead be used.
+// readFromSocketMode reads messages from Slack's Socket Mode
+//
+// https://api.slack.com/apis/connections/socket
 // nolint:gocyclo // needs refactor
-func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bot) {
-	go rtm.ManageConnection()
-	for {
-		msg := <-rtm.IncomingEvents
-		switch ev := msg.Data.(type) {
-		case *slack.MessageEvent:
-			senderID := ev.User
-			// Sometimes message events in RTM don't have a User ID?
-			// Also, only process messages that aren't from the bot itself
-			if senderID != "" && bot.ID != senderID {
-				channel := ev.Channel
-				msgType, err := getMessageType(channel)
-				if err != nil {
-					bot.Log.Debug(err.Error())
-				}
-				text, mentioned := removeBotMention(ev.Text, bot.ID)
-				user, err := rtm.GetUserInfo(senderID)
-				if err != nil && senderID != "" { // we only care if senderID is not empty and there's an error (senderID == "" could be a thread from a message)
-					bot.Log.Errorf("Did not get Slack user info: %s", err.Error())
-				}
-				timestamp := ev.Timestamp
-				threadTimestamp := ev.ThreadTimestamp
+func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *models.Bot) {
+	// setup the client
+	client := socketmode.New(sm)
 
-				link, err := rtm.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
-				if err != nil {
-					link = ""
+	// spawn anonymous goroutine
+	go func() {
+		for evt := range client.Events {
+			switch evt.Type {
+			case socketmode.EventTypeHello:
+				// handle "hello" event
+				continue
+			case socketmode.EventTypeEventsAPI:
+				eventsAPIEvent, ok := evt.Data.(slackevents.EventsAPIEvent)
+				if !ok {
+					bot.Log.Error().Msgf("ignored: %+v", evt)
+
+					continue
 				}
 
-				inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
+				bot.Log.Debug().Msgf("event received: %+v", eventsAPIEvent)
+
+				// acknowledge event to Slack
+				client.Ack(*evt.Request)
+
+				switch eventsAPIEvent.Type {
+				case slackevents.CallbackEvent:
+					innerEvent := eventsAPIEvent.InnerEvent
+
+					switch ev := innerEvent.Data.(type) {
+					case *slackevents.MessageEvent:
+						senderID := ev.User
+
+						// check if message originated from a bot
+						// and whether we should respond to other bot messages
+						if ev.BotID != "" && bot.RespondToBots {
+							// get bot information to get
+							// the associated user id
+							user, err := sm.GetBotInfo(ev.BotID)
+							if err != nil {
+								bot.Log.Error().Msgf("unable to retrieve bot info for '%s'", ev.BotID)
+
+								return
+							}
+
+							// use the bot's user id as the senderID
+							senderID = user.UserID
+						}
+
+						// only process message that are not from our bot
+						if senderID != "" && bot.ID != senderID {
+							channel := ev.Channel
+
+							// determine the message type
+							msgType, err := getMessageType(channel)
+							if err != nil {
+								bot.Log.Error().Msg(err.Error())
+							}
+
+							// remove the bot mention from the user input
+							text, mentioned := removeBotMention(ev.Text, bot.ID)
+
+							// get information on the user
+							user, err := sm.GetUserInfo(senderID)
+							if err != nil {
+								bot.Log.Error().Msgf("did not get slack user info: %s", err.Error())
+							}
+
+							timestamp := ev.TimeStamp
+							threadTimestamp := ev.ThreadTimeStamp
+
+							// get the link to the message, will be empty string if there's an error
+							link, err := sm.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
+							if err != nil {
+								bot.Log.Error().Msgf("unable to retrieve link to message: %s", err.Error())
+							}
+
+							inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
+						}
+					case *slackevents.MemberJoinedChannelEvent:
+						// limit to our bot
+						if ev.User == bot.ID {
+							// look up channel info, since 'ev' only gives us ID
+							channel, err := sm.GetConversationInfo(ev.Channel, false)
+							if err != nil {
+								bot.Log.Error().Msgf("unable to fetch channel info for channel joined event: %v", err)
+							}
+
+							// add the room to the lookup
+							bot.Rooms[channel.Name] = channel.ID
+							bot.Log.Info().Msgf("joined new channel - %s (%s) added to lookup", channel.Name, channel.ID)
+						}
+					}
+				default:
+					bot.Log.Warn().Msgf("unsupported events api event received: %s", eventsAPIEvent.Type)
+				}
+			case socketmode.EventTypeConnecting:
+				bot.Log.Info().Msg("connecting to slack via socket mode...")
+			case socketmode.EventTypeConnectionError:
+				bot.Log.Error().Msg("connection failed - retrying later...")
+			case socketmode.EventTypeConnected:
+				bot.Log.Info().Msg("connected to slack with socket mode")
+
+				// get users
+				users, err := sm.GetUsers()
+				if err != nil {
+					bot.Log.Error().Msgf("unable to get users: %v", err)
+				}
+
+				// add users to bot
+				if users != nil {
+					populateUsers(users, bot)
+				}
+
+				// get user groups
+				usergroups, err := sm.GetUserGroups()
+				if err != nil {
+					bot.Log.Error().Msgf("unable to get user groups: %v", err)
+				}
+
+				// add user groups to bot
+				if usergroups != nil {
+					populateUserGroups(usergroups, bot)
+				}
+			default:
+				bot.Log.Warn().Msgf("unhandled event type received: %s", evt.Type)
 			}
-		case *slack.ConnectedEvent:
-			// populate users
-			users, err := rtm.GetUsers()
-			if err != nil {
-				bot.Log.Errorf("Unable to get users: %v", err)
-			}
-			populateBotUsers(users, bot)
-			// populate user groups
-			populateUserGroups(bot)
-			bot.Log.Debugf("RTM connection established!")
-		case *slack.ChannelJoinedEvent:
-			// when the bot joins a channel add it to the internal lookup
-			if bot.Rooms[ev.Channel.Name] == "" {
-				bot.Rooms[ev.Channel.Name] = ev.Channel.ID
-				bot.Log.Debugf("Joined new channel. %s(%s) added to lookup", ev.Channel.Name, ev.Channel.ID)
-			}
-		case *slack.HelloEvent:
-			// ignore - this is the very first initial event sent when connecting to Slack
-		case *slack.RTMError:
-			bot.Log.Error(ev.Error())
-		case *slack.ConnectionErrorEvent:
-			bot.Log.Errorf("RTM connection error: %+v", ev)
-		case *slack.InvalidAuthEvent:
-			if !bot.CLI {
-				bot.Log.Debug("Invalid Authorization. Please double check your Slack token.")
-			}
-		default:
-			bot.Log.Debugf("readFromRTM: Unrecognized event type: %v", ev)
 		}
-	}
+	}()
+
+	client.Run()
 }
 
 // send - handles the sending logic of a message going to Slack
 func send(api *slack.Client, message models.Message, bot *models.Bot) {
 	users, err := getSlackUsers(api, message)
 	if err != nil {
-		bot.Log.Errorf("Problem sending message: %s", err.Error())
+		bot.Log.Error().Msgf("problem sending message: %v", err)
 	}
 	if message.DirectMessageOnly {
 		err := handleDirectMessage(api, message, bot)
 		if err != nil {
-			bot.Log.Errorf("Problem sending message: %s", err.Error())
+			bot.Log.Error().Msgf("problem sending message: %v", err)
 		}
 	} else {
 		err := handleNonDirectMessage(api, users, message, bot)
 		if err != nil {
-			bot.Log.Errorf("Problem sending message: %s", err.Error())
+			bot.Log.Error().Msgf("problem sending message: %v", err)
 		}
 	}
 }
 
 // sendBackToOriginMessage - sends a message back to where it came from in Slack; this is pretty much a catch-all among the other send functions
 func sendBackToOriginMessage(api *slack.Client, message models.Message) error {
-	return sendMessage(api, message.IsEphemeral, message.ChannelID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Attributes["ws_token"], message.Remotes.Slack.Attachments)
+	return sendMessage(api, message.IsEphemeral, message.ChannelID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Remotes.Slack.Attachments)
 }
 
 // sendChannelMessage - sends a message to a Slack channel
 func sendChannelMessage(api *slack.Client, channel string, message models.Message) error {
-	return sendMessage(api, message.IsEphemeral, channel, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Attributes["ws_token"], message.Remotes.Slack.Attachments)
+	return sendMessage(api, message.IsEphemeral, channel, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Remotes.Slack.Attachments)
 }
 
 // sendDirectMessage - sends a message back to the user who dm'ed your bot
@@ -648,24 +776,27 @@ func sendDirectMessage(api *slack.Client, userID string, message models.Message)
 		return err
 	}
 
-	return sendMessage(api, message.IsEphemeral, imChannelID.ID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Attributes["ws_token"], message.Remotes.Slack.Attachments)
+	return sendMessage(api, message.IsEphemeral, imChannelID.ID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Remotes.Slack.Attachments)
 }
 
 // sendMessage - does the final send to Slack; adds any Slack-specific message parameters to the message to be sent out
-func sendMessage(api *slack.Client, ephemeral bool, channel, userID, text, threadTimeStamp, wsToken string, attachments []slack.Attachment) error {
-	// send ephemeral message is indicated
-	if ephemeral {
-		opt := slack.MsgOptionAttachments(attachments...)
-		_, err := api.PostEphemeral(channel, userID, opt)
-		return err
-	}
-
+func sendMessage(api *slack.Client, ephemeral bool, channel, userID, text, threadTimeStamp string, attachments []slack.Attachment) error {
+	// prepare the message options
 	opts := []slack.MsgOption{
 		slack.MsgOptionText(text, false),
 		slack.MsgOptionAsUser(true),
 		slack.MsgOptionAttachments(attachments...),
 		slack.MsgOptionTS(threadTimeStamp),
 	}
+
+	// send as ephemeral
+	if ephemeral {
+		_, err := api.PostEphemeral(channel, userID, opts...)
+		return err
+	}
+
+	// send as regular post
 	_, _, err := api.PostMessage(channel, opts...)
+
 	return err
 }

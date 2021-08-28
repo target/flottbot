@@ -70,21 +70,51 @@ func getProccessedInputAndHitValue(messageInput, ruleRespondValue, ruleHearValue
 }
 
 // handleChatServiceRule handles the processing logic for a rule that came from either the chat application or CLI remote
+// nolint:gocyclo // mark for refactor
 func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Message, hitRule chan<- models.Rule, rule models.Rule, processedInput string, hit bool, bot *models.Bot) (bool, bool) {
 	match, stopSearch := false, false
 	if rule.Respond != "" || rule.Hear != "" {
 		// You can only use 'respond' OR 'hear'
 		if rule.Respond != "" && rule.Hear != "" {
-			bot.Log.Debugf("Rule '%s' has both 'hear' and 'match' or 'respond' defined. Please choose one or the other", rule.Name)
+			bot.Log.Debug().Msgf("rule '%s' has both 'hear' and 'match' or 'respond' defined. please choose one or the other", rule.Name)
 		}
 		// Args are not implemented for 'hear'
 		if rule.Hear != "" && len(rule.Args) > 0 {
-			bot.Log.Debugf("Rule '%s' has both 'args' and 'hear' set. To use 'args', use 'respond' instead of 'hear'", rule.Name)
+			bot.Log.Debug().Msgf("rule '%s' has both 'args' and 'hear' set. to use 'args', use 'respond' instead of 'hear'", rule.Name)
 		}
 
 		if hit && message.ThreadTimestamp != "" && rule.IgnoreThreads {
-			bot.Log.Debug("Response suppressed due to 'ignore_threads' being set")
+			bot.Log.Debug().Msg("response suppressed due to 'ignore_threads' being set")
 			return true, true
+		}
+
+		// check if limit_to_rooms is set on the rule
+		if hit && len(rule.LimitToRooms) > 0 {
+			bot.Log.Debug().Msgf("rule '%s' has 'limit_to_rooms' set - checking whether message should be processed further", rule.Name)
+			// do we have a channel name to work with?
+			if message.ChannelName != "" {
+				// keep track of whether room is in list
+				isInLimitToRooms := false
+
+				for _, room := range rule.LimitToRooms {
+					if strings.EqualFold(room, message.ChannelName) {
+						// found the room in the list,
+						// stop looking
+						isInLimitToRooms = true
+						break
+					}
+				}
+
+				// if the room the message came from is not
+				// in the list of rooms the rule is limited to
+				// suppress the response
+				if !isInLimitToRooms {
+					bot.Log.Debug().Msgf("rule '%s' was matched but skipped due to message not coming from a room defined in 'limit_to_rooms'", rule.Name)
+					return true, false
+				}
+			}
+
+			bot.Log.Debug().Msgf("rule '%s' has 'limit_to_rooms' set, but the message didn't include the channel name to compare against", rule.Name)
 		}
 
 		// if it's a 'respond' rule, make sure the bot was mentioned
@@ -93,7 +123,7 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 		}
 
 		if hit {
-			bot.Log.Debugf("Found rule match '%s' for input '%s'", rule.Name, message.Input)
+			bot.Log.Info().Msgf("found rule match '%s' for input '%s'", rule.Name, message.Input)
 			// Don't go through more rules if rule is matched
 			match, stopSearch = true, true
 			// Publish metric to prometheus - metricname will be combination of bot name and rule name
@@ -136,7 +166,7 @@ func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hit
 	if message.Type == models.MsgTypeDirect || message.BotMentioned {
 		// Do not send help message if DisableNoMatchHelp is true
 		if !bot.DisableNoMatchHelp {
-			bot.Log.Debug("Bot was addressed, but no rule matched. Showing help")
+			bot.Log.Info().Msg("bot was addressed, but no rule matched - showing help")
 			// Publish metric as none
 			Prommetric(bot.Name+"-None", bot)
 			// Set custom_help_text if it is set in bot.yml
@@ -167,8 +197,9 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 	if !canRunRule {
 		message.Output = fmt.Sprintf("You are not allowed to run the '%s' rule.", rule.Name)
 		// forcing direct message
-		message.DirectMessageOnly = true
+		// message.DirectMessageOnly = true
 		message.Type = models.MsgTypeDirect
+		message.IsEphemeral = true
 		return false
 	}
 	// If this wasn't a 'hear' rule, handle the args
@@ -189,29 +220,25 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 		}
 		if varArgs > 1 {
 			// error, can ony have 1
-			msg := fmt.Sprintf("You cannot specify more than 1 variable argument")
-			message.Output = msg
+			message.Output = "you cannot specify more than 1 variable argument"
 			return false
 		}
 		if len(rule.Args) > 0 && strings.HasSuffix(rule.Args[len(rule.Args)-1], "+") {
 			if optionalArgs > 0 {
 				// error, cannot combine optional and varargs
-				msg := fmt.Sprintf("You cannot combine optional arguments with variable arguments")
-				message.Output = msg
+				message.Output = "you cannot combine optional arguments with variable arguments"
 				return false
 			}
 		} else if varArgs == 1 {
 			// error, vararg but not in last position
-			msg := fmt.Sprintf("You must specify the variable argument in the last argument position")
-			message.Output = msg
+			message.Output = "you must specify the variable argument in the last argument position"
 			return false
 		}
 		// ensure we only require args that don't end with '?'
 		requiredArgs = len(rule.Args) - optionalArgs
 		// Are we expecting a number of args but don't have as many as the rule defines? Send a helpful message
 		if len(rule.Args) > 0 && requiredArgs > len(args) {
-			msg := fmt.Sprintf("You might be missing an argument or two. This is what I'm looking for\n```%s```", rule.HelpText)
-			message.Output = msg
+			message.Output = fmt.Sprintf("you might be missing an argument or two - this is what i'm looking for\n```%s```", rule.HelpText)
 			return false
 		}
 		// Go through the supplied args and make them available as variables
@@ -250,15 +277,15 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 		switch strings.ToLower(action.Type) {
 		// HTTP actions.
 		case "get", "post", "put":
-			bot.Log.Debugf("Executing action '%s'...", action.Name)
+			bot.Log.Debug().Msgf("executing action '%s'...", action.Name)
 			err = handleHTTP(action, &message, bot)
 		// Exec (script) actions
 		case "exec":
-			bot.Log.Debugf("Executing action '%s'...", action.Name)
+			bot.Log.Debug().Msgf("executing action '%s'...", action.Name)
 			err = handleExec(action, &message, bot)
 		// Normal message/log actions
 		case "message", "log":
-			bot.Log.Debugf("Executing action '%s'...", action.Name)
+			bot.Log.Debug().Msgf("executing action '%s'...", action.Name)
 			// Log actions cannot direct message users by default
 			directive := rule.DirectMessageOnly
 			if action.Type == "log" {
@@ -269,7 +296,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 			err = handleMessage(action, outputMsgs, &copy, directive, rule.StartMessageThread, hitRule, bot)
 		// Fallback to error if action type is invalid
 		default:
-			bot.Log.Errorf("The rule '%s' of type %s is not a supported action", action.Name, action.Type)
+			bot.Log.Error().Msgf("the rule '%s' of type '%s' is not a supported action", action.Name, action.Type)
 		}
 
 		// Handle reaction update
@@ -277,7 +304,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 
 		// Handle error
 		if err != nil {
-			bot.Log.Error(err)
+			bot.Log.Error().Msg(err.Error())
 		}
 	}
 
@@ -296,7 +323,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 	// After running through all the actions, compose final message
 	val, err := craftResponse(rule, message, bot)
 	if err != nil {
-		bot.Log.Error(err)
+		bot.Log.Error().Msg(err.Error())
 		message.Output = err.Error()
 		outputMsgs <- message
 	} else {
@@ -327,12 +354,12 @@ func craftResponse(rule models.Rule, msg models.Message, bot *models.Bot) (strin
 		if len(rule.OutputToUsers) == 0 {
 			return "", errors.New(msg)
 		}
-		bot.Log.Warn(msg)
+		bot.Log.Warn().Msg(msg)
 	}
 
 	// Simple warning that we will ignore 'output_to_rooms' when 'direct_message_only' is set
 	if rule.DirectMessageOnly && len(rule.OutputToRooms) > 0 {
-		bot.Log.Debugf("The rule '%s' has 'direct_message_only' set, 'output_to_rooms' will be ignored", rule.Name)
+		bot.Log.Debug().Msgf("the rule '%s' has 'direct_message_only' set, 'output_to_rooms' will be ignored", rule.Name)
 	}
 
 	// Use FormatOutput as source for output and find variables and replace content the variable exists
@@ -384,19 +411,19 @@ func handleHTTP(action models.Action, msg *models.Message, bot *models.Bot) erro
 		return fmt.Errorf("no URL was supplied for the '%s' action named: %s", action.Type, action.Name)
 	}
 
-	resp, err := handlers.HTTPReq(action, msg)
+	resp, err := handlers.HTTPReq(action, msg, bot)
 	if err != nil {
-		msg.Error = fmt.Sprintf("Error in request made by action '%s'. See bot admin for more information", action.Name)
+		msg.Error = fmt.Sprintf("error in request made by action '%s' - see bot admin for more information", action.Name)
 		return err
 	}
 
 	// Just a friendly debugger warning on failed requests
 	if resp.Status >= 400 {
-		bot.Log.Debugf("Error in request made by action '%s'. %s returned %d with response: `%s`", action.Name, action.URL, resp.Status, resp.Raw)
+		bot.Log.Debug().Msgf("error in request made by action '%s' - '%s' returned '%d' with response: %s", action.Name, action.URL, resp.Status, resp.Raw)
 	}
 
 	// Always store raw response
-	bot.Log.Debugf("Successfully executed action '%s'", action.Name)
+	bot.Log.Debug().Msgf("successfully executed action '%s'", action.Name)
 	// Set explicit variables to make raw response output, http status code accessible in rules
 	msg.Vars["_raw_http_output"] = resp.Raw
 	msg.Vars["_raw_http_status"] = strconv.Itoa(resp.Status)
@@ -452,16 +479,23 @@ func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *
 	}
 
 	msg.Output = output
+
+	// bridge for deprecation of LimitToRooms on action
+	if len(action.LimitToRooms) > 0 && len(action.OutputToRooms) == 0 {
+		bot.Log.Warn().Msgf("'limit_to_rooms' on actions is deprecated and will be removed in the next version - update action '%s' to use `output_to_rooms' instead", action.Name)
+		action.OutputToRooms = action.LimitToRooms[:]
+	}
+
 	// Send to desired room(s)
-	if direct && len(action.LimitToRooms) > 0 { // direct=true and limit_to_rooms is specified
-		bot.Log.Debugf("You have specified to send only direct messages. The 'limit_to_rooms' field on the '%s' action will be ignored", action.Name)
-	} else if !direct && len(action.LimitToRooms) > 0 { // direct=false and limit_to_rooms is specified
-		msg.OutputToRooms = utils.GetRoomIDs(action.LimitToRooms, bot)
+	if direct && len(action.OutputToRooms) > 0 { // direct=true and limit_to_rooms is specified
+		bot.Log.Debug().Msgf("'direct_message_only' is set - 'limit_to_rooms' field on the '%s' action will be ignored", action.Name)
+	} else if !direct && len(action.OutputToRooms) > 0 { // direct=false and limit_to_rooms is specified
+		msg.OutputToRooms = utils.GetRoomIDs(action.OutputToRooms, bot)
 
 		if len(msg.OutputToRooms) == 0 {
 			return errors.New("the rooms defined in 'limit_to_rooms' do not exist")
 		}
-	} else if !direct && len(action.LimitToRooms) == 0 { // direct=false and no limit_to_rooms is specified
+	} else if !direct && len(action.OutputToRooms) == 0 { // direct=false and no limit_to_rooms is specified
 		msg.OutputToRooms = []string{msg.ChannelID}
 	}
 	// Else: direct=true and no limit_to_rooms is specified
@@ -487,7 +521,7 @@ func updateReaction(action models.Action, rule *models.Rule, vars map[string]str
 		if strings.Contains(action.Reaction, "{{") {
 			reaction, err := utils.Substitute(action.Reaction, vars)
 			if err != nil {
-				bot.Log.Error(err)
+				bot.Log.Error().Msg(err.Error())
 				return
 			}
 			action.Reaction = reaction
@@ -497,7 +531,7 @@ func updateReaction(action models.Action, rule *models.Rule, vars map[string]str
 
 			t, err = template.New("update_reaction").Funcs(sprig.FuncMap()).Parse(action.Reaction)
 			if err != nil {
-				bot.Log.Errorf("Failed to update Reaction %s", rule.Reaction)
+				bot.Log.Error().Msgf("failed to update reaction '%s'", rule.Reaction)
 				return
 			}
 			buf := new(bytes.Buffer)

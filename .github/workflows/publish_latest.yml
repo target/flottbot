@@ -4,7 +4,7 @@ name: publish_latest
 # trigger on push events with branch master
 on:
   push:
-    branches: [master]
+    branches: [main]
 
 # pipeline to execute
 jobs:

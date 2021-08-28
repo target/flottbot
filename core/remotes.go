@@ -30,7 +30,7 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 	// Run a chat application
 	if bot.RunChat {
 		chatApp := strings.ToLower(bot.ChatApplication)
-		bot.Log.Infof("Running %s on %s", bot.Name, strings.Title(chatApp))
+		bot.Log.Info().Msgf("running '%s' on '%s'", bot.Name, strings.Title(chatApp))
 		switch chatApp {
 		// Setup remote to use the Discord client to read from Discord
 		case "discord":
@@ -44,9 +44,9 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 		case "slack":
 			// Create Slack client
 			remoteSlack := &slack.Client{
-				Token:             bot.SlackToken,
-				VerificationToken: bot.SlackVerificationToken,
-				WorkspaceToken:    bot.SlackWorkspaceToken,
+				Token:         bot.SlackToken,
+				AppToken:      bot.SlackAppToken,
+				SigningSecret: bot.SlackSigningSecret,
 			}
 			// Read messages from Slack
 			go remoteSlack.Read(inputMsgs, rules, bot)
@@ -59,13 +59,13 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 			// Read messages from Telegram
 			go remoteTelegram.Read(inputMsgs, rules, bot)
 		default:
-			bot.Log.Errorf("Chat application '%s' is not supported", chatApp)
+			bot.Log.Error().Msgf("chat application '%s' is not supported", chatApp)
 		}
 	}
 
 	// Run CLI mode
 	if bot.RunCLI {
-		bot.Log.Infof("Running CLI mode for %s", bot.Name)
+		bot.Log.Info().Msgf("running cli mode for '%s'", bot.Name)
 		remoteCLI := &cli.Client{}
 		go remoteCLI.Read(inputMsgs, rules, bot)
 	}
@@ -73,7 +73,7 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 	// Run Scheduler
 	// CAUTION: Will not work properly when multiple instances of your bot are deployed (i.e. will get duplicated scheduled output)
 	if bot.RunScheduler {
-		bot.Log.Infof("Running Scheduler for %s", bot.Name)
+		bot.Log.Info().Msgf("running scheduler for '%s'", bot.Name)
 		remoteScheduler := &scheduler.Client{}
 		go remoteScheduler.Read(inputMsgs, rules, bot)
 	}

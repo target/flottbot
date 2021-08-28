@@ -14,14 +14,15 @@
       },
       "args": [
         "build",
-        "-i",
         "-gcflags",
         "'-N -l'",
         "-o",
         "debug",
         "${workspaceFolder}/cmd/flottbot/main.go"
       ],
-      "problemMatcher": ["$go"]
+      "problemMatcher": [
+        "$go"
+      ]
     }
   ]
 }

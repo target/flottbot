@@ -10,7 +10,6 @@ builds:
     main: ./cmd/flottbot/main.go
     env:
       - CGO_ENABLED=0
-      - GO111MODULE=on
     flags:
       - -a
     ldflags:

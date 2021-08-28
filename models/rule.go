@@ -25,6 +25,7 @@ type Rule struct {
 	Actions            []Action `mapstructure:"actions" binding:"required"`
 	Remotes            Remotes  `mapstructure:"remotes" binding:"omitempty"`
 	Reaction           string   `mapstructure:"reaction" binding:"omitempty"`
+	LimitToRooms       []string `mapstructure:"limit_to_rooms" binding:"omitempty"`
 	// The following fields are not included in rule file
 	RemoveReaction string
 }

@@ -1,6 +1,6 @@
 package models
 
-import "github.com/sirupsen/logrus"
+import "github.com/rs/zerolog"
 
 // Bot is a struct representation of bot.yml
 type Bot struct {
@@ -8,8 +8,8 @@ type Bot struct {
 	ID                            string            `mapstructure:"id"`
 	Name                          string            `mapstructure:"name" binding:"required"`
 	SlackToken                    string            `mapstructure:"slack_token"`
-	SlackVerificationToken        string            `mapstructure:"slack_verification_token"`
-	SlackWorkspaceToken           string            `mapstructure:"slack_workspace_token"`
+	SlackAppToken                 string            `mapstructure:"slack_app_token"`
+	SlackSigningSecret            string            `mapstructure:"slack_signing_secret"`
 	SlackEventsCallbackPath       string            `mapstructure:"slack_events_callback_path"`
 	SlackInteractionsCallbackPath string            `mapstructure:"slack_interactions_callback_path"`
 	SlackListenerPort             string            `mapstructure:"slack_listener_port"`
@@ -24,13 +24,13 @@ type Bot struct {
 	Scheduler                     bool              `mapstructure:"scheduler,omitempty"`
 	ChatApplication               string            `mapstructure:"chat_application" binding:"required"`
 	Debug                         bool              `mapstructure:"debug,omitempty"`
-	LogJSON                       bool              `mapstructure:"log_json,omitempty"`
 	InteractiveComponents         bool              `mapstructure:"interactive_components,omitempty"`
 	Metrics                       bool              `mapstructure:"metrics,omitempty"`
 	CustomHelpText                string            `mapstructure:"custom_help_text,omitempty"`
 	DisableNoMatchHelp            bool              `mapstructure:"disable_no_match_help,omitempty"`
+	RespondToBots                 bool              `mapstructure:"respond_to_bots,omitempty"`
 	// System
-	Log          logrus.Logger
+	Log          zerolog.Logger
 	RunChat      bool
 	RunCLI       bool
 	RunScheduler bool
