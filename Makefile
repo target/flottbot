@@ -53,7 +53,7 @@ tidy:
 ensure-go-acc:
 	@which go-acc 1>/dev/null || \
 		(echo "Installing go-acc" && \
-		go get -u github.com/ory/go-acc)
+		go install github.com/ory/go-acc@latest)
 
 .PHONY: test
 test:
