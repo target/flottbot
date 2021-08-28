@@ -29,11 +29,13 @@ jobs:
         run: |
           make test-coverage
 
-      - name: convert to lcov
-        uses: jandelgado/gcov2lcov-action@v1.0.8
-        with:
-          infile: coverage.out
-          outfile: coverage.lcov
+      - name: install goveralls
+        run: go install github.com/mattn/goveralls@latest
+
+      - name: send to coveralls
+        env:
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: goveralls -coverprofile=coverage.out -service=github
 
       - name: send to coveralls
         uses: coverallsapp/github-action@1.1.3
