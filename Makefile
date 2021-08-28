@@ -49,21 +49,15 @@ tidy:
 	@echo "Running $@"
 	@go mod tidy
 
-.PHONY: ensure-go-acc
-ensure-go-acc:
-	@which go-acc 1>/dev/null || \
-		(echo "Installing go-acc" && \
-		go install github.com/ory/go-acc@latest)
-
 .PHONY: test
 test:
 	@echo "Running unit tests"
 	@go test ./...
 
-.PHONY: test-race
-test-race: ensure-go-acc
-	@echo "Running unit tests with -race"
-	@go-acc ./... --ignore config-example -o coverage.out
+.PHONY: test-coverage
+test-coverage:
+	@echo "Running unit tests with coverage"
+	@go test -v -covermode=count -coverpkg=./... -coverprofile=coverage.out ./...
 
 .PHONY: clean
 clean: validate tidy
