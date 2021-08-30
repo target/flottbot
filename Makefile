@@ -8,6 +8,7 @@ BUILD_LDFLAGS := -s -w
 BUILD_LDFLAGS += -X github.com/target/flottbot/version.Version=${VERSION}
 BUILD_LDFLAGS += -X github.com/target/flottbot/version.GitHash=${GIT_HASH}
 GOLANGCI_LINT_VERSION := "v1.42.0"
+PACKAGES := $(shell go list ./... | grep -v /config-example/)
 
 DOCKER_IMAGE ?= "target/flottbot"
 DOCKER_FLAVORS ?= golang ruby python
@@ -57,7 +58,7 @@ test:
 .PHONY: test-coverage
 test-coverage:
 	@echo "Running unit tests with coverage"
-	@go test -v -covermode=count -coverpkg=./... -coverprofile=coverage.out ./...
+	@go test -v -covermode=count -coverpkg=$(PACKAGES) -coverprofile=coverage.out ./...
 
 .PHONY: clean
 clean: validate tidy
