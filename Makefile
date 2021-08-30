@@ -8,6 +8,7 @@ BUILD_LDFLAGS := -s -w
 BUILD_LDFLAGS += -X github.com/target/flottbot/version.Version=${VERSION}
 BUILD_LDFLAGS += -X github.com/target/flottbot/version.GitHash=${GIT_HASH}
 GOLANGCI_LINT_VERSION := "v1.42.0"
+PACKAGES := $(shell go list ./... | grep -v /config-example/)
 
 DOCKER_IMAGE ?= "target/flottbot"
 DOCKER_FLAVORS ?= golang ruby python
@@ -49,21 +50,15 @@ tidy:
 	@echo "Running $@"
 	@go mod tidy
 
-.PHONY: ensure-go-acc
-ensure-go-acc:
-	@which go-acc 1>/dev/null || \
-		(echo "Installing go-acc" && \
-		go get -u github.com/ory/go-acc)
-
 .PHONY: test
 test:
 	@echo "Running unit tests"
 	@go test ./...
 
-.PHONY: test-race
-test-race: ensure-go-acc
-	@echo "Running unit tests with -race"
-	@go-acc ./... --ignore config-example -o coverage.out
+.PHONY: test-coverage
+test-coverage:
+	@echo "Running unit tests with coverage"
+	@go test -v -covermode=count -coverpkg=$(PACKAGES) -coverprofile=coverage.out ./...
 
 .PHONY: clean
 clean: validate tidy
