@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote"
 )
@@ -51,7 +51,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	}
 	bot.Name = botuser.UserName
 
-	updates, err := telegramAPI.GetUpdatesChan(u)
+	updates := telegramAPI.GetUpdatesChan(u)
 
 	for update := range updates {
 		var m *tgbotapi.Message
@@ -103,7 +103,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 			message.Vars["_user.name"] = m.From.UserName
 			message.Vars["_user.firstname"] = m.From.FirstName
 			message.Vars["_user.lastname"] = m.From.LastName
-			message.Vars["_user.id"] = strconv.Itoa(m.From.ID)
+			message.Vars["_user.id"] = strconv.FormatInt(m.From.ID, 10)
 			message.Vars["_user.realnamenormalized"] = fmt.Sprintf("%s %s", m.From.FirstName, m.From.LastName)
 			message.Vars["_user.displayname"] = m.From.UserName
 			message.Vars["_user.displaynamenormalized"] = m.From.UserName
