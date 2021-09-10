@@ -6,12 +6,13 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/bwmarrin/discordgo v0.23.2
+	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.0.2-0.20210820200834-309d612d7095
 	github.com/gorilla/mux v1.8.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/prometheus/client_golang v1.11.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/xid v1.3.0
-	github.com/rs/zerolog v1.24.0
+	github.com/rs/zerolog v1.25.0
 	github.com/slack-go/slack v0.9.4
 	github.com/spf13/viper v1.8.1
 )
@@ -21,7 +22,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.0.2-0.20210820200834-309d612d7095 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
