@@ -7,7 +7,7 @@ GOOS := $(shell go env GOOS)
 BUILD_LDFLAGS := -s -w
 BUILD_LDFLAGS += -X github.com/target/flottbot/version.Version=${VERSION}
 BUILD_LDFLAGS += -X github.com/target/flottbot/version.GitHash=${GIT_HASH}
-GOLANGCI_LINT_VERSION := "v1.42.0"
+GOLANGCI_LINT_VERSION := "v1.42.1"
 PACKAGES := $(shell go list ./... | grep -v /config-example/)
 
 DOCKER_IMAGE ?= "target/flottbot"
@@ -20,7 +20,7 @@ all: test build
 #  │ ├┤ └─┐ │ 
 #  ┴ └─┘└─┘ ┴ 
 .PHONY: validate
-validate: getdeps fmt vet lint
+validate: getdeps fmt vet lint tidy
 
 .PHONY: getdeps
 getdeps:
@@ -61,7 +61,7 @@ test-coverage:
 	@go test -v -covermode=count -coverpkg=$(PACKAGES) -coverprofile=coverage.out ./...
 
 .PHONY: clean
-clean: validate tidy
+clean: validate
 	@echo "Running $@ tasks"
 	-rm -v ./flottbot*
 	-rm -v ./debug
