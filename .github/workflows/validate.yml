@@ -28,3 +28,4 @@ jobs:
       - name: validate
         run: |
           make validate
+          git diff --exit-code
