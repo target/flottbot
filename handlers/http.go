@@ -10,13 +10,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/utils"
 )
 
 // HTTPReq handles 'http' actions for rules
-func HTTPReq(args models.Action, msg *models.Message, bot *models.Bot) (*models.HTTPResponse, error) {
-	bot.Log.Info().Msgf("executing http request for action '%s'", args.Name)
+func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, error) {
+	log.Info().Msgf("executing http request for action %#q", args.Name)
 	if args.Timeout == 0 {
 		// Default HTTP Timeout of 10 seconds
 		args.Timeout = 10
@@ -29,7 +30,7 @@ func HTTPReq(args models.Action, msg *models.Message, bot *models.Bot) (*models.
 	// check the URL string from defined action has a variable, try to substitute it
 	url, err := utils.Substitute(args.URL, msg.Vars)
 	if err != nil {
-		bot.Log.Error().Msg("failed substituting variables in url parameter")
+		log.Error().Msg("failed substituting variables in url parameter")
 		return nil, err
 	}
 
@@ -40,13 +41,13 @@ func HTTPReq(args models.Action, msg *models.Message, bot *models.Bot) (*models.
 
 	url, payload, err := prepRequestData(url, args.Type, args.QueryData, msg)
 	if err != nil {
-		bot.Log.Error().Msg("failed preparing the request data for the http request")
+		log.Error().Msg("failed preparing the request data for the http request")
 		return nil, err
 	}
 
 	req, err := http.NewRequest(args.Type, url, payload)
 	if err != nil {
-		bot.Log.Error().Msg("failed to create a new http request")
+		log.Error().Msg("failed to create a new http request")
 		return nil, err
 	}
 	req.Close = true
@@ -55,7 +56,7 @@ func HTTPReq(args models.Action, msg *models.Message, bot *models.Bot) (*models.
 	for k, v := range args.CustomHeaders {
 		value, err := utils.Substitute(v, msg.Vars)
 		if err != nil {
-			bot.Log.Error().Msg("failed substituting variables in custom headers")
+			log.Error().Msg("failed substituting variables in custom headers")
 			return nil, err
 		}
 		req.Header.Add(k, value)
@@ -63,7 +64,7 @@ func HTTPReq(args models.Action, msg *models.Message, bot *models.Bot) (*models.
 
 	resp, err := client.Do(req)
 	if err != nil {
-		bot.Log.Error().Msg("failed to execute the http request")
+		log.Error().Msg("failed to execute the http request")
 		return nil, err
 	}
 
@@ -71,13 +72,13 @@ func HTTPReq(args models.Action, msg *models.Message, bot *models.Bot) (*models.
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		bot.Log.Error().Msg("failed to read response from http request")
+		log.Error().Msg("failed to read response from http request")
 		return nil, err
 	}
 
 	fields, err := extractFields(bodyBytes)
 	if err != nil {
-		bot.Log.Error().Msg("failed to extract the fields from the http response")
+		log.Error().Msg("failed to extract the fields from the http response")
 		return nil, err
 	}
 
@@ -87,7 +88,7 @@ func HTTPReq(args models.Action, msg *models.Message, bot *models.Bot) (*models.
 		Data:   fields,
 	}
 
-	bot.Log.Info().Msgf("http request for action '%s' completed", args.Name)
+	log.Info().Msgf("http request for action %#q completed", args.Name)
 
 	return &result, nil
 }

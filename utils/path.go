@@ -9,7 +9,7 @@ import (
 
 var (
 	errCurrPath      = errors.New("could not get the current directory")
-	errPathNotExists = errors.New("directory named '%s' does not exist at: %s")
+	errPathNotExists = errors.New("directory named %#q does not exist at: %s")
 	errPathOther     = errors.New("there was an error attempting to access the directory")
 )
 

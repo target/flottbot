@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rs/zerolog/log"
 	"github.com/target/flottbot/models"
 )
 
@@ -31,11 +32,11 @@ func Prommetric(input string, bot *models.Bot) {
 			// metrics health check handler
 			promHealthHandle := func(w http.ResponseWriter, r *http.Request) {
 				if r.Method != http.MethodGet {
-					bot.Log.Error().Msgf("prometheus server: invalid method '%s'", r.Method)
+					log.Error().Msgf("prometheus server: invalid method %#q", r.Method)
 					w.WriteHeader(http.StatusMethodNotAllowed)
 					return
 				}
-				bot.Log.Debug().Msg("prometheus server: health check hit!")
+				log.Debug().Msg("prometheus server: health check hit!")
 				w.WriteHeader(http.StatusOK)
 				w.Write([]byte("OK"))
 			}
@@ -47,7 +48,7 @@ func Prommetric(input string, bot *models.Bot) {
 
 			// start prometheus server
 			go http.ListenAndServe(":8080", promRouter)
-			bot.Log.Info().Msg("prometheus server: serving metrics at /metrics")
+			log.Info().Msg("prometheus server: serving metrics at /metrics")
 		} else {
 			botResponseCollector.With(prometheus.Labels{"rulename": input}).Inc()
 		}

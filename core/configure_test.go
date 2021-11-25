@@ -1,35 +1,10 @@
 package core
 
 import (
-	"os"
 	"testing"
 
 	"github.com/target/flottbot/models"
 )
-
-func TestInitLogger(t *testing.T) {
-	type args struct {
-		bot *models.Bot
-	}
-
-	// Test setting the error and debug level flags
-	levelTests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{"error level set", args{bot: &models.Bot{}}, "info"},
-		{"debug level set", args{bot: &models.Bot{Debug: true}}, "debug"},
-	}
-	for _, tt := range levelTests {
-		t.Run(tt.name, func(t *testing.T) {
-			initLogger(tt.args.bot)
-			if tt.want != tt.args.bot.Log.GetLevel().String() {
-				t.Errorf("initLogger() wanted level set at '%s', but got '%s'", tt.want, tt.args.bot.Log.GetLevel().String())
-			}
-		})
-	}
-}
 
 func Test_configureChatApplication(t *testing.T) {
 	type args struct {
@@ -79,8 +54,8 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotSlack.ChatApplication = "slack"
 	testBotSlack.SlackToken = "${TEST_SLACK_TOKEN}"
 	testBotSlack.SlackAppToken = "${TEST_SLACK_APP_TOKEN}"
-	os.Setenv("TEST_SLACK_TOKEN", "TESTTOKEN")
-	os.Setenv("TEST_SLACK_APP_TOKEN", "TESTAPPTOKEN")
+	t.Setenv("TEST_SLACK_TOKEN", "TESTTOKEN")
+	t.Setenv("TEST_SLACK_APP_TOKEN", "TESTAPPTOKEN")
 	validateRemoteSetup(testBotSlack)
 
 	testBotDiscordNoToken := new(models.Bot)
@@ -99,8 +74,8 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotDiscordServerID.ChatApplication = "discord"
 	testBotDiscordServerID.DiscordToken = "${TEST_DISCORD_TOKEN}"
 	testBotDiscordServerID.DiscordServerID = "${TEST_DISCORD_SERVER_ID}"
-	os.Setenv("TEST_DISCORD_TOKEN", "TESTTOKEN")
-	os.Setenv("TEST_DISCORD_SERVER_ID", "TESTSERVERID")
+	t.Setenv("TEST_DISCORD_TOKEN", "TESTTOKEN")
+	t.Setenv("TEST_DISCORD_SERVER_ID", "TESTSERVERID")
 	validateRemoteSetup(testBotDiscordServerID)
 
 	testBotDiscordBadServerID := new(models.Bot)
@@ -114,7 +89,7 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotTelegram.CLI = true
 	testBotTelegram.ChatApplication = "telegram"
 	testBotTelegram.TelegramToken = "${TEST_TELEGRAM_TOKEN}"
-	os.Setenv("TEST_TELEGRAM_TOKEN", "TESTTOKEN")
+	t.Setenv("TEST_TELEGRAM_TOKEN", "TESTTOKEN")
 	validateRemoteSetup(testBotTelegram)
 
 	testBotTelegramNoToken := new(models.Bot)
@@ -162,15 +137,11 @@ func Test_configureChatApplication(t *testing.T) {
 			}
 		})
 	}
-
-	os.Unsetenv("TEST_SLACK_TOKEN")
-	os.Unsetenv("TEST_DISCORD_TOKEN")
-	os.Unsetenv("TEST_DISCORD_SERVER_ID")
 }
 
 func Test_setSlackListenerPort(t *testing.T) {
-	os.Setenv("TEST_SLACK_TOKEN", "TESTTOKEN")
-	os.Setenv("TEST_SLACK_INTERACTIONS_CALLBACK_PATH", "TESTPATH")
+	t.Setenv("TEST_SLACK_TOKEN", "TESTTOKEN")
+	t.Setenv("TEST_SLACK_INTERACTIONS_CALLBACK_PATH", "TESTPATH")
 
 	baseBot := func() *models.Bot {
 		bot := new(models.Bot)
@@ -185,7 +156,7 @@ func Test_setSlackListenerPort(t *testing.T) {
 	t.Run("slack listener port reads from env var config", func(t *testing.T) {
 		bot := baseBot()
 		bot.SlackListenerPort = "${TEST_SLACK_LISTENER_PORT}"
-		os.Setenv("TEST_SLACK_LISTENER_PORT", "TESTPORT")
+		t.Setenv("TEST_SLACK_LISTENER_PORT", "TESTPORT")
 		validateRemoteSetup(bot)
 		configureChatApplication(bot)
 
@@ -209,7 +180,6 @@ func Test_setSlackListenerPort(t *testing.T) {
 	})
 
 	t.Run("slack listener port defaults if expected env var is empty", func(t *testing.T) {
-		os.Unsetenv("TEST_SLACK_LISTENER_PORT")
 		bot := baseBot()
 		bot.SlackListenerPort = "${TEST_SLACK_LISTENER_PORT}"
 		validateRemoteSetup(bot)
@@ -299,8 +269,7 @@ func TestConfigure(t *testing.T) {
 	testBot.Name = "mybot(${FB_ENV})"
 	testBot.CLI = true
 
-	os.Setenv("FB_ENV", "dev")
-	defer os.Unsetenv("FB_ENV")
+	t.Setenv("FB_ENV", "dev")
 
 	type args struct {
 		bot *models.Bot

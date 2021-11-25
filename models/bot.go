@@ -1,6 +1,12 @@
 package models
 
-import "github.com/rs/zerolog"
+import (
+	"os"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
+)
 
 // Bot is a struct representation of bot.yml
 type Bot struct {
@@ -30,8 +36,42 @@ type Bot struct {
 	DisableNoMatchHelp            bool              `mapstructure:"disable_no_match_help,omitempty"`
 	RespondToBots                 bool              `mapstructure:"respond_to_bots,omitempty"`
 	// System
-	Log          zerolog.Logger
 	RunChat      bool
 	RunCLI       bool
 	RunScheduler bool
+}
+
+// NewBot creates a new Bot instance
+func NewBot() *Bot {
+	v := viper.New()
+	bot := new(Bot)
+
+	// set default search locations
+	v.AddConfigPath("./config")
+	v.AddConfigPath(".")
+	v.SetConfigName("bot")
+
+	// read the config
+	err := v.ReadInConfig()
+	if err != nil {
+		log.Fatal().Msgf("could not read bot config: %s", err)
+	}
+
+	// unmarshal the config
+	err = v.Unmarshal(bot)
+	if err != nil {
+		log.Fatal().Msgf("could not unmarshal bot config: %s", err)
+	}
+
+	// set debug logging
+	if bot.Debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+
+	// prettify log for CLI mode
+	if bot.CLI {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	}
+
+	return bot
 }

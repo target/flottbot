@@ -2,10 +2,11 @@ package utils
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/rs/zerolog/log"
 )
 
 // Match checks given value against given pattern
@@ -43,9 +44,10 @@ func Substitute(value string, tokens map[string]string) (string, error) {
 			tok := strip(hit)
 			// Check if token was already stored as a token
 			if _, ok := tokens[tok]; ok {
+				// TODO: check on this
 				envTok := os.Getenv(tok)
 				if envTok != "" {
-					log.Printf("Warning: you are using %s as '%s' but it is also an environment variable. Consider renaming.", tok, tok)
+					log.Warn().Msgf("you are using %s as %#q but it is also an environment variable. consider renaming.", tok, tok)
 				}
 				value = strings.Replace(value, hit, orDefault(tokens[tok], ""), -1)
 				continue
@@ -55,7 +57,7 @@ func Substitute(value string, tokens map[string]string) (string, error) {
 			if envTok != "" {
 				value = strings.Replace(value, hit, os.Getenv(tok), -1)
 			} else {
-				err := fmt.Sprintf("Variable '%s' has not been defined.", tok)
+				err := fmt.Sprintf("Variable %#q has not been defined.", tok)
 				errs = append(errs, err)
 			}
 		}

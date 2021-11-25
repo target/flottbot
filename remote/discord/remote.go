@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/rs/zerolog/log"
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote"
 )
@@ -44,11 +45,11 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 		dg := c.new()
 		// Remove bot reaction from message
 		if err := dg.MessageReactionRemove(message.ChannelID, message.ID, rule.RemoveReaction, "@me"); err != nil {
-			bot.Log.Error().Msgf("could not add reaction '%s' - make sure to use actual emoji unicode characters", err)
+			log.Error().Msgf("could not add reaction %#q - make sure to use actual emoji unicode characters", err)
 			return
 		}
 
-		bot.Log.Info().Msgf("removed reaction '%s' for rule '%s'", rule.RemoveReaction, rule.Name)
+		log.Info().Msgf("removed reaction %#q for rule %#q", rule.RemoveReaction, rule.Name)
 	}
 
 	if rule.Reaction != "" {
@@ -56,11 +57,11 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 		dg := c.new()
 		// React with desired reaction
 		if err := dg.MessageReactionAdd(message.ChannelID, message.ID, rule.Reaction); err != nil {
-			bot.Log.Error().Msgf("could not add reaction: %v", err)
+			log.Error().Msgf("could not add reaction: %v", err)
 			return
 		}
 
-		bot.Log.Info().Msgf("added reaction '%s' for rule '%s'", rule.Reaction, rule.Name)
+		log.Info().Msgf("added reaction %#q for rule %#q", rule.Reaction, rule.Name)
 	}
 }
 
@@ -68,22 +69,22 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
 	dg := c.new()
 	if dg == nil {
-		bot.Log.Error().Msg("failed to initialize discord client")
+		log.Error().Msg("failed to initialize discord client")
 		return
 	}
 
 	err := dg.Open()
 	if err != nil {
-		bot.Log.Error().Msgf("failed to open connection to discord server - error: %v", err)
+		log.Error().Msgf("failed to open connection to discord server - error: %v", err)
 		return
 	}
 	// Wait here until CTRL-C or other term signal is received
-	bot.Log.Info().Msgf("discord is now running '%s' - press ctrl-c to exit", bot.Name)
+	log.Info().Msgf("discord is now running %#q - press ctrl-c to exit", bot.Name)
 
 	// get informatiom about ourself
 	botuser, err := dg.User("@me")
 	if err != nil {
-		bot.Log.Error().Msgf("failed to get bot name from discord - error: %v", err)
+		log.Error().Msgf("failed to get bot name from discord - error: %v", err)
 		return
 	}
 
@@ -101,7 +102,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	}
 
 	if !foundGuild {
-		bot.Log.Error().Msg("unable to find server defined in 'discord_server_id' - has the bot been added to the server?")
+		log.Error().Msg("unable to find server defined in 'discord_server_id' - has the bot been added to the server?")
 		return
 	}
 
@@ -112,7 +113,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	// populate rooms
 	gchans, err := dg.GuildChannels(bot.DiscordServerID)
 	if err != nil {
-		bot.Log.Error().Msgf("unable to get channels - error: %v", err)
+		log.Error().Msgf("unable to get channels - error: %v", err)
 	}
 
 	for _, gchan := range gchans {
@@ -124,7 +125,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	// from prev results and pass in as second param to .GuildMembers
 	gmembers, err := dg.GuildMembers(bot.DiscordServerID, "", 1000)
 	if err != nil {
-		bot.Log.Error().Msg("unable to get users")
+		log.Error().Msg("unable to get users")
 	}
 
 	for _, gmember := range gmembers {
@@ -134,7 +135,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	// populate user groups
 	groles, err := dg.GuildRoles(bot.DiscordServerID)
 	if err != nil {
-		bot.Log.Error().Msg("unable to get roles")
+		log.Error().Msg("unable to get roles")
 	}
 
 	for _, grole := range groles {
@@ -160,7 +161,7 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	case models.MsgTypeDirect, models.MsgTypeChannel:
 		send(dg, message, bot)
 	default:
-		bot.Log.Error().Msgf("unable to send message of type: %d", message.Type)
+		log.Error().Msgf("unable to send message of type: %d", message.Type)
 	}
 }
 
@@ -191,12 +192,12 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 
 			ch, err := s.Channel(m.ChannelID)
 			if err != nil {
-				bot.Log.Error().Msg("discord: failed to retrieve channel")
+				log.Error().Msg("discord: failed to retrieve channel")
 			}
 
 			t, err := m.Timestamp.Parse()
 			if err != nil {
-				bot.Log.Error().Msgf("discord remote: failed to parse message timestamp")
+				log.Error().Msgf("discord remote: failed to parse message timestamp")
 			}
 
 			timestamp := strconv.FormatInt(t.Unix(), 10)
@@ -208,13 +209,13 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 				msgType = models.MsgTypeChannel
 			default:
 				msgType = models.MsgTypeChannel
-				bot.Log.Warn().Msgf("discord: read message from unsupported channel type '%d' - defaulting to use channel type 0 ('GUILD_TEXT')", ch.Type)
+				log.Warn().Msgf("discord: read message from unsupported channel type '%d' - defaulting to use channel type 0 ('GUILD_TEXT')", ch.Type)
 			}
 
 			contents, mentioned := removeBotMention(m.Content, s.State.User.ID)
 			message = populateMessage(message, msgType, m.ChannelID, m.Message.ID, contents, timestamp, mentioned, m.Author, bot)
 		default:
-			bot.Log.Error().Msgf("discord: read message of unsupported type '%d' - unable to populate message attributes", m.Type)
+			log.Error().Msgf("discord: read message of unsupported type '%d' - unable to populate message attributes", m.Type)
 		}
 		inputMsgs <- message
 	}

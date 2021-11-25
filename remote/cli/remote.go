@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote"
 	"github.com/target/flottbot/version"
@@ -60,7 +61,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		bot.Log.Error().Msgf("Error reading standard input: %v", err)
+		log.Error().Msgf("Error reading standard input: %v", err)
 	}
 }
 

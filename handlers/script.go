@@ -9,13 +9,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/utils"
 )
 
 // ScriptExec handles 'exec' actions; script executions for rules
-func ScriptExec(args models.Action, msg *models.Message, bot *models.Bot) (*models.ScriptResponse, error) {
-	bot.Log.Info().Msgf("executing process for action '%s'", args.Name)
+func ScriptExec(args models.Action, msg *models.Message) (*models.ScriptResponse, error) {
+	log.Info().Msgf("executing process for action %#q", args.Name)
 	// Default timeout of 20 seconds for any script execution, modifyable in rule file
 	if args.Timeout == 0 {
 		args.Timeout = 20
@@ -31,9 +32,9 @@ func ScriptExec(args models.Action, msg *models.Message, bot *models.Bot) (*mode
 	defer cancel()
 
 	// Deal with variable substitution in command
-	bot.Log.Debug().Msgf("command is: [%s]", args.Cmd)
+	log.Debug().Msgf("command is: [%s]", args.Cmd)
 	cmdProcessed, err := utils.Substitute(args.Cmd, msg.Vars)
-	bot.Log.Debug().Msgf("substituted: [%s]", cmdProcessed)
+	log.Debug().Msgf("substituted: [%s]", cmdProcessed)
 	if err != nil {
 		return result, err
 	}
@@ -49,7 +50,7 @@ func ScriptExec(args models.Action, msg *models.Message, bot *models.Bot) (*mode
 	// Handle timeouts
 	if ctx.Err() == context.DeadlineExceeded {
 		result.Output = "Hmm, something timed out. Please try again."
-		return result, fmt.Errorf("timeout reached, exec process for action '%s' cancelled", args.Name)
+		return result, fmt.Errorf("timeout reached, exec process for action %#q cancelled", args.Name)
 	}
 
 	// Deal with non-zero exit codes
@@ -58,16 +59,16 @@ func ScriptExec(args models.Action, msg *models.Message, bot *models.Bot) (*mode
 		case *exec.ExitError:
 			ws := err.(*exec.ExitError).Sys().(syscall.WaitStatus)
 			stderr := strings.Trim(string(err.(*exec.ExitError).Stderr), " \n")
-			bot.Log.Debug().Msgf("process for action '%s' exited with status '%d': %s", args.Name, ws.ExitStatus(), stderr)
+			log.Debug().Msgf("process for action %#q exited with status '%d': %s", args.Name, ws.ExitStatus(), stderr)
 			result.Status = ws.ExitStatus()
 			result.Output = stderr
 		case *os.PathError:
-			bot.Log.Debug().Msgf("process for action '%s' exited with status '%d': %v", args.Name, result.Status, err)
+			log.Debug().Msgf("process for action %#q exited with status '%d': %v", args.Name, result.Status, err)
 			result.Status = 127
 			result.Output = err.Error()
 		default:
 			// this should rarely/never get hit
-			bot.Log.Debug().Msgf("couldn't get exit status for action '%s'", args.Name)
+			log.Debug().Msgf("couldn't get exit status for action %#q", args.Name)
 			result.Output = strings.Trim(err.Error(), " \n")
 		}
 		// if something was printed to stdout before the error, use that as output
@@ -79,7 +80,7 @@ func ScriptExec(args models.Action, msg *models.Message, bot *models.Bot) (*mode
 	}
 
 	// should be exit code 0 here
-	bot.Log.Info().Msgf("process finished for action '%s'", args.Name)
+	log.Info().Msgf("process finished for action %#q", args.Name)
 	ws := cmd.ProcessState.Sys().(syscall.WaitStatus)
 	result.Status = ws.ExitStatus()
 	result.Output = strings.Trim(string(out), " \n")
