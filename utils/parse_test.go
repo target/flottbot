@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"os"
 	"reflect"
 	"testing"
 )
@@ -47,8 +46,7 @@ func TestSubstitute(t *testing.T) {
 		tokens map[string]string
 	}
 
-	os.Setenv("TEST_ENV_VAR", "1234")
-	defer os.Unsetenv("TEST_ENV_VAR")
+	t.Setenv("TEST_ENV_VAR", "1234")
 
 	tests := []struct {
 		name    string

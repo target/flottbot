@@ -3,6 +3,7 @@ package core
 import (
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote/cli"
 	"github.com/target/flottbot/remote/discord"
@@ -28,9 +29,9 @@ import (
 // TODO: Refactor to keep remote specific stuff in remote/
 func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
 	// Run a chat application
-	if bot.RunChat {
+	if bot.ChatApplication != "" {
 		chatApp := strings.ToLower(bot.ChatApplication)
-		bot.Log.Info().Msgf("running '%s' on '%s'", bot.Name, strings.Title(chatApp))
+		log.Info().Msgf("running %#q on %#q", bot.Name, strings.Title(chatApp))
 		switch chatApp {
 		// Setup remote to use the Discord client to read from Discord
 		case "discord":
@@ -59,21 +60,21 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 			// Read messages from Telegram
 			go remoteTelegram.Read(inputMsgs, rules, bot)
 		default:
-			bot.Log.Error().Msgf("chat application '%s' is not supported", chatApp)
+			log.Error().Msgf("chat application %#q is not supported", chatApp)
 		}
 	}
 
 	// Run CLI mode
-	if bot.RunCLI {
-		bot.Log.Info().Msgf("running cli mode for '%s'", bot.Name)
+	if bot.CLI {
+		log.Info().Msgf("running cli mode for %#q", bot.Name)
 		remoteCLI := &cli.Client{}
 		go remoteCLI.Read(inputMsgs, rules, bot)
 	}
 
 	// Run Scheduler
 	// CAUTION: Will not work properly when multiple instances of your bot are deployed (i.e. will get duplicated scheduled output)
-	if bot.RunScheduler {
-		bot.Log.Info().Msgf("running scheduler for '%s'", bot.Name)
+	if bot.Scheduler {
+		log.Info().Msgf("running scheduler for %#q", bot.Name)
 		remoteScheduler := &scheduler.Client{}
 		go remoteScheduler.Read(inputMsgs, rules, bot)
 	}

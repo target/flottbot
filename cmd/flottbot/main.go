@@ -3,52 +3,46 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"sync"
 
-	"github.com/spf13/viper"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 
 	"github.com/target/flottbot/core"
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/version"
 )
 
-func newBot() *models.Bot {
-	bot := viper.New()
-	bot.AddConfigPath("./config")
-	bot.AddConfigPath(".")
-	bot.SetConfigName("bot")
-	err := bot.ReadInConfig()
-	if err != nil {
-		log.Fatalf("Fatal error config file: %s \n", err)
-	}
-
-	var botC models.Bot
-	err = bot.Unmarshal(&botC)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	return &botC
-}
-
 func main() {
-	var rules = make(map[string]models.Rule)
-	var hitRule = make(chan models.Rule, 1)
-	var inputMsgs = make(chan models.Message, 1)
-	var outputMsgs = make(chan models.Message, 1)
+	var (
+		// version flags
+		ver = flag.Bool("version", false, "print version information")
+		v   = flag.Bool("v", false, "print version information")
 
-	ver := flag.Bool("version", false, "print version information")
-	v := flag.Bool("v", false, "print version information")
+		// bot vars
+		rules      = make(map[string]models.Rule)
+		hitRule    = make(chan models.Rule, 1)
+		inputMsgs  = make(chan models.Message, 1)
+		outputMsgs = make(chan models.Message, 1)
+	)
 
+	// parse the flagS
 	flag.Parse()
+
+	// check to see if the version was requested
 	if *v || *ver {
 		fmt.Println(version.String())
 		os.Exit(0)
 	}
 
+	// set some early defaults for the logger
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnixMs
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	log.Logger = log.Output(os.Stdout).With().Logger()
+
 	// Configure the bot to the core framework
-	bot := newBot()
+	bot := models.NewBot()
 	core.Configure(bot)
 
 	// Populate the global rules map
@@ -61,7 +55,7 @@ func main() {
 	// Add 3 to the wait group so the three separate processes run concurrently
 	// - process 1: core.Remotes - reads messages
 	// - process 2: core.Matcher - processes messages
-	// - process 3: core.Outpus - sends out messages
+	// - process 3: core.Outputs - sends out messages
 	var wg sync.WaitGroup
 	wg.Add(3)
 

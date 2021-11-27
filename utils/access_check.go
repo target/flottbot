@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/rs/zerolog/log"
 	"github.com/slack-go/slack"
 	"github.com/target/flottbot/models"
 )
@@ -20,7 +21,7 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	// are they ignored directly? deny
 	for _, name := range rule.IgnoreUsers {
 		if name == currentUserName {
-			bot.Log.Info().Msgf("'%s' is on the 'ignore_users' list for rule: '%s'", currentUserName, rule.Name)
+			log.Info().Msgf("%#q is on the 'ignore_users' list for rule: %#q", currentUserName, rule.Name)
 			return false
 		}
 	}
@@ -33,8 +34,8 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	}
 
 	if isIgnored {
-		bot.Log.Info().
-			Msgf("'%s' is part of a group in ignore_usergroups: '%s'", currentUserName, strings.Join(rule.IgnoreUserGroups, ", "))
+		log.Info().
+			Msgf("%#q is part of a group in ignore_usergroups: %#q", currentUserName, strings.Join(rule.IgnoreUserGroups, ", "))
 		return false
 	}
 
@@ -73,18 +74,18 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 
 	if !canRunRule {
 		if len(rule.AllowUsers) > 0 {
-			bot.Log.Info().
-				Msgf("'%s' is not part of allow_users: '%s'", currentUserName, strings.Join(rule.AllowUsers, ", "))
+			log.Info().
+				Msgf("%#q is not part of allow_users: %#q", currentUserName, strings.Join(rule.AllowUsers, ", "))
 		}
 
 		if len(rule.AllowUserIds) > 0 {
-			bot.Log.Info().
-				Msgf("'%s' is not part of allow_userids: '%s'", currentUserID, strings.Join(rule.AllowUserIds, ", "))
+			log.Info().
+				Msgf("%#q is not part of allow_userids: %#q", currentUserID, strings.Join(rule.AllowUserIds, ", "))
 		}
 
 		if len(rule.AllowUserGroups) > 0 {
-			bot.Log.Info().
-				Msgf("'%s' is not part of any groups in allow_usergroups: '%s'", currentUserName, strings.Join(rule.AllowUserGroups, ", "))
+			log.Info().
+				Msgf("%#q is not part of any groups in allow_usergroups: %#q", currentUserName, strings.Join(rule.AllowUserGroups, ", "))
 		}
 	}
 
@@ -111,7 +112,7 @@ func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot)
 
 		usr, err = dg.GuildMember(bot.DiscordServerID, currentUserID)
 		if err != nil {
-			bot.Log.Error().Msgf("error while searching for user - error: %v", err)
+			log.Error().Msgf("error while searching for user - error: %v", err)
 			return false, nil
 		}
 
@@ -135,7 +136,7 @@ func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot)
 					// Get the members of the group
 					userGroupMembers, err := api.GetUserGroupMembers(knownUserGroupID)
 					if err != nil {
-						bot.Log.Error().Msgf("unable to retrieve user group members, %v", err)
+						log.Error().Msgf("unable to retrieve user group members, %v", err)
 					}
 					// Check if any of the members are the current user
 					for _, userGroupMemberID := range userGroupMembers {
@@ -151,7 +152,7 @@ func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot)
 
 		return false, nil
 	default:
-		bot.Log.Error().Msgf("chat application '%s' is not supported", capp)
+		log.Error().Msgf("chat application %#q is not supported", capp)
 		return false, nil
 	}
 }

@@ -49,10 +49,7 @@ func TestHTTPReq(t *testing.T) {
 	type args struct {
 		args models.Action
 		msg  *models.Message
-		bot  *models.Bot
 	}
-
-	bot := new(models.Bot)
 
 	tsOK := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -119,16 +116,16 @@ func TestHTTPReq(t *testing.T) {
 		want    *models.HTTPResponse
 		wantErr bool
 	}{
-		{"HTTPReq GET", args{args: TestGETAction, msg: &TestMessage, bot: bot}, &models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
-		{"HTTPReq POST", args{args: TestPOSTAction, msg: &TestMessage, bot: bot}, &models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
-		{"HTTPReq No Query", args{args: TestEmptyQueryAction, msg: &TestMessage, bot: bot}, &models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
-		{"HTTPReq Error Response", args{args: TestErrorResponseAction, msg: &TestMessage, bot: bot}, &models.HTTPResponse{Status: 502, Raw: "", Data: ""}, false},
-		{"HTTPReq with Sub", args{args: TestQueryWithSubsAction, msg: &TestMessage, bot: bot}, nil, true},
-		{"HTTPReq with Error", args{args: TestWithError, msg: &TestMessage, bot: bot}, nil, true},
+		{"HTTPReq GET", args{args: TestGETAction, msg: &TestMessage}, &models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
+		{"HTTPReq POST", args{args: TestPOSTAction, msg: &TestMessage}, &models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
+		{"HTTPReq No Query", args{args: TestEmptyQueryAction, msg: &TestMessage}, &models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
+		{"HTTPReq Error Response", args{args: TestErrorResponseAction, msg: &TestMessage}, &models.HTTPResponse{Status: 502, Raw: "", Data: ""}, false},
+		{"HTTPReq with Sub", args{args: TestQueryWithSubsAction, msg: &TestMessage}, nil, true},
+		{"HTTPReq with Error", args{args: TestWithError, msg: &TestMessage}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := HTTPReq(tt.args.args, tt.args.msg, tt.args.bot)
+			got, err := HTTPReq(tt.args.args, tt.args.msg)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("HTTPReq() error = %v, wantErr %v", err, tt.wantErr)
 				return

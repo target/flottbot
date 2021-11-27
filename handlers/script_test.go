@@ -20,10 +20,7 @@ func TestScriptExec(t *testing.T) {
 	type args struct {
 		args models.Action
 		msg  *models.Message
-		bot  *models.Bot
 	}
-
-	bot := new(models.Bot)
 
 	simpleScriptMessage := models.NewMessage()
 	simpleScriptMessage.Vars["test"] = "echo"
@@ -46,17 +43,17 @@ func TestScriptExec(t *testing.T) {
 		want    *models.ScriptResponse
 		wantErr bool
 	}{
-		{"Simple Script", args{args: simpleScriptAction, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 0, Output: "hi there"}, false},
-		{"Slow Script", args{args: slowScriptAction, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 1, Output: "Hmm, something timed out. Please try again."}, true},
-		{"Error Script", args{args: errorScriptAction, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 1, Output: ""}, true},
-		{"Existing Var Script", args{args: varExistsScriptAction, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 0, Output: "echo"}, false},
-		{"Missing Var Script", args{args: varMissingScriptAction, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 1, Output: ""}, true},
-		{"StdOut before exit code 1", args{args: msgBeforeExit, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 1, Output: "error is coming"}, true},
+		{"Simple Script", args{args: simpleScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 0, Output: "hi there"}, false},
+		{"Slow Script", args{args: slowScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 1, Output: "Hmm, something timed out. Please try again."}, true},
+		{"Error Script", args{args: errorScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 1, Output: ""}, true},
+		{"Existing Var Script", args{args: varExistsScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 0, Output: "echo"}, false},
+		{"Missing Var Script", args{args: varMissingScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 1, Output: ""}, true},
+		{"StdOut before exit code 1", args{args: msgBeforeExit, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 1, Output: "error is coming"}, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ScriptExec(tt.args.args, tt.args.msg, tt.args.bot)
+			got, err := ScriptExec(tt.args.args, tt.args.msg)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ScriptExec() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -72,10 +69,8 @@ func TestScriptExecWithRegex(t *testing.T) {
 	type args struct {
 		args models.Action
 		msg  *models.Message
-		bot  *models.Bot
 	}
 
-	bot := new(models.Bot)
 	simpleScriptMessage := models.NewMessage()
 
 	cmdNotFound := newExecAction(`/bin/sh ./this/is/a/trap.sh`)
@@ -87,12 +82,12 @@ func TestScriptExecWithRegex(t *testing.T) {
 		wantErr    bool
 		wantRegexp *regexp.Regexp
 	}{
-		{"Script does not exist", args{args: cmdNotFound, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 2}, true, regexp.MustCompile(`No such file`)},
+		{"Script does not exist", args{args: cmdNotFound, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 2}, true, regexp.MustCompile(`No such file`)},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ScriptExec(tt.args.args, tt.args.msg, tt.args.bot)
+			got, err := ScriptExec(tt.args.args, tt.args.msg)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ScriptExec() error = %v, wantErr %v", err, tt.wantErr)
 				return

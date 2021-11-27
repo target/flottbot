@@ -14,12 +14,9 @@ func TestCraftResponse(t *testing.T) {
 	type args struct {
 		rule models.Rule
 		msg  models.Message
-		bot  *models.Bot
 	}
 
 	// Init test variables
-	testBot := new(models.Bot)
-
 	tests := []struct {
 		name       string
 		args       args
@@ -38,12 +35,19 @@ func TestCraftResponse(t *testing.T) {
 					OutputToRooms: []string{"not_a_real_room_1", "not_a_real_room_2"},
 					Vars:          map[string]string{},
 				},
-				bot: testBot,
 			},
 			"test output",
 			false,
 		},
-		{"Empty rule format output", args{rule: models.Rule{FormatOutput: ""}, msg: models.Message{}, bot: testBot}, "test output", true},
+		{
+			"Empty rule format output",
+			args{
+				rule: models.Rule{FormatOutput: ""},
+				msg:  models.Message{},
+			},
+			"test output",
+			true,
+		},
 		{
 			"Successful craft response (no templates, with var substitution)",
 			args{
@@ -58,7 +62,6 @@ func TestCraftResponse(t *testing.T) {
 						"test_var": "some value",
 					},
 				},
-				bot: testBot,
 			},
 			"here is some value",
 			false,
@@ -77,7 +80,6 @@ func TestCraftResponse(t *testing.T) {
 						"_test_status": "ok",
 					},
 				},
-				bot: testBot,
 			},
 			"hello",
 			false,
@@ -96,7 +98,6 @@ func TestCraftResponse(t *testing.T) {
 						"_test_status": "not_ok",
 					},
 				},
-				bot: testBot,
 			},
 			"hi",
 			false,
@@ -116,7 +117,6 @@ func TestCraftResponse(t *testing.T) {
 						"_test_status": "not_ok",
 					},
 				},
-				bot: testBot,
 			},
 			"hi",
 			true,
@@ -124,7 +124,7 @@ func TestCraftResponse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := craftResponse(tt.args.rule, tt.args.msg, tt.args.bot)
+			got, err := craftResponse(tt.args.rule, tt.args.msg)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("craftResponse() error = \"%v\", wantErr %v", err, tt.wantErr)
 				return
@@ -142,12 +142,9 @@ func TestHandleExec(t *testing.T) {
 	type args struct {
 		action models.Action
 		msg    *models.Message
-		bot    *models.Bot
 	}
 
 	// Init test variables
-	bot := new(models.Bot)
-
 	testScriptMessage := models.NewMessage()
 	testScriptMessage.Vars["test"] = "echo"
 
@@ -186,13 +183,13 @@ func TestHandleExec(t *testing.T) {
 		wantScriptResponse *models.ScriptResponse
 		wantErr            bool
 	}{
-		{"Test echo script", args{action: testScriptAction, msg: &testScriptMessage, bot: bot}, &testPassScriptResponse, false},
-		{"Slow Script", args{action: testSlowScriptAction, msg: &testScriptMessage, bot: bot}, &testFailScriptResponse, true},
-		{"No Cmd Script", args{action: testNoCmdScriptAction, msg: &testScriptMessage, bot: bot}, nil, true},
+		{"Test echo script", args{action: testScriptAction, msg: &testScriptMessage}, &testPassScriptResponse, false},
+		{"Slow Script", args{action: testSlowScriptAction, msg: &testScriptMessage}, &testFailScriptResponse, true},
+		{"No Cmd Script", args{action: testNoCmdScriptAction, msg: &testScriptMessage}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := handleExec(tt.args.action, tt.args.msg, tt.args.bot)
+			err := handleExec(tt.args.action, tt.args.msg)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("handleExec() error = \"%v\", wantErr %v", err, tt.wantErr)
 				return
@@ -213,12 +210,9 @@ func TestHandleHTTP(t *testing.T) {
 	type args struct {
 		action models.Action
 		msg    *models.Message
-		bot    *models.Bot
 	}
 
 	// Init test variables
-	bot := new(models.Bot)
-
 	tsOK := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("hello"))
@@ -284,12 +278,12 @@ func TestHandleHTTP(t *testing.T) {
 		wantResponse *models.HTTPResponse
 		wantErr      bool
 	}{
-		{"No URL", args{action: TestEmptyURLAction, msg: &testMsg, bot: bot}, &models.HTTPResponse{}, true},
-		{"HTTP GET 200", args{action: TestGETAction, msg: &testMsg, bot: bot}, &models.HTTPResponse{Status: 200, Raw: "hello", Data: ""}, false},
-		{"HTTP GET 404", args{action: TestErrorResponseAction, msg: &testMsg, bot: bot}, &models.HTTPResponse{Status: 404, Raw: "not found", Data: ""}, false},
+		{"No URL", args{action: TestEmptyURLAction, msg: &testMsg}, &models.HTTPResponse{}, true},
+		{"HTTP GET 200", args{action: TestGETAction, msg: &testMsg}, &models.HTTPResponse{Status: 200, Raw: "hello", Data: ""}, false},
+		{"HTTP GET 404", args{action: TestErrorResponseAction, msg: &testMsg}, &models.HTTPResponse{Status: 404, Raw: "not found", Data: ""}, false},
 		{
 			"HTTP GET 200 JSON",
-			args{action: TestGETActionWithJSON, msg: &testMsg, bot: bot},
+			args{action: TestGETActionWithJSON, msg: &testMsg},
 			&models.HTTPResponse{
 				Status: 200,
 				Raw:    `{"test": "value"}`,
@@ -299,7 +293,7 @@ func TestHandleHTTP(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := handleHTTP(tt.args.action, tt.args.msg, tt.args.bot)
+			err := handleHTTP(tt.args.action, tt.args.msg)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("handleHTTP() error = \"%v\", wantErr %v", err, tt.wantErr)
 				return
@@ -490,7 +484,7 @@ func TestHandleReaction(t *testing.T) {
 			t.Errorf("handReaction() wanted message \"%s\", but got \"%s\"", test.wantMessage, resultMsg.Output)
 		}
 		if test.wantRuleName != resultRule.Name {
-			t.Errorf("handReaction() wanted rule '%s', but got '%s'", test.wantRuleName, resultRule.Name)
+			t.Errorf("handReaction() wanted rule %#q, but got %#q", test.wantRuleName, resultRule.Name)
 		}
 	})
 }

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/rs/zerolog/log"
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote"
 )
@@ -46,7 +47,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 
 	botuser, err := telegramAPI.GetMe()
 	if err != nil {
-		bot.Log.Error().Msg("failed to initialize telegram client")
+		log.Error().Msg("failed to initialize telegram client")
 		return
 	}
 	bot.Name = botuser.UserName
@@ -123,7 +124,7 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	telegramAPI := c.new()
 	chatID, err := strconv.ParseInt(message.ChannelID, 10, 64)
 	if err != nil {
-		bot.Log.Error().Msgf("unable to retrieve chat id '%s'", message.ChannelID)
+		log.Error().Msgf("unable to retrieve chat id %#q", message.ChannelID)
 		return
 	}
 
@@ -132,7 +133,7 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	if message.DirectMessageOnly {
 		chatID, err = strconv.ParseInt(message.Vars["_user.id"], 10, 64)
 		if err != nil {
-			bot.Log.Error().Msgf("unable to retrieve user id '%s' for direct message", message.Vars["_user.id"])
+			log.Error().Msgf("unable to retrieve user id %#q for direct message", message.Vars["_user.id"])
 			return
 		}
 	}

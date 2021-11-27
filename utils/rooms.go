@@ -3,6 +3,7 @@ package utils
 import (
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	"github.com/target/flottbot/models"
 )
 
@@ -15,7 +16,7 @@ func GetRoomIDs(wantRooms []string, bot *models.Bot) []string {
 		if roomMatch != "" {
 			rooms = append(rooms, roomMatch)
 		} else {
-			bot.Log.Error().Msgf("room '%s' does not exist", room)
+			log.Error().Msgf("room %#q does not exist", room)
 		}
 	}
 
