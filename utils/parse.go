@@ -10,28 +10,38 @@ import (
 )
 
 // Match checks given value against given pattern
-func Match(pattern, value string, trimInput bool) (string, bool) {
-	var regx *regexp.Regexp
-	re := strings.HasPrefix(pattern, "/") && strings.HasSuffix(pattern, "/")
+func Match(pattern, value string, trimValue bool) (string, bool) {
+	regx := new(regexp.Regexp)
+	// set the default regex pattern; assumes given pattern is not regex already
+	regxPattern := fmt.Sprintf(`(?i)^(%s$|%s[^\S])`, pattern, pattern)
+	// check if we're dealing with regex
+	isRegex := strings.HasPrefix(pattern, "/") && strings.HasSuffix(pattern, "/")
 
-	if re {
-		pattern = strings.Replace(pattern, "/", "", -1)
-		regx = regexp.MustCompile("(?i)" + pattern)
-	} else {
-		regx = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s$|%s[^\S])`, pattern, pattern))
+	// check if the given pattern was a regex expression
+	if isRegex {
+		regxPattern = fmt.Sprintf(`(?i)%s`, pattern[1:len(pattern)-1])
 	}
 
-	input := value
-	if trimInput {
-		input = strings.Replace(value, regx.FindString(value), "", 1)
+	// try to compile the regex,
+	regx, err := regexp.Compile(regxPattern)
+	if err != nil {
+		log.Error().Msgf("unsupported regex: %s", pattern)
+
+		return "", false
 	}
 
+	// check whether given value matches regex
 	matchFound := regx.MatchString(value)
 	if !matchFound {
 		return "", false
 	}
 
-	return strings.Trim(input, " "), regx.MatchString(value)
+	// remove the regex match from the given value and trim the space
+	if trimValue {
+		value = strings.Trim(strings.Replace(value, regx.FindString(value), "", 1), " ")
+	}
+
+	return value, matchFound
 }
 
 // Substitute checks given value for variables and looks them up
@@ -49,13 +59,13 @@ func Substitute(value string, tokens map[string]string) (string, error) {
 				if envTok != "" {
 					log.Warn().Msgf("you are using %s as %#q but it is also an environment variable. consider renaming.", tok, tok)
 				}
-				value = strings.Replace(value, hit, orDefault(tokens[tok], ""), -1)
+				value = strings.ReplaceAll(value, hit, orDefault(tokens[tok], ""))
 				continue
 			}
 			// Check if token is an environment variable
 			envTok := os.Getenv(tok)
 			if envTok != "" {
-				value = strings.Replace(value, hit, os.Getenv(tok), -1)
+				value = strings.ReplaceAll(value, hit, os.Getenv(tok))
 			} else {
 				err := fmt.Sprintf("Variable %#q has not been defined.", tok)
 				errs = append(errs, err)
@@ -98,7 +108,7 @@ func ExecArgTokenizer(stripped string) []string {
 func findVars(value string) (match bool, tokens []string) {
 	match = false
 	re := regexp.MustCompile(`\${([A-Za-z0-9:*_\|\-\.\?]+)}`)
-	tokens = re.FindAllString(strings.Replace(value, "$${", "X{", -1), -1)
+	tokens = re.FindAllString(strings.ReplaceAll(value, "$${", "X{"), -1)
 	if len(tokens) > 0 {
 		match = true
 	}
@@ -115,7 +125,7 @@ func orDefault(value, def string) string {
 
 // strip variable demarcations
 func strip(value string) (stripped string) {
-	stripped = strings.Replace(value, "${", "", -1)
-	stripped = strings.Replace(stripped, "}", "", -1)
+	stripped = strings.ReplaceAll(value, "${", "")
+	stripped = strings.ReplaceAll(stripped, "}", "")
 	return stripped
 }
