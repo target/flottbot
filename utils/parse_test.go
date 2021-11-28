@@ -26,6 +26,7 @@ func TestMatch(t *testing.T) {
 		{"Nospace", args{pattern: `command`, value: `commandarg`, trimInput: true}, "", false},
 		{"Space", args{pattern: `command`, value: `command `, trimInput: true}, "", true},
 		{"Fail", args{pattern: `command`, value: `dnammoc`, trimInput: true}, "", false},
+		{"Unsupported Regex", args{pattern: `/^(?!.*(hello|goodday|hi)).*issue.*$/`, value: `oh goodday what is the issue`, trimInput: true}, "", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
