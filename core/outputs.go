@@ -7,6 +7,7 @@ import (
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote/cli"
 	"github.com/target/flottbot/remote/discord"
+	"github.com/target/flottbot/remote/gchat"
 	"github.com/target/flottbot/remote/slack"
 	"github.com/target/flottbot/remote/telegram"
 )
@@ -52,6 +53,8 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 					Token: bot.TelegramToken,
 				}
 				remoteTelegram.Send(message, bot)
+			case "google_chat":
+				gchat.HandleRemoteOutput(message, bot)
 			default:
 				log.Error().Msgf("chat application %#q is not supported", chatApp)
 			}

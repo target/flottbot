@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/remote/gchat"
 	"github.com/target/flottbot/utils"
 )
 
@@ -81,6 +82,9 @@ func configureChatApplication(bot *models.Bot) {
 			}
 
 			bot.TelegramToken = token
+
+		case "google_chat":
+			gchat.Configure(bot)
 
 		default:
 			log.Error().Msgf("chat application %#q is not supported", bot.ChatApplication)
