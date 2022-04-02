@@ -34,7 +34,7 @@ $ go get -u github.com/target/flottbot/cmd/flottbot
 
 ### Binaries
 
-Binaries for Linux, macOS, and Windows are available as [Github Releases](/target/flottbot/releases/latest).
+Binaries for Linux, macOS, and Windows are available as [Github Releases](https://github.com/target/flottbot/releases/latest).
 
 ## Docker Images
 
@@ -44,9 +44,9 @@ We currently provide a few Docker images:
 
 [target/flottbot:ruby](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and ruby v2.7 installed
 
-[target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.16 installed
+[target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.17 installed
 
-[target/flottbot:python](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and python v3.9 installed
+[target/flottbot:python](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and python v3.10 installed
 
 _Note: We highly recommend pinning your image to a version, ie. `target/flottbot:0.5.0` or `target/flottbot:ruby-0.5.0`_
 
