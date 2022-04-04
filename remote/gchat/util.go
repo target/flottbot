@@ -1,13 +1,15 @@
 package gchat
 
 import (
+	"fmt"
+
 	"github.com/target/flottbot/models"
 	"google.golang.org/api/chat/v1"
 )
 
-// mapMessageType converts the type returned for a
+// getMessageType converts the type returned for a
 // Google Chat message to an internal, equivalent type
-func mapMessageType(event chat.DeprecatedEvent) models.MessageType {
+func getMessageType(event chat.DeprecatedEvent) (models.MessageType, error) {
 	msgType := models.MsgTypeUnknown
 
 	switch event.Type {
@@ -17,7 +19,14 @@ func mapMessageType(event chat.DeprecatedEvent) models.MessageType {
 		if event.Message.Space.SingleUserBotDm {
 			msgType = models.MsgTypeDirect
 		}
+
+	case "ADDED_TO_SPACE":
+		return msgType, fmt.Errorf("event %s not supported", event.Type)
+
+	default:
+		return msgType, fmt.Errorf("unable to handle unkown event type: %s", event.Type)
 	}
 
-	return msgType
+	return msgType, nil
+
 }

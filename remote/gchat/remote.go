@@ -55,6 +55,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 		message, err := toMessage(m)
 		if err != nil {
 			log.Error().Msg(err.Error())
+			return
 		}
 
 		// send to flotbot core for processing

@@ -55,27 +55,35 @@ func toMessage(m *pubsub.Message) (models.Message, error) {
 		return message, fmt.Errorf("google_chat was unable to parse event %s: %s", m.ID, err.Error())
 	}
 
-	message.Type = mapMessageType(event)
-	message.Input = strings.TrimPrefix(event.Message.ArgumentText, " ")
-	message.ID = event.Message.Name
-	message.Service = models.MsgServiceChat
-	message.ChannelName = event.Space.DisplayName
-	message.ChannelID = event.Space.Name
-	message.Timestamp = event.EventTime
-	message.BotMentioned = true // Google Chat only supports @bot mentions
-	message.DirectMessageOnly = event.Space.SingleUserBotDm
-	if event.Space.Threaded {
-		message.ThreadID = event.Message.Thread.Name
-		message.ThreadTimestamp = event.EventTime
+	msgType, err := getMessageType(event)
+	if err != nil {
+		return message, err
 	}
 
-	// make channel variables available
-	message.Vars["_channel.name"] = message.ChannelName // will be empty if it came via DM
-	message.Vars["_channel.id"] = message.ChannelID
-	message.Vars["_thread.id"] = message.ThreadID
+	message.Type = msgType
+	message.Timestamp = event.EventTime
 
-	// make timestamp information available
-	message.Vars["_source.timestamp"] = event.EventTime
+	if event.Type == "MESSAGE" {
+		message.Input = strings.TrimPrefix(event.Message.ArgumentText, " ")
+		message.ID = event.Message.Name
+		message.Service = models.MsgServiceChat
+		message.ChannelName = event.Space.DisplayName
+		message.ChannelID = event.Space.Name
+		message.BotMentioned = true // Google Chat only supports @bot mentions
+		message.DirectMessageOnly = event.Space.SingleUserBotDm
+		if event.Space.Threaded {
+			message.ThreadID = event.Message.Thread.Name
+			message.ThreadTimestamp = event.EventTime
+		}
+
+		// make channel variables available
+		message.Vars["_channel.name"] = message.ChannelName // will be empty if it came via DM
+		message.Vars["_channel.id"] = message.ChannelID
+		message.Vars["_thread.id"] = message.ThreadID
+
+		// make timestamp information available
+		message.Vars["_source.timestamp"] = event.EventTime
+	}
 
 	if event.User != nil {
 		message.Vars["_user.name"] = event.User.DisplayName
