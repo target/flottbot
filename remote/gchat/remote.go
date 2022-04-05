@@ -1,0 +1,113 @@
+package gchat
+
+import (
+	"context"
+
+	"cloud.google.com/go/pubsub"
+	"github.com/rs/zerolog/log"
+	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/remote"
+	"google.golang.org/api/chat/v1"
+	"google.golang.org/api/option"
+)
+
+/*
+=======================================
+Implementation for the Remote interface
+=======================================
+*/
+
+// Client struct
+type Client struct {
+	Credentials    string
+	ProjectID      string
+	SubscriptionID string
+}
+
+// validate that Client adheres to remote interface
+var _ remote.Remote = (*Client)(nil)
+
+// instantiate a new client
+func (c *Client) new() *pubsub.Client {
+	var ctx = context.Background()
+
+	client, err := pubsub.NewClient(ctx, c.ProjectID, option.WithCredentialsFile(c.Credentials))
+	if err != nil {
+		log.Error().Msgf("google_chat unable to authenticate: %s", err.Error())
+	}
+
+	return client
+}
+
+// Read messages from Google Chat
+func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
+	var ctx = context.Background()
+
+	// init client
+	client := c.new()
+
+	sub := client.Subscription(c.SubscriptionID)
+
+	err := sub.Receive(ctx, func(ctx context.Context, m *pubsub.Message) {
+		defer m.Ack()
+
+		// Convert Google Chat Message to Flottbot Message
+		message, err := toMessage(m)
+		if err != nil {
+			log.Error().Msg(err.Error())
+			return
+		}
+
+		// send to flotbot core for processing
+		inputMsgs <- message
+	})
+
+	if err != nil {
+		log.Fatal().Msgf("google_chat unable to create subscription against %s: %s", c.SubscriptionID, err.Error())
+	}
+
+	log.Info().Msgf("google_chat successfully subscribed to %s", c.SubscriptionID)
+}
+
+// Send messages to Google Chat
+func (c *Client) Send(message models.Message, bot *models.Bot) {
+	var ctx = context.Background()
+
+	service, err := chat.NewService(
+		ctx, option.WithCredentialsFile(c.Credentials),
+		option.WithScopes("https://www.googleapis.com/auth/chat.bot"),
+	)
+
+	if err != nil {
+		log.Fatal().Msgf("google_chat unable to create chat service: %s", err.Error())
+	}
+
+	msgService := chat.NewSpacesMessagesService(service)
+
+	// Best effort. If the instance goes away, so be it.
+	msg := &chat.Message{
+		Text: message.Output,
+	}
+
+	if message.ThreadID != "" {
+		msg.Thread = &chat.Thread{
+			Name: message.ThreadID,
+		}
+	}
+
+	_, err = msgService.Create(message.ChannelID, msg).Do()
+	if err != nil {
+		log.Error().Msgf("google_chat failed to create message: %s", err.Error())
+	}
+
+}
+
+// InteractiveComponents implementation to satisfy remote interface
+func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
+	// TODO: add support for InteractiveComponents with Google Chat Cards
+}
+
+// Reaction implementation to satisfy remote interface
+func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
+	// Not implemented for Google Chat
+}

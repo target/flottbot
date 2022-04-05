@@ -7,6 +7,7 @@ import (
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote/cli"
 	"github.com/target/flottbot/remote/discord"
+	"github.com/target/flottbot/remote/gchat"
 	"github.com/target/flottbot/remote/scheduler"
 	"github.com/target/flottbot/remote/slack"
 	"github.com/target/flottbot/remote/telegram"
@@ -59,6 +60,8 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 			}
 			// Read messages from Telegram
 			go remoteTelegram.Read(inputMsgs, rules, bot)
+		case "google_chat":
+			gchat.HandleRemoteInput(inputMsgs, rules, bot)
 		default:
 			log.Error().Msgf("chat application %#q is not supported", chatApp)
 		}

@@ -17,6 +17,7 @@ type Message struct {
 	Output            string
 	Error             string
 	Timestamp         string
+	ThreadID          string
 	ThreadTimestamp   string
 	BotMentioned      bool
 	DirectMessageOnly bool
