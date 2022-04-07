@@ -27,7 +27,7 @@ func findKey(m map[string]string, value string) (key string, ok bool) {
 
 // removeBotMention - parse out the preppended bot mention in a message
 func removeBotMention(contents, botID string) (string, bool) {
-	mention := fmt.Sprintf("<@!%s>", botID)
+	mention := fmt.Sprintf("<@%s>", botID)
 	wasMentioned := false
 
 	if strings.HasPrefix(contents, mention) {
