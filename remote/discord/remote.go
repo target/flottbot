@@ -81,7 +81,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	// Wait here until CTRL-C or other term signal is received
 	log.Info().Msgf("discord is now running %#q - press ctrl-c to exit", bot.Name)
 
-	// get informatiom about ourself
+	// get information about ourself
 	botuser, err := dg.User("@me")
 	if err != nil {
 		log.Error().Msgf("failed to get bot name from discord - error: %v", err)
@@ -195,12 +195,7 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 				log.Error().Msg("discord: failed to retrieve channel")
 			}
 
-			t, err := m.Timestamp.Parse()
-			if err != nil {
-				log.Error().Msgf("discord remote: failed to parse message timestamp")
-			}
-
-			timestamp := strconv.FormatInt(t.Unix(), 10)
+			timestamp := strconv.FormatInt(m.Timestamp.Unix(), 10)
 
 			switch ch.Type {
 			case discordgo.ChannelTypeDM:
