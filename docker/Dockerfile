@@ -1,6 +1,5 @@
 FROM golang:1.18-alpine AS build
 ARG VERSION
-ARG GIT_HASH
 
 WORKDIR /src
 
@@ -11,7 +10,7 @@ RUN go mod download
 COPY / .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-  go build -a -ldflags "-s -w -X github.com/target/flottbot/version.Version=${VERSION} -X github.com/target/flottbot/version.GitHash=${GIT_HASH}" \
+  go build -a -ldflags "-s -w -X github.com/target/flottbot/version.Version=${VERSION} \
   -o flottbot ./cmd/flottbot
 
 FROM alpine:3.15
