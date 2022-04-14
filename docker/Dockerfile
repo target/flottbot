@@ -10,7 +10,7 @@ RUN go mod download
 COPY / .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-  go build -a -ldflags "-s -w -X github.com/target/flottbot/version.Version=${VERSION} \
+  go build -a -ldflags "-s -w -X github.com/target/flottbot/version.Version=${VERSION}" \
   -o flottbot ./cmd/flottbot
 
 FROM alpine:3.15
