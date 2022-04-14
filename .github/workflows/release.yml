@@ -12,7 +12,7 @@ jobs:
   binary:
     runs-on: ubuntu-latest
     container:
-      image: golang:1.17
+      image: golang:1.18
     steps:
       - name: clone
         uses: actions/checkout@v3
@@ -29,7 +29,7 @@ jobs:
       - name: run goreleaser
         uses: goreleaser/goreleaser-action@v2
         with:
-          version: "1.17"
+          version: "1.18"
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
