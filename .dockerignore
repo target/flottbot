@@ -1,4 +1,11 @@
+# ignore everything
 *
+
+# needed for go 1.18 build
+!.git/
+!.gitignore
+
+# app files
 !cmd/
 !core/
 !handlers/

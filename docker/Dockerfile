@@ -1,5 +1,8 @@
-FROM golang:1.18-alpine AS build
+FROM docker.io/golang:1.18-alpine@sha256:42d35674864fbb577594b60b84ddfba1be52b4d4298c961b46ba95e9fb4712e8 AS build
 ARG VERSION
+
+# needed for vcs feature introduced in go 1.18
+RUN apk add --no-cache git
 
 WORKDIR /src
 
@@ -13,13 +16,16 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
   go build -a -ldflags "-s -w -X github.com/target/flottbot/version.Version=${VERSION}" \
   -o flottbot ./cmd/flottbot
 
-FROM alpine:3.15
+FROM docker.io/alpine:3.15@sha256:4edbd2beb5f78b1014028f4fbb99f3237d9561100b6881aabbf5acce2c4f9454
+
 ENV USERNAME=flottbot
 ENV GROUP=flottbot
 ENV UID=900
 ENV GID=900
+
 RUN apk --no-cache add ca-certificates && mkdir config && \
   addgroup -g "$GID" -S "$GROUP" && adduser -S -u "$UID" -G "$GROUP" "$USERNAME"
+
 COPY --from=build /src/flottbot /flottbot
 
 EXPOSE 3000 4000 8080
