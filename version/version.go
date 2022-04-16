@@ -2,25 +2,30 @@ package version
 
 import (
 	"fmt"
+	"runtime/debug"
 
 	"github.com/Masterminds/semver/v3"
 )
 
-var (
-	// Version supplies the semantic version
-	Version string
-	// GitHash supplies the git sha hash used
-	GitHash string
-)
+// Version supplies the semantic version
+var Version string
 
 // String prints the build information for the bot
 func String() string {
+	hash := "unknown"
+
 	_, err := semver.NewVersion(Version)
 	if err != nil {
-		Version = "Dev build (no valid version)"
+		Version = "dev"
 	}
-	if GitHash == "" {
-		GitHash = "N/A"
+
+	if info, ok := debug.ReadBuildInfo(); ok {
+		for _, s := range info.Settings {
+			if s.Key == "vcs.revision" {
+				hash = s.Value
+			}
+		}
 	}
-	return fmt.Sprintf("Version : %s\nGit Hash: %s\n", Version, GitHash)
+
+	return fmt.Sprintf("Version : %s\nGit Hash: %s\n", Version, hash)
 }

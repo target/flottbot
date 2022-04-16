@@ -42,13 +42,13 @@ We currently provide a few Docker images:
 
 [target/flottbot](https://hub.docker.com/r/target/flottbot) - Alpine image and flottbot binary installed
 
-[target/flottbot:ruby](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and ruby v2.7 installed
+[target/flottbot:ruby](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and ruby v3.1 installed
 
 [target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.18 installed
 
 [target/flottbot:python](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and python v3.10 installed
 
-_Note: We highly recommend pinning your image to a version, ie. `target/flottbot:0.5.0` or `target/flottbot:ruby-0.5.0`_
+_Note: We highly recommend pinning your image to a version, ie. `target/flottbot:0.10.0` or `target/flottbot:ruby-0.10.0`_
 
 _Note: The images run with the unprivileged `flottbot` user (uid/gid 900) by default_
 
@@ -62,13 +62,14 @@ $ helm install helm/flottbot/
 
 ## Available remotes
 
-| Remote                            | Status | Documentation                                                  |
-| --------------------------------- | ------ | -------------------------------------------------------------- |
-| [Slack](https://slack.com)        | ✔      | [Docs](https://target.github.io/flottbot-docs/basics/slack/)   |
-| [Discord](https://discordapp.com) | 🚧     | [Docs](https://target.github.io/flottbot-docs/basics/discord/) |
-| [Telegram](https://telegram.org)  | 🚧     | coming soon                                                    |
+| Remote                              | Status | Documentation                                                      |
+| ----------------------------------- | ------ | ------------------------------------------------------------------ |
+| [Slack](https://slack.com)          | ✔      | [Docs](https://target.github.io/flottbot-docs/basics/slack/)       |
+| [Discord](https://discordapp.com)   | 🚧     | [Docs](https://target.github.io/flottbot-docs/basics/discord/)     |
+| [Google Chat](https://telegram.org) | 🚧     | [Docs](https://target.github.io/flottbot-docs/basics/google-chat/) |
+| [Telegram](https://telegram.org)    | 🚧     | coming soon                                                        |
 
-✔ = Done 🚧 = in progress
+✔ = Done 🚧 = in progress (functional but some features may not work)
 
 ## Documentation
 

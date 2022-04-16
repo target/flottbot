@@ -1,13 +1,11 @@
 PWD := $(shell pwd)
 GOPATH := $(shell go env GOPATH)
-GIT_HASH := $(shell git log -1 --pretty=format:"%H")
 VERSION := $(shell git describe --tags --always)
 GOARCH := $(shell go env GOARCH)
 GOOS := $(shell go env GOOS)
 BUILD_LDFLAGS := -s -w
 BUILD_LDFLAGS += -X github.com/target/flottbot/version.Version=${VERSION}
-BUILD_LDFLAGS += -X github.com/target/flottbot/version.GitHash=${GIT_HASH}
-GOLANGCI_LINT_VERSION := "v1.42.1"
+GOLANGCI_LINT_VERSION := "v1.45.2"
 PACKAGES := $(shell go list ./... | grep -v /config-example/)
 
 DOCKER_IMAGE ?= "target/flottbot"
@@ -83,7 +81,6 @@ docker-base:
 	@echo "Creating base $@ image"
 	@docker build \
 		--build-arg "VERSION=$(VERSION)" \
-		--build-arg "GIT_HASH=$(GIT_HASH)" \
 		-f "./docker/Dockerfile" \
 		-t $(DOCKER_IMAGE):$(VERSION) \
 		-t $(DOCKER_IMAGE):latest .
@@ -94,7 +91,6 @@ docker-flavors:
 		echo "Creating image for $$flavor"; \
 		docker build \
 			--build-arg "VERSION=$(VERSION)" \
-			--build-arg "GIT_HASH=$(GIT_HASH)" \
 			-f "./docker/Dockerfile.$$flavor" \
 			-t $(DOCKER_IMAGE):$$flavor \
 			-t $(DOCKER_IMAGE):$$flavor-$(VERSION) .; \
