@@ -6,7 +6,6 @@ package scheduler
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/robfig/cron/v3"
@@ -40,7 +39,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	for {
 		_nil := bot.Rooms[""]
 		if len(bot.Rooms) > 0 {
-			log.Info().Msgf("scheduler connected to %#q channels: %s", strings.Title(bot.ChatApplication), _nil)
+			log.Info().Msgf("scheduler connected to %#q channels: %s", bot.ChatApplication, _nil)
 			break
 		}
 	}

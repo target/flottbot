@@ -15,7 +15,6 @@ import (
 
 // Match checks given value against given pattern.
 func Match(pattern, value string, trimValue bool) (string, bool) {
-	regx := new(regexp.Regexp)
 	// set the default regex pattern; assumes given pattern is not regex already
 	regxPattern := fmt.Sprintf(`(?i)^(%s$|%s[^\S])`, pattern, pattern)
 	// check if we're dealing with regex

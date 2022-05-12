@@ -37,7 +37,7 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 	// Run a chat application
 	if bot.ChatApplication != "" {
 		chatApp := strings.ToLower(bot.ChatApplication)
-		log.Info().Msgf("running %#q on %#q", bot.Name, strings.Title(chatApp))
+		log.Info().Msgf("running %#q on %#q", bot.Name, chatApp)
 
 		switch chatApp {
 		// Setup remote to use the Discord client to read from Discord
