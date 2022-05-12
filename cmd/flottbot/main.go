@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package main
 
 import (
@@ -39,6 +43,7 @@ func main() {
 	// set some early defaults for the logger
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnixMs
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+
 	log.Logger = log.Output(os.Stdout).With().Logger()
 
 	// Configure the bot to the core framework
@@ -57,6 +62,7 @@ func main() {
 	// - process 2: core.Matcher - processes messages
 	// - process 3: core.Outputs - sends out messages
 	var wg sync.WaitGroup
+
 	wg.Add(3)
 
 	go core.Remotes(inputMsgs, rules, bot)

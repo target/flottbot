@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package handlers
 
 import (
@@ -144,6 +148,7 @@ func Test_prepRequestData(t *testing.T) {
 		data       map[string]interface{}
 		msg        *models.Message
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -153,6 +158,7 @@ func Test_prepRequestData(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1, err := prepRequestData(tt.args.url, tt.args.actionType, tt.args.data, tt.args.msg)

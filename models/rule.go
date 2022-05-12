@@ -1,6 +1,10 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package models
 
-// Rule is a struct representation of the .yml rules
+// Rule is a struct representation of the .yml rules.
 type Rule struct {
 	Name               string   `mapstructure:"name" binding:"required"`
 	Respond            string   `mapstructure:"respond" binding:"omitempty"`

@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package handlers
 
 import (
@@ -11,13 +15,15 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/utils"
 )
 
-// HTTPReq handles 'http' actions for rules
+// HTTPReq handles 'http' actions for rules.
 func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, error) {
 	log.Info().Msgf("executing http request for action %#q", args.Name)
+
 	if args.Timeout == 0 {
 		// Default HTTP Timeout of 10 seconds
 		args.Timeout = 10
@@ -50,6 +56,7 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 		log.Error().Msg("failed to create a new http request")
 		return nil, err
 	}
+
 	req.Close = true
 
 	// Add custom headers to request
@@ -59,6 +66,7 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 			log.Error().Msg("failed substituting variables in custom headers")
 			return nil, err
 		}
+
 		req.Header.Add(k, value)
 	}
 
@@ -93,7 +101,7 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 	return &result, nil
 }
 
-// Depending on the type of request we want to deal with the payload accordingly
+// Depending on the type of request we want to deal with the payload accordingly.
 func prepRequestData(url, actionType string, data map[string]interface{}, msg *models.Message) (string, io.Reader, error) {
 	if len(data) > 0 {
 		if actionType == http.MethodGet {
@@ -101,7 +109,9 @@ func prepRequestData(url, actionType string, data map[string]interface{}, msg *m
 			if err != nil {
 				return url, nil, err
 			}
+
 			url = fmt.Sprintf("%s?%s", url, query)
+
 			return url, nil, nil
 		}
 
@@ -116,42 +126,48 @@ func prepRequestData(url, actionType string, data map[string]interface{}, msg *m
 	return url, nil, nil
 }
 
-// Unmarshal arbitrary JSON
+// Unmarshal arbitrary JSON.
 func extractFields(raw []byte) (interface{}, error) {
 	var resp map[string]interface{}
 
 	err := json.Unmarshal(raw, &resp)
 	if err != nil {
 		var arrResp []map[string]interface{}
+
 		err := json.Unmarshal(raw, &arrResp)
 		if err != nil {
 			return string(raw), nil
 		}
+
 		return arrResp, nil
 	}
 
 	return resp, nil
 }
 
-// Create GET query string
+// Create GET query string.
 func createGetQuery(data map[string]interface{}, msg *models.Message) (string, error) {
 	u := url.Values{}
+
 	for k, v := range data {
 		subv, err := utils.Substitute(v.(string), msg.Vars)
 		if err != nil {
 			return "", err
 		}
+
 		u.Add(k, subv)
 	}
+
 	encoded := u.Encode()                              // uses QueryEscape
 	encoded = strings.Replace(encoded, "+", "%20", -1) // replacing + with more reliable %20
 
 	return encoded, nil
 }
 
-// Create querydata payload for non-GET requests
+// Create querydata payload for non-GET requests.
 func createJSONPayload(data map[string]interface{}, msg *models.Message) (string, error) {
 	dataNice := utils.MakeNiceJSON(data)
+
 	str, err := json.Marshal(dataNice)
 	if err != nil {
 		return "", err

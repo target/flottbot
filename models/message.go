@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package models
 
 import (
@@ -6,7 +10,7 @@ import (
 	"github.com/rs/xid"
 )
 
-// Message is the struct of the main data structure being passed around for each message generated
+// Message is the struct of the main data structure being passed around for each message generated.
 type Message struct {
 	ID                string
 	Type              MessageType
@@ -33,10 +37,10 @@ type Message struct {
 	SourceLink        string
 }
 
-// MessageType is used to differentiate between different message types
+// MessageType is used to differentiate between different message types.
 type MessageType int
 
-// Supported MessageTypes
+// Supported MessageTypes.
 const (
 	MsgTypeUnknown MessageType = iota
 	MsgTypeDirect
@@ -44,10 +48,10 @@ const (
 	MsgTypePrivateChannel
 )
 
-// MessageService is used to differentiate between different message services
+// MessageService is used to differentiate between different message services.
 type MessageService int
 
-// Supported MessageServices
+// Supported MessageServices.
 const (
 	MsgServiceUnknown MessageService = iota
 	MsgServiceChat
@@ -55,17 +59,17 @@ const (
 	MsgServiceScheduler
 )
 
-// GenerateMessageID generates a random ID for a message
+// GenerateMessageID generates a random ID for a message.
 func GenerateMessageID() string {
 	return xid.New().String()
 }
 
-// MessageTimestamp timestamps the message
+// MessageTimestamp timestamps the message.
 func MessageTimestamp() int64 {
 	return time.Now().Unix()
 }
 
-// NewMessage creates a new message with initialized fields
+// NewMessage creates a new message with initialized fields.
 func NewMessage() Message {
 	return Message{
 		ID:            GenerateMessageID(),

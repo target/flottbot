@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package utils
 
 import (
@@ -13,10 +17,9 @@ var (
 	errPathOther     = errors.New("there was an error attempting to access the directory")
 )
 
-// PathExists helps determine whether a path exists
+// PathExists helps determine whether a path exists.
 func PathExists(p string) (string, error) {
 	ex, err := os.Executable()
-
 	if err != nil {
 		return "", errCurrPath
 	}
@@ -28,7 +31,8 @@ func PathExists(p string) (string, error) {
 		if os.IsNotExist(err) {
 			return "", fmt.Errorf(errPathNotExists.Error(), p, fullPath)
 		}
-		return "", fmt.Errorf("%s: %v", errPathOther.Error(), err)
+
+		return "", fmt.Errorf("%s: %w", errPathOther.Error(), err)
 	}
 
 	return fullPath, nil

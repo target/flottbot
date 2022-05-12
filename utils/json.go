@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package utils
 
 import "fmt"
@@ -8,10 +12,11 @@ func MakeNiceJSON(in map[string]interface{}) map[string]interface{} {
 	for k, v := range tmp {
 		tmp[k] = convertKeys(v)
 	}
+
 	return tmp
 }
 
-// recursive function to deal with all the types
+// recursive function to deal with all the types.
 func convertKeys(in interface{}) interface{} {
 	switch in := in.(type) {
 	case []interface{}:
@@ -19,12 +24,14 @@ func convertKeys(in interface{}) interface{} {
 		for i, v := range in {
 			res[i] = convertKeys(v)
 		}
+
 		return res
 	case map[interface{}]interface{}:
 		res := make(map[string]interface{})
 		for k, v := range in {
 			res[fmt.Sprintf("%v", k)] = convertKeys(v)
 		}
+
 		return res
 	default:
 		return in

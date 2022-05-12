@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package discord
 
 import (
@@ -5,6 +9,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/rs/zerolog/log"
+
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote"
 )
@@ -15,15 +20,15 @@ Implementation for the Remote interface
 =======================================
 */
 
-// Client struct
+// Client struct.
 type Client struct {
 	Token string
 }
 
-// validate that Client adheres to remote interface
+// validate that Client adheres to remote interface.
 var _ remote.Remote = (*Client)(nil)
 
-// creates a new Discord session
+// creates a new Discord session.
 func (c *Client) new() *discordgo.Session {
 	// Create a new Discord session using the provided bot token
 	dg, err := discordgo.New("Bot " + c.Token)
@@ -32,6 +37,11 @@ func (c *Client) new() *discordgo.Session {
 	}
 
 	return dg
+}
+
+// Name returns the name of the remote.
+func (c *Client) Name() string {
+	return "discord"
 }
 
 // Reaction implementation to satisfy remote interface
@@ -65,7 +75,7 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 	}
 }
 
-// Read implementation to satisfy remote interface
+// Read implementation to satisfy remote interface.
 func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
 	dg := c.new()
 	if dg == nil {
@@ -150,7 +160,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	dg.AddHandler(handleDiscordMessage(bot, inputMsgs))
 }
 
-// Send implementation to satisfy remote interface
+// Send implementation to satisfy remote interface.
 func (c *Client) Send(message models.Message, bot *models.Bot) {
 	dg := c.new()
 
@@ -165,13 +175,13 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	}
 }
 
-// InteractiveComponents implementation to satisfy remote interface
+// InteractiveComponents implementation to satisfy remote interface.
 func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
 	// not implemented for Discord
 }
 
 // This function will be called (due to AddHandler above) every time a new
-// message is created on any channel that the authenticated bot has access to
+// message is created on any channel that the authenticated bot has access to.
 func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) interface{} {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// check if we should respond to bot messages
@@ -186,6 +196,7 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 
 		// Process message
 		message := models.NewMessage()
+
 		switch m.Type {
 		case discordgo.MessageTypeDefault:
 			var msgType models.MessageType
@@ -204,6 +215,7 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 				msgType = models.MsgTypeChannel
 			default:
 				msgType = models.MsgTypeChannel
+
 				log.Warn().Msgf("discord: read message from unsupported channel type '%d' - defaulting to use channel type 0 ('GUILD_TEXT')", ch.Type)
 			}
 

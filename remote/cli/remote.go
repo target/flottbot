@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package cli
 
 import (
@@ -8,29 +12,35 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog/log"
+
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote"
 	"github.com/target/flottbot/version"
 )
 
-// Client struct
-type Client struct {
-}
+// Client struct.
+type Client struct{}
 
-// validate that Client adheres to remote interface
+// validate that Client adheres to remote interface.
 var _ remote.Remote = (*Client)(nil)
 
-// Reaction implementation to satisfy remote interface
+// Name returns the name of the remote.
+func (c *Client) Name() string {
+	return "cli"
+}
+
+// Reaction implementation to satisfy remote interface.
 func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
 	// not implemented for CLI
 }
 
-// Read implementation to satisfy remote interface
+// Read implementation to satisfy remote interface.
 func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
 	user := bot.CLIUser
 	if user == "" {
 		user = "Flottbot-CLI-User"
 	}
+
 	fmt.Print(`
      ( )
 .-----'-----.
@@ -41,6 +51,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	fmt.Println(version.String())
 	fmt.Print("Entering CLI mode. <Ctrl-C> to exit.\n\n")
 	fmt.Print(user + "> ")
+
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		req := scanner.Text()
@@ -60,15 +71,16 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 			fmt.Print(user + "> ")
 		}
 	}
+
 	if err := scanner.Err(); err != nil {
 		log.Error().Msgf("Error reading standard input: %v", err)
 	}
 }
 
-// Send implementation to satisfy remote interface
+// Send implementation to satisfy remote interface.
 func (c *Client) Send(message models.Message, bot *models.Bot) {
-	var re = regexp.MustCompile(`(?m)^(.*)`)
-	var substitution = fmt.Sprintf(`%s> $1`, bot.Name)
+	re := regexp.MustCompile(`(?m)^(.*)`)
+	substitution := fmt.Sprintf(`%s> $1`, bot.Name)
 
 	user := bot.CLIUser
 	if user == "" {
@@ -83,7 +95,7 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	w.Flush()
 }
 
-// InteractiveComponents implementation to satisfy remote interface
+// InteractiveComponents implementation to satisfy remote interface.
 func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
 	// not implemented for CLI
 }

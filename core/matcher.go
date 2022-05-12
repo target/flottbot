@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package core
 
 import (
@@ -18,7 +22,7 @@ import (
 	"github.com/target/flottbot/utils"
 )
 
-// Matcher will search through the map of loaded rules, determine if a rule was hit, and process said rule to be sent out as a message
+// Matcher will search through the map of loaded rules, determine if a rule was hit, and process said rule to be sent out as a message.
 func Matcher(inputMsgs <-chan models.Message, outputMsgs chan<- models.Message, rules map[string]models.Rule, hitRule chan<- models.Rule, bot *models.Bot) {
 	for {
 		message := <-inputMsgs
@@ -59,7 +63,7 @@ RuleSearch:
 	}
 }
 
-// getProccessedInputAndHitValue gets the processed input from the message input and the true/false if it was a successfully hit rule
+// getProccessedInputAndHitValue gets the processed input from the message input and the true/false if it was a successfully hit rule.
 func getProccessedInputAndHitValue(messageInput, ruleRespondValue, ruleHearValue string) (string, bool) {
 	processedInput, hit := "", false
 	if ruleRespondValue != "" {
@@ -67,13 +71,15 @@ func getProccessedInputAndHitValue(messageInput, ruleRespondValue, ruleHearValue
 	} else if ruleHearValue != "" { // Are we listening to everything?
 		_, hit = utils.Match(ruleHearValue, messageInput, false)
 	}
+
 	return processedInput, hit
 }
 
-// handleChatServiceRule handles the processing logic for a rule that came from either the chat application or CLI remote
-// nolint:gocyclo // mark for refactor
+// handleChatServiceRule handles the processing logic for a rule that came from either the chat application or CLI remote.
+// nolint:gocyclo // refactor candidate
 func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Message, hitRule chan<- models.Rule, rule models.Rule, processedInput string, hit bool, bot *models.Bot) (bool, bool) {
 	match, stopSearch := false, false
+
 	if rule.Respond != "" || rule.Hear != "" {
 		// You can only use 'respond' OR 'hear'
 		if rule.Respond != "" && rule.Hear != "" {
@@ -141,27 +147,34 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 				// prevent actions from being run; exit early
 				return match, stopSearch
 			}
+
 			msg := deepcopy.Copy(message).(models.Message)
+
 			go doRuleActions(msg, outputMsgs, rule, hitRule, bot)
+
 			return match, stopSearch
 		}
 	}
+
 	return match, stopSearch
 }
 
-// handleSchedulerServiceRule handles the processing logic for a rule that came from the Scheduler remote
+// handleSchedulerServiceRule handles the processing logic for a rule that came from the Scheduler remote.
 func handleSchedulerServiceRule(outputMsgs chan<- models.Message, message models.Message, hitRule chan<- models.Rule, rule models.Rule, bot *models.Bot) (bool, bool) {
 	match, stopSearch := false, false
 	if rule.Schedule != "" && rule.Name == message.Attributes["from_schedule"] {
 		match, stopSearch = true, true // Don't go through more rules if rule is matched
 		msg := deepcopy.Copy(message).(models.Message)
+
 		go doRuleActions(msg, outputMsgs, rule, hitRule, bot)
+
 		return match, stopSearch
 	}
+
 	return match, stopSearch
 }
 
-// handleNoMatch - handles logic for unmatched rule
+// handleNoMatch - handles logic for unmatched rule.
 func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hitRule chan<- models.Rule, rules map[string]models.Rule, bot *models.Bot) {
 	// If bot was addressed or was private messaged, print help text by default
 	if message.Type == models.MsgTypeDirect || message.BotMentioned {
@@ -191,7 +204,7 @@ func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hit
 	}
 }
 
-// isValidHitChatRule does additional checks on a successfully hit rule that came from the chat or CLI service
+// isValidHitChatRule does additional checks on a successfully hit rule that came from the chat or CLI service.
 func isValidHitChatRule(message *models.Message, rule models.Rule, processedInput string, bot *models.Bot) bool {
 	// Check to honor allow_users or allow_usergroups
 	canRunRule := utils.CanTrigger(message.Vars["_user.name"], message.Vars["_user.id"], rule, bot)
@@ -201,47 +214,61 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 		// message.DirectMessageOnly = true
 		message.Type = models.MsgTypeDirect
 		message.IsEphemeral = true
+
 		return false
 	}
 	// If this wasn't a 'hear' rule, handle the args
 	if rule.Hear == "" {
 		// Get all the args that the message sender supplied
 		args := utils.RuleArgTokenizer(processedInput)
-		var optionalArgs int
-		var requiredArgs int
-		var varArgs int
+
+		var (
+			optionalArgs int
+			requiredArgs int
+			varArgs      int
+		)
+
 		// take note of all optional args that end with a '?'
 		for _, arg := range rule.Args {
 			if strings.HasSuffix(arg, "?") {
 				optionalArgs++
 			}
+
 			if strings.HasSuffix(arg, "+") {
 				varArgs++
 			}
 		}
+
 		if varArgs > 1 {
 			// error, can ony have 1
 			message.Output = "you cannot specify more than 1 variable argument"
+
 			return false
 		}
+
 		if len(rule.Args) > 0 && strings.HasSuffix(rule.Args[len(rule.Args)-1], "+") {
 			if optionalArgs > 0 {
 				// error, cannot combine optional and varargs
 				message.Output = "you cannot combine optional arguments with variable arguments"
+
 				return false
 			}
 		} else if varArgs == 1 {
 			// error, vararg but not in last position
 			message.Output = "you must specify the variable argument in the last argument position"
+
 			return false
 		}
+
 		// ensure we only require args that don't end with '?'
 		requiredArgs = len(rule.Args) - optionalArgs
+
 		// Are we expecting a number of args but don't have as many as the rule defines? Send a helpful message
 		if len(rule.Args) > 0 && requiredArgs > len(args) {
 			message.Output = fmt.Sprintf("you might be missing an argument or two - this is what i'm looking for\n```%s```", rule.HelpText)
 			return false
 		}
+
 		// Go through the supplied args and make them available as variables
 		for index, arg := range rule.Args {
 			// If this is a varag method, then join all the remaining args and end
@@ -249,8 +276,10 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 				message.Vars[strings.TrimSuffix(arg, "+")] = strings.Join(args[index:], " ")
 				break
 			}
+
 			// strip '?' from end of arg
 			arg = strings.TrimSuffix(arg, "?")
+
 			// index starts at 0 so we need to account for that
 			if index > (len(args) - 1) {
 				message.Vars[arg] = ""
@@ -259,10 +288,11 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 			}
 		}
 	}
+
 	return true
 }
 
-// core handler routing for all allowed actions
+// core handler routing for all allowed actions.
 func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rule models.Rule, hitRule chan<- models.Rule, bot *models.Bot) {
 	// React to message which triggered rule
 	if rule.Reaction != "" {
@@ -341,7 +371,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 	hitRule <- rule
 }
 
-// craftResponse handles format_output to make the final message from the bot user-friendly
+// craftResponse handles format_output to make the final message from the bot user-friendly.
 func craftResponse(rule models.Rule, msg models.Message) (string, error) {
 	// The user removed the 'format_output' field, or it's not set
 	if rule.FormatOutput == "" {
@@ -376,6 +406,7 @@ func craftResponse(rule models.Rule, msg models.Message) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
 		buf := new(bytes.Buffer)
 
 		err = t.Execute(buf, i)
@@ -389,7 +420,7 @@ func craftResponse(rule models.Rule, msg models.Message) (string, error) {
 	return output, err
 }
 
-// Handle script execution actions
+// Handle script execution actions.
 func handleExec(action models.Action, msg *models.Message) error {
 	if action.Cmd == "" {
 		return fmt.Errorf("no command was supplied for the %#q action named: %s", action.Type, action.Name)
@@ -408,7 +439,7 @@ func handleExec(action models.Action, msg *models.Message) error {
 	return nil
 }
 
-// Handle HTTP call actions
+// Handle HTTP call actions.
 func handleHTTP(action models.Action, msg *models.Message) error {
 	if action.URL == "" {
 		return fmt.Errorf("no URL was supplied for the %#q action named: %s", action.Type, action.Name)
@@ -447,6 +478,7 @@ func handleHTTP(action models.Action, msg *models.Message) error {
 			} else {
 				t, err = template.New(k).Funcs(sprig.FuncMap()).Parse(fmt.Sprintf(`{{%s}}`, v))
 			}
+
 			if err != nil {
 				return err
 			}
@@ -465,7 +497,7 @@ func handleHTTP(action models.Action, msg *models.Message) error {
 	return nil
 }
 
-// Handle standard message/logging actions
+// Handle standard message/logging actions.
 func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *models.Message, direct, startMsgThread bool, hitRule chan<- models.Rule, bot *models.Bot) error {
 	if action.Message == "" {
 		return fmt.Errorf("no message was set")
@@ -508,16 +540,17 @@ func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *
 	// Send out message
 	outputMsgs <- *msg
 	hitRule <- models.Rule{}
+
 	return nil
 }
 
-// Handle initial emoji reaction when rule is matched
+// Handle initial emoji reaction when rule is matched.
 func handleReaction(outputMsgs chan<- models.Message, msg *models.Message, hitRule chan<- models.Rule, rule models.Rule) {
 	outputMsgs <- *msg
 	hitRule <- rule
 }
 
-// Update emoji reaction when specified
+// Update emoji reaction when specified.
 func updateReaction(action models.Action, rule *models.Rule, vars map[string]string, bot *models.Bot) {
 	if action.Reaction != "" && rule.Reaction != "" {
 		// Check if the value contains html/template code
@@ -527,22 +560,27 @@ func updateReaction(action models.Action, rule *models.Rule, vars map[string]str
 				log.Error().Msg(err.Error())
 				return
 			}
+
 			action.Reaction = reaction
 
-			var t *template.Template
-			var i interface{}
+			var (
+				t *template.Template
+				i interface{}
+			)
 
 			t, err = template.New("update_reaction").Funcs(sprig.FuncMap()).Parse(action.Reaction)
 			if err != nil {
 				log.Error().Msgf("failed to update reaction %#q", rule.Reaction)
 				return
 			}
+
 			buf := new(bytes.Buffer)
 
 			err = t.Execute(buf, i)
 			if err != nil {
 				return
 			}
+
 			rule.RemoveReaction = rule.Reaction
 			action.Reaction = buf.String()
 			action.Reaction = strings.TrimSpace(action.Reaction)

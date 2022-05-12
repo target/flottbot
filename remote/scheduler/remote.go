@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package scheduler
 
 import (
@@ -7,18 +11,23 @@ import (
 
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
+
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote"
 )
 
-// Client struct
-type Client struct {
-}
+// Client struct.
+type Client struct{}
 
-// validate that Client adheres to remote interface
+// validate that Client adheres to remote interface.
 var _ remote.Remote = (*Client)(nil)
 
-// Reaction implementation to satisfy remote interface
+// Name returns the name of the remote.
+func (c *Client) Name() string {
+	return "scheduler"
+}
+
+// Reaction implementation to satisfy remote interface.
 func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
 	// not implemented for Scheduler
 }
@@ -98,6 +107,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 				// more verbose log. note: will probably convey that spec
 				// needs to be 6 fields, although any supported format will work.
 				log.Debug().Msgf("error while adding job: %v", err)
+
 				continue
 			}
 
@@ -113,27 +123,29 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	processJobs(jobs)
 }
 
-// Send implementation to satisfy remote interface
+// Send implementation to satisfy remote interface.
 func (c *Client) Send(message models.Message, bot *models.Bot) {
 	// not implemented for Scheduler
 }
 
-// InteractiveComponents implementation to satisfy remote interface
+// InteractiveComponents implementation to satisfy remote interface.
 func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
 	// not implemented for Scheduler
 }
 
-// Process the Cron jobs
+// Process the Cron jobs.
 func processJobs(jobs []*cron.Cron) {
 	// Create wait group for cron jobs and execute them
 	wg := &sync.WaitGroup{}
 	wg.Add(len(jobs))
+
 	for _, job := range jobs {
 		go func(c *cron.Cron) {
 			c.Start()
 		}(job)
 		defer job.Stop()
 	}
+
 	wg.Wait()
 	log.Warn().Msg("scheduler is closing")
 }

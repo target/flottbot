@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package utils
 
 import (
@@ -9,7 +13,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// Match checks given value against given pattern
+// Match checks given value against given pattern.
 func Match(pattern, value string, trimValue bool) (string, bool) {
 	regx := new(regexp.Regexp)
 	// set the default regex pattern; assumes given pattern is not regex already
@@ -49,6 +53,7 @@ func Match(pattern, value string, trimValue bool) (string, bool) {
 // either in the supplied map, or from environment variables.
 func Substitute(value string, tokens map[string]string) (string, error) {
 	var errs []string
+
 	if match, hits := findVars(value); match {
 		for _, hit := range hits {
 			tok := strip(hit)
@@ -59,11 +64,14 @@ func Substitute(value string, tokens map[string]string) (string, error) {
 				if envTok != "" {
 					log.Warn().Msgf("you are using %s as %#q but it is also an environment variable. consider renaming.", tok, tok)
 				}
+
 				value = strings.ReplaceAll(value, hit, orDefault(tokens[tok], ""))
+
 				continue
 			}
 			// Check if token is an environment variable
 			envTok := os.Getenv(tok)
+
 			if envTok != "" {
 				value = strings.ReplaceAll(value, hit, os.Getenv(tok))
 			} else {
@@ -77,10 +85,11 @@ func Substitute(value string, tokens map[string]string) (string, error) {
 		errMsg := strings.Join(errs, " ")
 		return value, fmt.Errorf(errMsg)
 	}
+
 	return value, nil
 }
 
-// RuleArgTokenizer goes through a string and tokenizes as parameters for use when identifying rules to be triggered (ignoring empty arguments)
+// RuleArgTokenizer goes through a string and tokenizes as parameters for use when identifying rules to be triggered (ignoring empty arguments).
 func RuleArgTokenizer(stripped string) []string {
 	re := regexp.MustCompile(`["“]([^"“”]+)["”]|([^"“”\s]+)`)
 	argmatch := re.FindAllString(stripped, -1)
@@ -92,7 +101,7 @@ func RuleArgTokenizer(stripped string) []string {
 	return argmatch
 }
 
-// ExecArgTokenizer goes through a string and tokenizes as parameters for use when executing a script (respecting empty arguments)
+// ExecArgTokenizer goes through a string and tokenizes as parameters for use when executing a script (respecting empty arguments).
 func ExecArgTokenizer(stripped string) []string {
 	re := regexp.MustCompile(`('[^']*')|("[^"]*")|“([^”]*”)|([^'"“”\s]+)`)
 	argmatch := re.FindAllString(stripped, -1)
@@ -104,28 +113,32 @@ func ExecArgTokenizer(stripped string) []string {
 	return argmatch
 }
 
-// find variables within strings with pattern ${var}
+// find variables within strings with pattern ${var}.
 func findVars(value string) (match bool, tokens []string) {
 	match = false
 	re := regexp.MustCompile(`\${([A-Za-z0-9:*_\|\-\.\?]+)}`)
 	tokens = re.FindAllString(strings.ReplaceAll(value, "$${", "X{"), -1)
+
 	if len(tokens) > 0 {
 		match = true
 	}
+
 	return match, tokens
 }
 
-// helper to provide default value
+// helper to provide default value.
 func orDefault(value, def string) string {
 	if strings.TrimSpace(value) == "" {
 		return def
 	}
+
 	return value
 }
 
-// strip variable demarcations
+// strip variable demarcations.
 func strip(value string) (stripped string) {
 	stripped = strings.ReplaceAll(value, "${", "")
 	stripped = strings.ReplaceAll(stripped, "}", "")
+
 	return stripped
 }
