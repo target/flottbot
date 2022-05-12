@@ -604,28 +604,26 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 
 // processInteractiveComponentRule processes a rule that was triggered by an interactive component, e.g. Slack interactive messages.
 func processInteractiveComponentRule(rule models.Rule, message *models.Message, bot *models.Bot) {
-	if &rule != nil {
-		// Get slack attachments from hit rule and append to outgoing message
-		config := rule.Remotes.Slack
-		if config.Attachments != nil {
-			log.Debug().Msgf("found attachment for rule %#q", rule.Name)
+	// Get slack attachments from hit rule and append to outgoing message
+	config := rule.Remotes.Slack
+	if config.Attachments != nil {
+		log.Debug().Msgf("found attachment for rule %#q", rule.Name)
 
-			config.Attachments[0].CallbackID = message.ID
+		config.Attachments[0].CallbackID = message.ID
 
-			if len(config.Attachments[0].Actions) > 0 {
-				for i, action := range config.Attachments[0].Actions {
-					actionValue, err := utils.Substitute(action.Value, message.Vars)
-					if err != nil {
-						log.Warn().Msg(err.Error())
-					}
-
-					config.Attachments[0].Actions[i].Value = actionValue
+		if len(config.Attachments[0].Actions) > 0 {
+			for i, action := range config.Attachments[0].Actions {
+				actionValue, err := utils.Substitute(action.Value, message.Vars)
+				if err != nil {
+					log.Warn().Msg(err.Error())
 				}
-			}
 
-			message.Remotes.Slack.Attachments = config.Attachments
-			message.IsEphemeral = true // We default Slack Message attachment's as ephemeral
+				config.Attachments[0].Actions[i].Value = actionValue
+			}
 		}
+
+		message.Remotes.Slack.Attachments = config.Attachments
+		message.IsEphemeral = true // We default Slack Message attachment's as ephemeral
 	}
 }
 
