@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package utils
 
 import (
@@ -6,10 +10,11 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/rs/zerolog/log"
 	"github.com/slack-go/slack"
+
 	"github.com/target/flottbot/models"
 )
 
-// CanTrigger ensures the user is allowed to use the respective rule
+// CanTrigger ensures the user is allowed to use the respective rule.
 func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, bot *models.Bot) bool {
 	var canRunRule bool
 
@@ -94,7 +99,7 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 
 // utility function to check if a user is part of the specified user groups,
 // if it's unable to check groupmembership, it will return an error
-// TODO: Refactor to keep remote specific stuff in remote, also to allow increase testability
+// TODO: Refactor to keep remote specific stuff in remote, also to allow increase testability.
 func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot) (bool, error) {
 	if len(userGroups) == 0 {
 		return false, nil

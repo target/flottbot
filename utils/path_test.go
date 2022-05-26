@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package utils
 
 import (
@@ -17,6 +21,7 @@ func TestPathExists(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	exPath := filepath.Dir(ex)
 	t.Log(exPath)
 

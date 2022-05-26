@@ -1,9 +1,14 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package core
 
 import (
 	"strings"
 
 	"github.com/rs/zerolog/log"
+
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote/cli"
 	"github.com/target/flottbot/remote/discord"
@@ -13,7 +18,7 @@ import (
 )
 
 // Outputs determines where messages are output based on fields set in the bot.yml
-// TODO: Refactor to keep remote specifics in remote/
+// TODO: Refactor to keep remote specifics in remote/.
 func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *models.Bot) {
 	for {
 		message := <-outputMsgs
@@ -30,6 +35,7 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 					log.Warn().Msg("scheduler does not currently support discord")
 					break
 				}
+
 				remoteDiscord := &discord.Client{Token: bot.DiscordToken}
 				remoteDiscord.Reaction(message, rule, bot)
 				remoteDiscord.Send(message, bot)
@@ -41,12 +47,15 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 					AppToken:      bot.SlackAppToken,
 					SigningSecret: bot.SlackSigningSecret,
 				}
+
 				if service == models.MsgServiceChat {
 					if bot.InteractiveComponents {
 						remoteSlack.InteractiveComponents(nil, &message, rule, bot)
 					}
+
 					remoteSlack.Reaction(message, rule, bot)
 				}
+
 				remoteSlack.Send(message, bot)
 			case "telegram":
 				remoteTelegram := &telegram.Client{

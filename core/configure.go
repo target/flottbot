@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package core
 
 import (
@@ -25,7 +29,7 @@ func Configure(bot *models.Bot) {
 }
 
 // configureChatApplication configures a user's specified chat application
-// TODO: Refactor to keep remote specifics in remote/
+// TODO: Refactor to keep remote specifics in remote/.
 func configureChatApplication(bot *models.Bot) {
 	// emptyMap for substitute function
 	// (it will only replace from env vars)
@@ -41,11 +45,13 @@ func configureChatApplication(bot *models.Bot) {
 
 	if bot.ChatApplication != "" {
 		switch strings.ToLower(bot.ChatApplication) {
+		// nolint:goconst // refactor
 		case "discord":
 			// Discord bot token
 			token, err := utils.Substitute(bot.DiscordToken, emptyMap)
 			if err != nil {
 				log.Error().Msgf("could not set 'discord_token': %s", err.Error())
+
 				bot.RunChat = false
 			}
 
@@ -56,6 +62,7 @@ func configureChatApplication(bot *models.Bot) {
 			serverID, err := utils.Substitute(bot.DiscordServerID, emptyMap)
 			if err != nil {
 				log.Error().Msgf("could not set 'discord_server_id': %s", err.Error())
+
 				bot.RunChat = false
 			}
 
@@ -63,26 +70,32 @@ func configureChatApplication(bot *models.Bot) {
 
 			if !utils.IsSet(token, serverID) {
 				log.Error().Msg("bot is not configured correctly for discord - check that 'discord_token' and 'discord_server_id' are set")
+
 				bot.RunChat = false
 			}
 
+		// nolint:goconst // refactor
 		case "slack":
 			configureSlackBot(bot)
 
+		// nolint:goconst // refactor
 		case "telegram":
 			token, err := utils.Substitute(bot.TelegramToken, emptyMap)
 			if err != nil {
 				log.Error().Msgf("could not set 'telegram_token': %s", err.Error())
+
 				bot.RunChat = false
 			}
 
 			if !utils.IsSet(token) {
 				log.Error().Msg("bot is not configured correctly for telegram - check that 'telegram_token' is set")
+
 				bot.RunChat = false
 			}
 
 			bot.TelegramToken = token
 
+		// nolint:goconst // refactor
 		case "google_chat":
 			gchat.Configure(bot)
 
@@ -159,8 +172,10 @@ func configureSlackBot(bot *models.Bot) {
 	// 2. SLACK_TOKEN + SLACK_SIGNING_SECRET + SLACK_EVENTS_CALLBACK_PATH (events api)
 	isSocketMode := utils.IsSet(token, appToken)
 	isEventsAPI := utils.IsSet(token, signingSecret, eCallbackPath)
+
 	if !isSocketMode && !isEventsAPI {
 		log.Error().Msg("must have either 'slack_token', 'slack_app_token' or 'slack_token', 'slack_signing_secret', and 'slack_events_callback_path' set")
+
 		bot.RunChat = false
 	}
 }
@@ -182,11 +197,13 @@ func validateRemoteSetup(bot *models.Bot) {
 		bot.RunScheduler = true
 		if bot.CLI && bot.ChatApplication == "" {
 			log.Warn().Msg("scheduler does not support scheduled outputs to cli mode")
+
 			bot.RunScheduler = false
 		}
 
 		if bot.ChatApplication == "" {
 			log.Warn().Msg("scheduler did not find any configured chat applications - scheduler is closing")
+
 			bot.RunScheduler = false
 		}
 	}

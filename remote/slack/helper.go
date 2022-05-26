@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package slack
 
 import (
@@ -13,6 +17,7 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
+
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/utils"
 )
@@ -23,9 +28,10 @@ Slack helper functions (anything that uses the 'slack-go/slack' package)
 ======================================================================
 */
 
-// constructInteractiveComponentMessage creates a message specifically for a matched rule from the Interactive Components server
+// constructInteractiveComponentMessage creates a message specifically for a matched rule from the Interactive Components server.
 func constructInteractiveComponentMessage(callback slack.AttachmentActionCallback, bot *models.Bot) models.Message {
 	text := ""
+
 	if len(callback.ActionCallback.AttachmentActions) > 0 {
 		for _, action := range callback.ActionCallback.AttachmentActions {
 			if action.Value != "" {
@@ -34,7 +40,9 @@ func constructInteractiveComponentMessage(callback slack.AttachmentActionCallbac
 			}
 		}
 	}
+
 	message := models.NewMessage()
+
 	messageType, err := getMessageType(callback.Channel.ID)
 	if err != nil {
 		log.Error().Msg(err.Error())
@@ -66,6 +74,7 @@ func constructInteractiveComponentMessage(callback slack.AttachmentActionCallbac
 		},
 	}
 	channel := callback.Channel.Name
+
 	if callback.Channel.IsPrivate {
 		channel = callback.Channel.ID
 	}
@@ -78,34 +87,48 @@ func constructInteractiveComponentMessage(callback slack.AttachmentActionCallbac
 	if msgType == models.MsgTypePrivateChannel {
 		channel = callback.Channel.ID
 	}
+
 	contents, mentioned := removeBotMention(text, bot.ID)
 
 	return populateMessage(message, messageType, channel, contents, callback.MessageTs, callback.MessageTs, "", mentioned, user, bot)
 }
 
-// getEventsAPIHealthHandler creates and returns the handler for health checks on the Slack Events API reader
+// getEventsAPIHealthHandler creates and returns the handler for health checks on the Slack Events API reader.
 func getEventsAPIHealthHandler(bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			log.Error().Msgf("received invalid method: %s", r.Method)
 			w.WriteHeader(http.StatusMethodNotAllowed)
+
 			return
 		}
+
 		log.Debug().Msg("bot event health endpoint hit")
+
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+
+		_, err := w.Write([]byte("OK"))
+		if err != nil {
+			log.Error().Msgf("failed to send health response: %v", err)
+		}
 	}
 }
 
 func sendHTTPResponse(status int, message string, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(status)
 	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte(message))
+
+	_, err := w.Write([]byte(message))
+	if err != nil {
+		log.Error().Msgf("failed to send response: %v", err)
+	}
 }
 
 func handleURLVerification(body []byte, w http.ResponseWriter, r *http.Request) {
 	var slackResponse *slackevents.ChallengeResponse
+
 	statusCode := http.StatusOK
+
 	err := json.Unmarshal(body, &slackResponse)
 	if err != nil {
 		statusCode = http.StatusInternalServerError
@@ -148,6 +171,7 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 		// only process messages that aren't from our bot
 		if senderID != "" && bot.ID != senderID {
 			channel := ev.Channel
+
 			msgType, err := getMessageType(channel)
 			if err != nil {
 				log.Error().Msg(err.Error())
@@ -190,13 +214,14 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 	}
 }
 
-// getEventsAPIEventHandler creates and returns the handler for events coming from the the Slack Events API reader
+// getEventsAPIEventHandler creates and returns the handler for events coming from the the Slack Events API reader.
 func getEventsAPIEventHandler(api *slack.Client, signingSecret string, inputMsgs chan<- models.Message, bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// silently throw away anything that's not a POST
 		if r.Method != http.MethodPost {
 			log.Error().Msg("slack: method not allowed")
 			sendHTTPResponse(http.StatusMethodNotAllowed, "method not allowed", w, r)
+
 			return
 		}
 
@@ -205,6 +230,7 @@ func getEventsAPIEventHandler(api *slack.Client, signingSecret string, inputMsgs
 		if err != nil {
 			log.Error().Msg("slack: error reading request body")
 			sendHTTPResponse(http.StatusBadRequest, "error reading request body", w, r)
+
 			return
 		}
 
@@ -214,6 +240,7 @@ func getEventsAPIEventHandler(api *slack.Client, signingSecret string, inputMsgs
 		if err != nil {
 			log.Error().Msg("slack: error creating secrets verifier")
 			sendHTTPResponse(http.StatusBadRequest, "error creating secrets verifier", w, r)
+
 			return
 		}
 
@@ -221,6 +248,7 @@ func getEventsAPIEventHandler(api *slack.Client, signingSecret string, inputMsgs
 		if _, err := sv.Write(body); err != nil {
 			log.Error().Msg("slack: error while writing body")
 			sendHTTPResponse(http.StatusInternalServerError, "error while writing body", w, r)
+
 			return
 		}
 
@@ -228,6 +256,7 @@ func getEventsAPIEventHandler(api *slack.Client, signingSecret string, inputMsgs
 		if err := sv.Ensure(); err != nil {
 			log.Error().Msg("slack: request unauthorized")
 			sendHTTPResponse(http.StatusUnauthorized, "request unauthorized", w, r)
+
 			return
 		}
 
@@ -236,14 +265,15 @@ func getEventsAPIEventHandler(api *slack.Client, signingSecret string, inputMsgs
 		if err != nil {
 			log.Error().Msg("slack: error while parsing event")
 			sendHTTPResponse(http.StatusInternalServerError, "error while parsing event", w, r)
+
 			return
 		}
 
 		// validate a URLVerification event with signing secret
 		if eventsAPIEvent.Type == slackevents.URLVerification {
 			log.Debug().Msg("slack: received slack challenge request - sending challenge response...")
-			handleURLVerification(body, w, r)
 
+			handleURLVerification(body, w, r)
 		}
 
 		// process regular Callback events
@@ -253,28 +283,41 @@ func getEventsAPIEventHandler(api *slack.Client, signingSecret string, inputMsgs
 	}
 }
 
-// getInteractiveComponentHealthHandler creates and returns the handler for health checks on the Interactive Component server
+// getInteractiveComponentHealthHandler creates and returns the handler for health checks on the Interactive Component server.
 func getInteractiveComponentHealthHandler(bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			log.Error().Msgf("received invalid method: %s", r.Method)
 			w.WriteHeader(http.StatusMethodNotAllowed)
+
 			return
 		}
+
 		log.Debug().Msg("bot interaction health endpoint hit")
+
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+
+		_, err := w.Write([]byte("OK"))
+		if err != nil {
+			log.Error().Msgf("failed to handle interactive component: %v", err)
+		}
 	}
 }
 
-// getInteractiveComponentRuleHandler creates and returns the handler for processing and sending out messages from the Interactive Component server
+// getInteractiveComponentRuleHandler creates and returns the handler for processing and sending out messages from the Interactive Component server.
 func getInteractiveComponentRuleHandler(signingSecret string, inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			log.Error().Msgf("received invalid method: %s", r.Method)
+
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			w.Header().Set("Content-Type", "text/plain")
-			w.Write([]byte("Oops! I encountered an unexpected HTTP verb"))
+
+			_, err := w.Write([]byte("Oops! I encountered an unexpected HTTP verb"))
+			if err != nil {
+				log.Error().Msgf("failed to send response for interactive component handler: %v", err)
+			}
+
 			return
 		}
 
@@ -291,18 +334,30 @@ func getInteractiveComponentRuleHandler(signingSecret string, inputMsgs chan<- m
 		var callback slack.AttachmentActionCallback
 		if err := json.Unmarshal([]byte(contents), &callback); err != nil {
 			log.Error().Msgf("failed to decode callback json %#q: %v", contents, err)
+
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Header().Set("Content-Type", "text/plain")
-			w.Write([]byte("Oops! Looks like I failed to decode some JSON in the backend. Please contact admins for more info!"))
+
+			_, err := w.Write([]byte("Oops! Looks like I failed to decode some JSON in the backend. Please contact admins for more info!"))
+			if err != nil {
+				log.Error().Msgf("failed to send response for error during unmarshal process: %v", err)
+			}
+
 			return
 		}
 
 		// Only accept message from slack with valid token
 		if callback.Token != bot.SlackSigningSecret {
 			log.Error().Msg("invalid 'slack_signing_secret'")
+
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Header().Set("Content-Type", "text/plain")
-			w.Write([]byte("Sorry, but I didn't recognize your signing secret! Perhaps check if it's a valid secret."))
+
+			_, err := w.Write([]byte("Sorry, but I didn't recognize your signing secret! Perhaps check if it's a valid secret."))
+			if err != nil {
+				log.Error().Msg("failed to send response for validating secret.")
+			}
+
 			return
 		}
 
@@ -313,13 +368,17 @@ func getInteractiveComponentRuleHandler(signingSecret string, inputMsgs chan<- m
 		// Respond
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte("Rodger that!"))
+
+		_, err = w.Write([]byte("Rodger that!"))
+		if err != nil {
+			log.Error().Msgf("failed to send response: %v", err)
+		}
 
 		log.Info().Msgf("triggering rule: %s", rule.Name)
 	}
 }
 
-// getRooms - return a map of rooms
+// getRooms - return a map of rooms.
 func getRooms(api *slack.Client) map[string]string {
 	rooms := make(map[string]string)
 
@@ -358,21 +417,23 @@ func getRooms(api *slack.Client) map[string]string {
 	return rooms
 }
 
-// getSlackUsers gets Slack user objects for each user listed in messages 'output_to_users' field
+// getSlackUsers gets Slack user objects for each user listed in messages 'output_to_users' field.
 func getSlackUsers(api *slack.Client, message models.Message) ([]slack.User, error) {
 	slackUsers := []slack.User{}
 	// grab list of users to message if 'output_to_users' was specified
 	if len(message.OutputToUsers) > 0 {
 		res, err := api.GetUsers()
 		if err != nil {
-			return []slack.User{}, fmt.Errorf("did not find any users listed in 'output_to_users': %s", err.Error())
+			return []slack.User{}, fmt.Errorf("did not find any users listed in 'output_to_users': %w", err)
 		}
+
 		slackUsers = res
 	}
+
 	return slackUsers, nil
 }
 
-// getUserID - returns the user's Slack user ID via email
+// getUserID - returns the user's Slack user ID via email.
 func getUserID(email string, users []slack.User, bot *models.Bot) string {
 	email = strings.ToLower(email)
 	for _, u := range users {
@@ -380,11 +441,13 @@ func getUserID(email string, users []slack.User, bot *models.Bot) string {
 			return u.ID
 		}
 	}
+
 	log.Error().Msgf("could not find user %#q", email)
+
 	return ""
 }
 
-// handleDirectMessage - handle sending logic for direct messages
+// handleDirectMessage - handle sending logic for direct messages.
 func handleDirectMessage(api *slack.Client, message models.Message, bot *models.Bot) error {
 	// Is output to rooms set?
 	if len(message.OutputToRooms) > 0 {
@@ -402,7 +465,7 @@ func handleDirectMessage(api *slack.Client, message models.Message, bot *models.
 	return sendDirectMessage(api, message.Vars["_user.id"], message)
 }
 
-// handleNonDirectMessage - handle sending logic for non direct messages
+// handleNonDirectMessage - handle sending logic for non direct messages.
 func handleNonDirectMessage(api *slack.Client, users []slack.User, message models.Message, bot *models.Bot) error {
 	// 'direct_message_only' is either 'false' OR
 	// 'direct_message_only' was probably never set
@@ -441,10 +504,11 @@ func handleNonDirectMessage(api *slack.Client, users []slack.User, message model
 			return err
 		}
 	}
+
 	return nil
 }
 
-// populateUsers populates slack users
+// populateUsers populates slack users.
 func populateUsers(su []slack.User, bot *models.Bot) {
 	users := make(map[string]string)
 
@@ -457,7 +521,7 @@ func populateUsers(su []slack.User, bot *models.Bot) {
 	bot.Users = users
 }
 
-// populateUserGroups populates slack user groups
+// populateUserGroups populates slack user groups.
 func populateUserGroups(sug []slack.UserGroup, bot *models.Bot) {
 	userGroups := make(map[string]string)
 
@@ -470,7 +534,7 @@ func populateUserGroups(sug []slack.UserGroup, bot *models.Bot) {
 	bot.UserGroups = userGroups
 }
 
-// populateMessage - populates the 'Message' object to be passed on for processing/sending
+// populateMessage - populates the 'Message' object to be passed on for processing/sending.
 func populateMessage(message models.Message, msgType models.MessageType, channel, text, timeStamp, threadTimestamp, link string, mentioned bool, user *slack.User, bot *models.Bot) models.Message {
 	switch msgType {
 	case models.MsgTypeDirect, models.MsgTypeChannel, models.MsgTypePrivateChannel:
@@ -491,6 +555,7 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 			if !ok {
 				log.Error().Msgf("could not find name of channel %#q", channel)
 			}
+
 			message.ChannelName = name
 		}
 
@@ -537,26 +602,28 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 	}
 }
 
-// processInteractiveComponentRule processes a rule that was triggered by an interactive component, e.g. Slack interactive messages
+// processInteractiveComponentRule processes a rule that was triggered by an interactive component, e.g. Slack interactive messages.
 func processInteractiveComponentRule(rule models.Rule, message *models.Message, bot *models.Bot) {
-	if &rule != nil {
-		// Get slack attachments from hit rule and append to outgoing message
-		config := rule.Remotes.Slack
-		if config.Attachments != nil {
-			log.Debug().Msgf("found attachment for rule %#q", rule.Name)
-			config.Attachments[0].CallbackID = message.ID
-			if len(config.Attachments[0].Actions) > 0 {
-				for i, action := range config.Attachments[0].Actions {
-					actionValue, err := utils.Substitute(action.Value, message.Vars)
-					if err != nil {
-						log.Warn().Msg(err.Error())
-					}
-					config.Attachments[0].Actions[i].Value = actionValue
+	// Get slack attachments from hit rule and append to outgoing message
+	config := rule.Remotes.Slack
+	if config.Attachments != nil {
+		log.Debug().Msgf("found attachment for rule %#q", rule.Name)
+
+		config.Attachments[0].CallbackID = message.ID
+
+		if len(config.Attachments[0].Actions) > 0 {
+			for i, action := range config.Attachments[0].Actions {
+				actionValue, err := utils.Substitute(action.Value, message.Vars)
+				if err != nil {
+					log.Warn().Msg(err.Error())
 				}
+
+				config.Attachments[0].Actions[i].Value = actionValue
 			}
-			message.Remotes.Slack.Attachments = config.Attachments
-			message.IsEphemeral = true // We default Slack Message attachment's as ephemeral
 		}
+
+		message.Remotes.Slack.Attachments = config.Attachments
+		message.IsEphemeral = true // We default Slack Message attachment's as ephemeral
 	}
 }
 
@@ -596,7 +663,14 @@ func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models
 
 	// Start listening to Slack events
 	maskedPort := fmt.Sprintf(":%s", bot.SlackListenerPort)
-	go http.ListenAndServe(maskedPort, router)
+
+	go func() {
+		err := http.ListenAndServe(maskedPort, router)
+		if err != nil {
+			log.Fatal().Msg("failed to run server")
+		}
+	}()
+
 	log.Info().Msgf("slack events api server is listening to %#q on port %#q",
 		bot.SlackEventsCallbackPath, bot.SlackListenerPort)
 }
@@ -604,7 +678,7 @@ func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models
 // readFromSocketMode reads messages from Slack's Socket Mode
 //
 // https://api.slack.com/apis/connections/socket
-// nolint:gocyclo // needs refactor
+// nolint:gocyclo,funlen // needs refactor
 func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *models.Bot) {
 	// setup the client
 	client := socketmode.New(sm)
@@ -736,15 +810,19 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 		}
 	}()
 
-	client.Run()
+	err := client.Run()
+	if err != nil {
+		log.Fatal().Msgf("unable to (re)connect to Slack: %v", err)
+	}
 }
 
-// send - handles the sending logic of a message going to Slack
+// send - handles the sending logic of a message going to Slack.
 func send(api *slack.Client, message models.Message, bot *models.Bot) {
 	users, err := getSlackUsers(api, message)
 	if err != nil {
 		log.Error().Msgf("problem sending message: %v", err)
 	}
+
 	if message.DirectMessageOnly {
 		err := handleDirectMessage(api, message, bot)
 		if err != nil {
@@ -758,17 +836,17 @@ func send(api *slack.Client, message models.Message, bot *models.Bot) {
 	}
 }
 
-// sendBackToOriginMessage - sends a message back to where it came from in Slack; this is pretty much a catch-all among the other send functions
+// sendBackToOriginMessage - sends a message back to where it came from in Slack; this is pretty much a catch-all among the other send functions.
 func sendBackToOriginMessage(api *slack.Client, message models.Message) error {
 	return sendMessage(api, message.IsEphemeral, message.ChannelID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Remotes.Slack.Attachments)
 }
 
-// sendChannelMessage - sends a message to a Slack channel
+// sendChannelMessage - sends a message to a Slack channel.
 func sendChannelMessage(api *slack.Client, channel string, message models.Message) error {
 	return sendMessage(api, message.IsEphemeral, channel, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Remotes.Slack.Attachments)
 }
 
-// sendDirectMessage - sends a message back to the user who dm'ed your bot
+// sendDirectMessage - sends a message back to the user who dm'ed your bot.
 func sendDirectMessage(api *slack.Client, userID string, message models.Message) error {
 	params := &slack.OpenConversationParameters{
 		Users: []string{userID},
@@ -782,7 +860,7 @@ func sendDirectMessage(api *slack.Client, userID string, message models.Message)
 	return sendMessage(api, message.IsEphemeral, imChannelID.ID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Remotes.Slack.Attachments)
 }
 
-// sendMessage - does the final send to Slack; adds any Slack-specific message parameters to the message to be sent out
+// sendMessage - does the final send to Slack; adds any Slack-specific message parameters to the message to be sent out.
 func sendMessage(api *slack.Client, ephemeral bool, channel, userID, text, threadTimeStamp string, attachments []slack.Attachment) error {
 	// prepare the message options
 	opts := []slack.MsgOption{

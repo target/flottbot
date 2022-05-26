@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package version
 
 import (
@@ -7,10 +11,10 @@ import (
 	"github.com/Masterminds/semver/v3"
 )
 
-// Version supplies the semantic version
+// Version supplies the semantic version.
 var Version string
 
-// String prints the build information for the bot
+// String prints the build information for the bot.
 func String() string {
 	hash := "unknown"
 

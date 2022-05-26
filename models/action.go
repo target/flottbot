@@ -1,6 +1,10 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package models
 
-// Action defines the structure for Actions used within Rules
+// Action defines the structure for Actions used within Rules.
 type Action struct {
 	Name             string                 `mapstructure:"name" binding:"required"`
 	Type             string                 `mapstructure:"type" binding:"required"`
@@ -18,7 +22,7 @@ type Action struct {
 	Reaction         string                 `mapstructure:"update_reaction" binding:"omitempty"`
 }
 
-// Auth is a basic Auth data structure
+// Auth is a basic Auth data structure.
 type Auth struct {
 	Type string `mapstructure:"type"`
 	User string `mapstructure:"user"`

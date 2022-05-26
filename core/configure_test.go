@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package core
 
 import (
@@ -54,8 +58,10 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotSlack.ChatApplication = "slack"
 	testBotSlack.SlackToken = "${TEST_SLACK_TOKEN}"
 	testBotSlack.SlackAppToken = "${TEST_SLACK_APP_TOKEN}"
+
 	t.Setenv("TEST_SLACK_TOKEN", "TESTTOKEN")
 	t.Setenv("TEST_SLACK_APP_TOKEN", "TESTAPPTOKEN")
+
 	validateRemoteSetup(testBotSlack)
 
 	testBotDiscordNoToken := new(models.Bot)
@@ -74,8 +80,10 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotDiscordServerID.ChatApplication = "discord"
 	testBotDiscordServerID.DiscordToken = "${TEST_DISCORD_TOKEN}"
 	testBotDiscordServerID.DiscordServerID = "${TEST_DISCORD_SERVER_ID}"
+
 	t.Setenv("TEST_DISCORD_TOKEN", "TESTTOKEN")
 	t.Setenv("TEST_DISCORD_SERVER_ID", "TESTSERVERID")
+
 	validateRemoteSetup(testBotDiscordServerID)
 
 	testBotDiscordBadServerID := new(models.Bot)
@@ -83,13 +91,16 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotDiscordBadServerID.ChatApplication = "discord"
 	testBotDiscordBadServerID.DiscordToken = "${TEST_DISCORD_TOKEN}"
 	testBotDiscordBadServerID.DiscordServerID = "${TOKEN}"
+
 	validateRemoteSetup(testBotDiscordServerID)
 
 	testBotTelegram := new(models.Bot)
 	testBotTelegram.CLI = true
 	testBotTelegram.ChatApplication = "telegram"
 	testBotTelegram.TelegramToken = "${TEST_TELEGRAM_TOKEN}"
+
 	t.Setenv("TEST_TELEGRAM_TOKEN", "TESTTOKEN")
+
 	validateRemoteSetup(testBotTelegram)
 
 	testBotTelegramNoToken := new(models.Bot)
@@ -150,6 +161,7 @@ func Test_setSlackListenerPort(t *testing.T) {
 		bot.ChatApplication = "slack"
 		bot.SlackToken = "${TEST_SLACK_TOKEN}"
 		bot.SlackInteractionsCallbackPath = "${TEST_SLACK_INTERACTIONS_CALLBACK_PATH}"
+
 		return bot
 	}
 
@@ -264,7 +276,6 @@ func Test_validateRemoteSetup(t *testing.T) {
 }
 
 func TestConfigure(t *testing.T) {
-
 	testBot := new(models.Bot)
 	testBot.Name = "mybot(${FB_ENV})"
 	testBot.CLI = true
@@ -274,6 +285,7 @@ func TestConfigure(t *testing.T) {
 	type args struct {
 		bot *models.Bot
 	}
+
 	tests := []struct {
 		name   string
 		args   args
@@ -281,6 +293,7 @@ func TestConfigure(t *testing.T) {
 	}{
 		{"Basic", args{bot: testBot}, args{bot: &models.Bot{Name: "mybot(dev)"}}},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			Configure(tt.args.bot)

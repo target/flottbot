@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package core
 
 import (
@@ -215,19 +219,31 @@ func TestHandleHTTP(t *testing.T) {
 	// Init test variables
 	tsOK := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("hello"))
+
+		_, err := w.Write([]byte("hello"))
+		if err != nil {
+			t.Error("unable to send response")
+		}
 	}))
 	defer tsOK.Close()
 
 	tsError := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("not found"))
+
+		_, err := w.Write([]byte("not found"))
+		if err != nil {
+			t.Error("unable to send response")
+		}
 	}))
 	defer tsError.Close()
 
 	tsOKJSON := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"test": "value"}`))
+
+		_, err := w.Write([]byte(`{"test": "value"}`))
+		if err != nil {
+			t.Error("unable to send response")
+		}
 	}))
 	defer tsOKJSON.Close()
 
@@ -287,7 +303,8 @@ func TestHandleHTTP(t *testing.T) {
 			&models.HTTPResponse{
 				Status: 200,
 				Raw:    `{"test": "value"}`,
-				Data:   ""},
+				Data:   "",
+			},
 			false,
 		},
 	}
@@ -560,6 +577,7 @@ func Test_getProccessedInputAndHitValue(t *testing.T) {
 		ruleRespondValue string
 		ruleHearValue    string
 	}
+
 	tests := []struct {
 		name  string
 		args  args
@@ -571,6 +589,7 @@ func Test_getProccessedInputAndHitValue(t *testing.T) {
 		{"hit no respond value - drops args", args{"hello foo", "", "hello"}, "", true},
 		{"no match", args{"hello foo", "", ""}, "", false},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1 := getProccessedInputAndHitValue(tt.args.messageInput, tt.args.ruleRespondValue, tt.args.ruleHearValue)
@@ -996,7 +1015,11 @@ func Test_doRuleActions(t *testing.T) {
 
 	tsOK := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+
+		_, err := w.Write([]byte("OK"))
+		if err != nil {
+			t.Error("unable to send response")
+		}
 	}))
 	defer tsOK.Close()
 

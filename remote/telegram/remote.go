@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package telegram
 
 import (
@@ -7,6 +11,7 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/rs/zerolog/log"
+
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote"
 )
@@ -17,29 +22,35 @@ Implementation for the Remote interface
 =======================================
 */
 
-// Client struct
+// Client struct.
 type Client struct {
 	Token string
 }
 
-// validate that Client adheres to remote interface
+// validate that Client adheres to remote interface.
 var _ remote.Remote = (*Client)(nil)
 
-// creates a new telegram bot
+// creates a new telegram bot.
 func (c *Client) new() *tgbotapi.BotAPI {
 	telegramAPI, err := tgbotapi.NewBotAPI(c.Token)
 	if err != nil {
 		return nil
 	}
+
 	return telegramAPI
 }
 
-// Reaction implementation to satisfy remote interface
+// Name returns the name of the remote.
+func (c *Client) Name() string {
+	return "telegram"
+}
+
+// Reaction implementation to satisfy remote interface.
 func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
 	// not implemented for Telegram
 }
 
-// Read implementation to satisfy remote interface
+// Read implementation to satisfy remote interface.
 func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
 	telegramAPI := c.new()
 	u := tgbotapi.NewUpdate(0)
@@ -50,6 +61,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 		log.Error().Msg("failed to initialize telegram client")
 		return
 	}
+
 	bot.Name = botuser.UserName
 
 	updates := telegramAPI.GetUpdatesChan(u)
@@ -119,12 +131,14 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	}
 }
 
-// Send implementation to satisfy remote interface
+// Send implementation to satisfy remote interface.
 func (c *Client) Send(message models.Message, bot *models.Bot) {
 	telegramAPI := c.new()
+
 	chatID, err := strconv.ParseInt(message.ChannelID, 10, 64)
 	if err != nil {
 		log.Error().Msgf("unable to retrieve chat id %#q", message.ChannelID)
+
 		return
 	}
 
@@ -134,15 +148,20 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 		chatID, err = strconv.ParseInt(message.Vars["_user.id"], 10, 64)
 		if err != nil {
 			log.Error().Msgf("unable to retrieve user id %#q for direct message", message.Vars["_user.id"])
+
 			return
 		}
 	}
 
 	msg := tgbotapi.NewMessage(chatID, message.Output)
-	telegramAPI.Send(msg)
+
+	_, err = telegramAPI.Send(msg)
+	if err != nil {
+		log.Error().Msgf("unable to send message: %v", err)
+	}
 }
 
-// InteractiveComponents implementation to satisfy remote interface
+// InteractiveComponents implementation to satisfy remote interface.
 func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
 	// not implemented for Telegram
 }

@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package discord
 
 import (
@@ -11,7 +15,7 @@ Utility functions (does not use discord package)
 ================================================
 */
 
-// findKey - find the key value in the map based on its value pair
+// findKey - find the key value in the map based on its value pair.
 func findKey(m map[string]string, value string) (key string, ok bool) {
 	for k, v := range m {
 		if v == value {
@@ -25,7 +29,7 @@ func findKey(m map[string]string, value string) (key string, ok bool) {
 	return
 }
 
-// removeBotMention - parse out the preppended bot mention in a message
+// removeBotMention - parse out the preppended bot mention in a message.
 func removeBotMention(contents, botID string) (string, bool) {
 	mention := fmt.Sprintf("<@%s>", botID)
 	wasMentioned := false

@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package models
 
 import (
@@ -8,7 +12,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Bot is a struct representation of bot.yml
+// Bot is a struct representation of bot.yml.
 type Bot struct {
 	// Bot fields
 	ID                            string            `mapstructure:"id"`
@@ -44,7 +48,7 @@ type Bot struct {
 	RunScheduler bool
 }
 
-// NewBot creates a new Bot instance
+// NewBot creates a new Bot instance.
 func NewBot() *Bot {
 	v := viper.New()
 	bot := new(Bot)

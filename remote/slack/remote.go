@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package slack
 
 import (
@@ -7,6 +11,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/slack-go/slack"
+
 	"github.com/target/flottbot/models"
 	"github.com/target/flottbot/remote"
 )
@@ -17,7 +22,7 @@ Implementation for the Remote interface
 =======================================
 */
 
-// Client struct
+// Client struct.
 type Client struct {
 	ListenerPort  string
 	Token         string
@@ -25,10 +30,10 @@ type Client struct {
 	SigningSecret string
 }
 
-// validate that Client adheres to remote interface
+// validate that Client adheres to remote interface.
 var _ remote.Remote = (*Client)(nil)
 
-// instantiate a new slack client
+// instantiate a new slack client.
 func (c *Client) new() *slack.Client {
 	api := slack.New(c.Token)
 	return api
@@ -38,12 +43,17 @@ type slackLogger struct {
 	zerolog.Logger
 }
 
+// Name returns the name of the remote.
+func (c *Client) Name() string {
+	return "slack"
+}
+
 func (l *slackLogger) Output(_ int, s string) error {
 	l.Logger.Info().Msg(s)
 	return nil
 }
 
-// Reaction implementation to satisfy remote interface
+// Reaction implementation to satisfy remote interface.
 func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
 	if rule.RemoveReaction != "" {
 		// Init api client
@@ -55,8 +65,10 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 			log.Error().Msgf("could not add reaction: %v", err)
 			return
 		}
+
 		log.Info().Msgf("removed reaction %#q for rule %#q", rule.RemoveReaction, rule.Name)
 	}
+
 	if rule.Reaction != "" {
 		// Init api client
 		api := c.new()
@@ -67,12 +79,13 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 			log.Error().Msgf("could not add reaction: %v", err)
 			return
 		}
+
 		log.Info().Msgf("added reaction %#q for rule %#q", rule.Reaction, rule.Name)
 	}
 }
 
 // Read implementation to satisfy remote interface
-// Utilizes the Slack API client to read messages from Slack
+// Utilizes the Slack API client to read messages from Slack.
 func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
 	// init api client
 	api := c.new()
@@ -118,7 +131,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	}
 }
 
-// Send implementation to satisfy remote interface
+// Send implementation to satisfy remote interface.
 func (c *Client) Send(message models.Message, bot *models.Bot) {
 	log.Debug().Msgf("sending message %#q", message.ID)
 
@@ -153,8 +166,10 @@ func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message 
 		if bot.SlackInteractionsCallbackPath == "" {
 			log.Error().Msg("need to specify a callback path for the 'slack_interactions_callback_path' field in the bot.yml (e.g. \"/slack_events/v1/mybot_dev-v1_interactions\")")
 			log.Warn().Msg("closing interactions reader (will not be able to read interactive components)")
+
 			return
 		}
+
 		if interactionsRouter == nil {
 			// create router for the Interactive Components server
 			interactionsRouter = mux.NewRouter()
@@ -170,12 +185,20 @@ func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message 
 			if !isValidPath(bot.SlackInteractionsCallbackPath) {
 				log.Error().Msg(`invalid events path - please double check your path value/syntax (e.g. "/slack_events/v1/mybot_dev-v1_interactions")`)
 				log.Warn().Msg("closing interaction components reader (will not be able to read interactive components)")
+
 				return
 			}
+
 			interactionsRouter.HandleFunc(bot.SlackInteractionsCallbackPath, ruleHandle).Methods("POST")
 
 			// start Interactive Components server
-			go http.ListenAndServe(":4000", interactionsRouter)
+			go func() {
+				err := http.ListenAndServe(":4000", interactionsRouter)
+				if err != nil {
+					log.Error().Msgf("unable to start interactions endpoint: %v", err)
+				}
+			}()
+
 			log.Info().Msgf("slack interactive components server is listening to %#q", bot.SlackInteractionsCallbackPath)
 		}
 

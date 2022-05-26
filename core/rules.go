@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package core
 
 import (
@@ -20,6 +24,7 @@ import (
 func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 	// Check if the rules directory even exists
 	log.Debug().Msg("looking for rules directory...")
+
 	searchDir, err := utils.PathExists(path.Join("config", "rules"))
 	if err != nil {
 		log.Error().Msgf("could not parse rules: %v", err)
@@ -27,11 +32,14 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 
 	// Loop through the rules directory and create a list of rules
 	log.Info().Msg("fetching all rule files...")
+
 	fileList := []string{}
+
 	err = filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
 		if !f.IsDir() {
 			fileList = append(fileList, path)
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -41,45 +49,51 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 	// If the rules directory is empty, log a warning and exit the function
 	if len(fileList) == 0 {
 		log.Warn().Msg("looks like there aren't any rules")
+
 		return
 	}
 
 	// Loop through the list of rules, creating a Rule object
 	// for each rule, then populate the map of Rule objects
 	log.Debug().Msgf("parsing %d rule files...", len(fileList))
+
 	for _, ruleFile := range fileList {
 		ruleConf := viper.New()
 		ruleConf.SetConfigFile(ruleFile)
+
 		err := ruleConf.ReadInConfig()
 		if err != nil {
 			log.Error().Msgf("error while reading rule file %#q: %v", ruleFile, err)
 		}
 
 		rule := models.Rule{}
+
 		err = ruleConf.Unmarshal(&rule)
 		if err != nil {
 			log.Error().Msg(err.Error())
 		}
+
 		err = validateRule(bot, &rule)
 		if err != nil {
 			log.Error().Msg(err.Error())
 		}
+
 		(*rules)[ruleFile] = rule
 	}
 
 	log.Info().Msgf("configured %#q rules!", bot.Name)
 }
 
-// Validate applies any environmental changes
+// Validate applies any environmental changes.
 func validateRule(bot *models.Bot, r *models.Rule) error {
-
 	for i := range r.OutputToRooms {
 		token, err := utils.Substitute(r.OutputToRooms[i], map[string]string{})
 		if err != nil {
-			return fmt.Errorf("could not configure output room: %s", err.Error())
+			return fmt.Errorf("could not configure output room: %w", err)
 		}
 
 		r.OutputToRooms[i] = token
 	}
+
 	return nil
 }

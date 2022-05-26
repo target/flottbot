@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package utils
 
 import (
@@ -11,6 +15,7 @@ func TestMatch(t *testing.T) {
 		value     string
 		trimInput bool
 	}
+
 	tests := []struct {
 		name  string
 		args  args
@@ -28,6 +33,7 @@ func TestMatch(t *testing.T) {
 		{"Fail", args{pattern: `command`, value: `dnammoc`, trimInput: true}, "", false},
 		{"Unsupported Regex", args{pattern: `/^(?!.*(hello|goodday|hi)).*issue.*$/`, value: `oh goodday what is the issue`, trimInput: true}, "", false},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1 := Match(tt.args.pattern, tt.args.value, tt.args.trimInput)

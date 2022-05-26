@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package handlers
 
 import (
@@ -10,9 +14,10 @@ import (
 
 func newExecAction(cmd string) models.Action {
 	return models.Action{
-		Name: "Simple",
-		Type: "exec",
-		Cmd:  cmd,
+		Name:    "Simple",
+		Type:    "exec",
+		Cmd:     cmd,
+		Timeout: 1,
 	}
 }
 
@@ -27,7 +32,7 @@ func TestScriptExec(t *testing.T) {
 
 	simpleScriptAction := newExecAction(`echo "hi there"`)
 
-	slowScriptAction := newExecAction(`sleep 22`)
+	slowScriptAction := newExecAction(`sleep 2`)
 
 	errorScriptAction := newExecAction(`false`)
 
@@ -44,7 +49,7 @@ func TestScriptExec(t *testing.T) {
 		wantErr bool
 	}{
 		{"Simple Script", args{args: simpleScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 0, Output: "hi there"}, false},
-		{"Slow Script", args{args: slowScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 1, Output: "Hmm, something timed out. Please try again."}, true},
+		{"Slow Script", args{args: slowScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 1, Output: "Hmm, the command timed out. Please try again."}, true},
 		{"Error Script", args{args: errorScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 1, Output: ""}, true},
 		{"Existing Var Script", args{args: varExistsScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 0, Output: "echo"}, false},
 		{"Missing Var Script", args{args: varMissingScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 1, Output: ""}, true},
@@ -92,7 +97,8 @@ func TestScriptExecWithRegex(t *testing.T) {
 				t.Errorf("ScriptExec() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !tt.wantRegexp.MatchString(string(got.Output)) {
+
+			if !tt.wantRegexp.MatchString(got.Output) {
 				t.Errorf("ScriptExec() = %v, want %v", got.Output, "Regexp(`"+tt.wantRegexp.String()+"`)")
 			}
 		})

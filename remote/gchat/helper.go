@@ -1,3 +1,7 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package gchat
 
 import (
@@ -6,8 +10,9 @@ import (
 	"strings"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/target/flottbot/models"
 	"google.golang.org/api/chat/v1"
+
+	"github.com/target/flottbot/models"
 )
 
 type DomainEvent struct {
@@ -21,7 +26,7 @@ type DomainEvent struct {
 	} `json:"user"`
 }
 
-// HandleOutput handles input messages for this remote
+// HandleOutput handles input messages for this remote.
 func HandleRemoteInput(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
 	c := &Client{
 		Credentials:    bot.GoogleChatCredentials,
@@ -33,7 +38,7 @@ func HandleRemoteInput(inputMsgs chan<- models.Message, rules map[string]models.
 	go c.Read(inputMsgs, rules, bot)
 }
 
-// HandleRemoteOutput handles output messages for this remote
+// HandleRemoteOutput handles output messages for this remote.
 func HandleRemoteOutput(message models.Message, bot *models.Bot) {
 	c := &Client{
 		Credentials:    bot.GoogleChatCredentials,
@@ -45,14 +50,15 @@ func HandleRemoteOutput(message models.Message, bot *models.Bot) {
 	go c.Send(message, bot)
 }
 
-// toMessage converts a PubSub message to Flottbot Message
+// toMessage converts a PubSub message to Flottbot Message.
 func toMessage(m *pubsub.Message) (models.Message, error) {
-	var message = models.NewMessage()
+	message := models.NewMessage()
+
 	var event chat.DeprecatedEvent
 
 	err := json.Unmarshal(m.Data, &event)
 	if err != nil {
-		return message, fmt.Errorf("google_chat was unable to parse event %s: %s", m.ID, err.Error())
+		return message, fmt.Errorf("google_chat was unable to parse event %s: %w", m.ID, err)
 	}
 
 	msgType, err := getMessageType(event)
@@ -71,6 +77,7 @@ func toMessage(m *pubsub.Message) (models.Message, error) {
 		message.ChannelID = event.Space.Name
 		message.BotMentioned = true // Google Chat only supports @bot mentions
 		message.DirectMessageOnly = event.Space.SingleUserBotDm
+
 		if event.Space.Threaded {
 			message.ThreadID = event.Message.Thread.Name
 			message.ThreadTimestamp = event.EventTime
@@ -95,7 +102,6 @@ func toMessage(m *pubsub.Message) (models.Message, error) {
 		if err := json.Unmarshal(m.Data, &domainEvent); err == nil {
 			message.Vars["_user.id"] = domainEvent.User.Email
 		}
-
 	}
 
 	return message, nil
