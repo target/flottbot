@@ -250,7 +250,7 @@ func TestHandleHTTP(t *testing.T) {
 	customHeader := make(map[string]string)
 	customHeader["testHeader"] = "testHeaderContent"
 
-	customQueryData := make(map[string]interface{})
+	customQueryData := make(map[string]any)
 	customQueryData["testQuery"] = "${testValues}"
 
 	customJSONFields := make(map[string]string)

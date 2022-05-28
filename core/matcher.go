@@ -400,7 +400,7 @@ func craftResponse(rule models.Rule, msg models.Message) (string, error) {
 
 	// Check if the value contains html/template code, for advanced formatting
 	if strings.Contains(output, "{{") {
-		var i interface{}
+		var i any
 
 		t, err := template.New("output").Funcs(sprig.FuncMap()).Parse(output)
 		if err != nil {
@@ -565,7 +565,7 @@ func updateReaction(action models.Action, rule *models.Rule, vars map[string]str
 
 			var (
 				t *template.Template
-				i interface{}
+				i any
 			)
 
 			t, err = template.New("update_reaction").Funcs(sprig.FuncMap()).Parse(action.Reaction)

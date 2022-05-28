@@ -182,7 +182,7 @@ func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message 
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the authenticated bot has access to.
-func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) interface{} {
+func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) any {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// check if we should respond to bot messages
 		if m.Author.Bot && !bot.RespondToBots {
