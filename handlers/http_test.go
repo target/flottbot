@@ -19,16 +19,16 @@ func Test_extractFields(t *testing.T) {
 		raw []byte
 	}
 
-	JSONTest := make(map[string]interface{})
+	JSONTest := make(map[string]any)
 	JSONTest["testing"] = "test"
 
-	JSONArrTest := make([]map[string]interface{}, 0)
-	JSONArrTest = append(JSONArrTest, map[string]interface{}{"testing": "test"})
+	JSONArrTest := make([]map[string]any, 0)
+	JSONArrTest = append(JSONArrTest, map[string]any{"testing": "test"})
 
 	tests := []struct {
 		name    string
 		args    args
-		want    interface{}
+		want    any
 		wantErr bool
 	}{
 		{"JSON Test", args{raw: []byte(`{ "testing": "test" }`)}, JSONTest, false},
@@ -68,10 +68,10 @@ func TestHTTPReq(t *testing.T) {
 	customHeader := make(map[string]string)
 	customHeader["testHeader"] = "testHeaderContent"
 
-	customQueryData := make(map[string]interface{})
+	customQueryData := make(map[string]any)
 	customQueryData["testQuery"] = "${testValues}"
 
-	customQueryDataWithVars := make(map[string]interface{})
+	customQueryDataWithVars := make(map[string]any)
 	customQueryDataWithVars["testQuery"] = "${test}"
 
 	TestMessage := models.NewMessage()
@@ -145,7 +145,7 @@ func Test_prepRequestData(t *testing.T) {
 	type args struct {
 		url        string
 		actionType string
-		data       map[string]interface{}
+		data       map[string]any
 		msg        *models.Message
 	}
 
@@ -178,7 +178,7 @@ func Test_prepRequestData(t *testing.T) {
 
 func Test_createGetQuery(t *testing.T) {
 	type args struct {
-		data map[string]interface{}
+		data map[string]any
 		msg  *models.Message
 	}
 
@@ -188,10 +188,10 @@ func Test_createGetQuery(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{"Simple Query", args{data: map[string]interface{}{"foo": "bar"}, msg: new(models.Message)}, "foo=bar", false},
-		{"Query with Spaces", args{data: map[string]interface{}{"foo": "bar foo"}, msg: new(models.Message)}, `foo=bar%20foo`, false},
-		{"Query with Plus", args{data: map[string]interface{}{"foo": "bar+foo"}, msg: new(models.Message)}, `foo=bar%2Bfoo`, false},
-		{"Empty", args{data: make(map[string]interface{}), msg: new(models.Message)}, "", false},
+		{"Simple Query", args{data: map[string]any{"foo": "bar"}, msg: new(models.Message)}, "foo=bar", false},
+		{"Query with Spaces", args{data: map[string]any{"foo": "bar foo"}, msg: new(models.Message)}, `foo=bar%20foo`, false},
+		{"Query with Plus", args{data: map[string]any{"foo": "bar+foo"}, msg: new(models.Message)}, `foo=bar%2Bfoo`, false},
+		{"Empty", args{data: make(map[string]any), msg: new(models.Message)}, "", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -209,15 +209,15 @@ func Test_createGetQuery(t *testing.T) {
 
 func Test_createJSONPayload(t *testing.T) {
 	type args struct {
-		data map[string]interface{}
+		data map[string]any
 		msg  *models.Message
 	}
 
 	testMsg := new(models.Message)
-	testData := make(map[string]interface{})
+	testData := make(map[string]any)
 
 	// map[attachments:map[text:And here's an attachment!] channel:C9816S0B1 text:I am a test message http://slack.com]
-	testData["attachments"] = map[interface{}]interface{}{"text": "And here's an attachment!"}
+	testData["attachments"] = map[any]any{"text": "And here's an attachment!"}
 	testData["channel"] = "C9816S0B1"
 	testData["text"] = "I am a test message http://slack.com"
 

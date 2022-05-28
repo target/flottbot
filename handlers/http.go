@@ -102,7 +102,7 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 }
 
 // Depending on the type of request we want to deal with the payload accordingly.
-func prepRequestData(url, actionType string, data map[string]interface{}, msg *models.Message) (string, io.Reader, error) {
+func prepRequestData(url, actionType string, data map[string]any, msg *models.Message) (string, io.Reader, error) {
 	if len(data) > 0 {
 		if actionType == http.MethodGet {
 			query, err := createGetQuery(data, msg)
@@ -127,12 +127,12 @@ func prepRequestData(url, actionType string, data map[string]interface{}, msg *m
 }
 
 // Unmarshal arbitrary JSON.
-func extractFields(raw []byte) (interface{}, error) {
-	var resp map[string]interface{}
+func extractFields(raw []byte) (any, error) {
+	var resp map[string]any
 
 	err := json.Unmarshal(raw, &resp)
 	if err != nil {
-		var arrResp []map[string]interface{}
+		var arrResp []map[string]any
 
 		err := json.Unmarshal(raw, &arrResp)
 		if err != nil {
@@ -146,7 +146,7 @@ func extractFields(raw []byte) (interface{}, error) {
 }
 
 // Create GET query string.
-func createGetQuery(data map[string]interface{}, msg *models.Message) (string, error) {
+func createGetQuery(data map[string]any, msg *models.Message) (string, error) {
 	u := url.Values{}
 
 	for k, v := range data {
@@ -165,7 +165,7 @@ func createGetQuery(data map[string]interface{}, msg *models.Message) (string, e
 }
 
 // Create querydata payload for non-GET requests.
-func createJSONPayload(data map[string]interface{}, msg *models.Message) (string, error) {
+func createJSONPayload(data map[string]any, msg *models.Message) (string, error) {
 	dataNice := utils.MakeNiceJSON(data)
 
 	str, err := json.Marshal(dataNice)

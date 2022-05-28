@@ -8,5 +8,5 @@ package models
 type HTTPResponse struct {
 	Status int
 	Raw    string
-	Data   interface{}
+	Data   any
 }

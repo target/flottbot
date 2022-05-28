@@ -7,7 +7,7 @@ package utils
 import "fmt"
 
 // MakeNiceJSON exists to address https://github.com/go-yaml/yaml/issues/139
-func MakeNiceJSON(in map[string]interface{}) map[string]interface{} {
+func MakeNiceJSON(in map[string]any) map[string]any {
 	tmp := in
 	for k, v := range tmp {
 		tmp[k] = convertKeys(v)
@@ -17,17 +17,17 @@ func MakeNiceJSON(in map[string]interface{}) map[string]interface{} {
 }
 
 // recursive function to deal with all the types.
-func convertKeys(in interface{}) interface{} {
+func convertKeys(in any) any {
 	switch in := in.(type) {
-	case []interface{}:
-		res := make([]interface{}, len(in))
+	case []any:
+		res := make([]any, len(in))
 		for i, v := range in {
 			res[i] = convertKeys(v)
 		}
 
 		return res
-	case map[interface{}]interface{}:
-		res := make(map[string]interface{})
+	case map[any]any:
+		res := make(map[string]any)
 		for k, v := range in {
 			res[fmt.Sprintf("%v", k)] = convertKeys(v)
 		}
