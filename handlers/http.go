@@ -43,7 +43,7 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 	// TODO: refactor querydata
 	// this is a temp fix for scenarios where
 	// substitution above may have introduced spaces in the URL
-	url = strings.Replace(url, " ", "%20", -1)
+	url = strings.ReplaceAll(url, " ", "%20")
 
 	url, payload, err := prepRequestData(url, args.Type, args.QueryData, msg)
 	if err != nil {
@@ -158,8 +158,8 @@ func createGetQuery(data map[string]any, msg *models.Message) (string, error) {
 		u.Add(k, subv)
 	}
 
-	encoded := u.Encode()                              // uses QueryEscape
-	encoded = strings.Replace(encoded, "+", "%20", -1) // replacing + with more reliable %20
+	encoded := u.Encode()                             // uses QueryEscape
+	encoded = strings.ReplaceAll(encoded, "+", "%20") // replacing + with more reliable %20
 
 	return encoded, nil
 }
