@@ -35,7 +35,7 @@ func removeBotMention(contents, botID string) (string, bool) {
 	wasMentioned := false
 
 	if strings.HasPrefix(contents, mention) {
-		contents = strings.Replace(contents, mention, "", -1)
+		contents = strings.ReplaceAll(contents, mention, "")
 		contents = strings.TrimSpace(contents)
 		wasMentioned = true
 	}

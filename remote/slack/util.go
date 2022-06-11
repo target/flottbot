@@ -74,7 +74,7 @@ func removeBotMention(contents, botID string) (string, bool) {
 	wasMentioned := false
 
 	if strings.HasPrefix(contents, mention) {
-		contents = strings.Replace(contents, mention, "", -1)
+		contents = strings.ReplaceAll(contents, mention, "")
 		contents = strings.TrimSpace(contents)
 		wasMentioned = true
 	}
@@ -92,7 +92,7 @@ func sanitizeContents(b []byte) (string, error) {
 		return "", err
 	}
 
-	contents = strings.Replace(contents, `\/`, `/`, -1)
+	contents = strings.ReplaceAll(contents, `\/`, `/`)
 
 	return contents, nil
 }
