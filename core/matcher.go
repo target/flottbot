@@ -603,7 +603,7 @@ func updateReaction(action models.Action, rule *models.Rule, vars map[string]str
 }
 
 // parseArgumentsFromRegex parses an input string against a regex rule
-// and returns a map of argument names and their value
+// and returns a map of argument names and their value.
 func parseArgumentsFromRegex(re, input string) map[string]string {
 	args := make(map[string]string)
 
@@ -613,17 +613,18 @@ func parseArgumentsFromRegex(re, input string) map[string]string {
 		return args
 	}
 
-	// get all capture group names
+	// get all capture group names.
 	reNames := r.SubexpNames()
 
-	// get all capture group values
+	// get all capture group values.
 	reValues := r.FindStringSubmatch(input)
 
-	// assign capture group key/value to args map
+	// assign capture group key/value to args map.
 	for index, name := range reNames {
 		if index == 0 || name == "" {
 			continue
 		}
+
 		args[name] = reValues[index]
 	}
 
