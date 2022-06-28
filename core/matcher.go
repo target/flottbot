@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"html"
 	"html/template"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -217,6 +218,15 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 
 		return false
 	}
+
+	for name, value := range parseArgumentsFromRegex(rule.Hear, message.Input) {
+		message.Vars[name] = value
+	}
+
+	for name, value := range parseArgumentsFromRegex(rule.Respond, message.Input) {
+		message.Vars[name] = value
+	}
+
 	// If this wasn't a 'hear' rule, handle the args
 	if rule.Hear == "" {
 		// Get all the args that the message sender supplied
@@ -590,4 +600,33 @@ func updateReaction(action models.Action, rule *models.Rule, vars map[string]str
 			rule.Reaction = action.Reaction
 		}
 	}
+}
+
+// parseArgumentsFromRegex parses an input string against a regex rule
+// and returns a map of argument names and their value.
+func parseArgumentsFromRegex(re, input string) map[string]string {
+	args := make(map[string]string)
+
+	// try compliling the rule as regex, ignoring non-regex rules
+	r, err := regexp.Compile(strings.Trim(re, "/"))
+	if err != nil {
+		return args
+	}
+
+	// get all capture group names.
+	reNames := r.SubexpNames()
+
+	// get all capture group values.
+	reValues := r.FindStringSubmatch(input)
+
+	// assign capture group key/value to args map.
+	for index, name := range reNames {
+		if index == 0 || name == "" {
+			continue
+		}
+
+		args[name] = reValues[index]
+	}
+
+	return args
 }
