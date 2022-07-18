@@ -3,7 +3,7 @@ module github.com/target/flottbot
 go 1.18
 
 require (
-	cloud.google.com/go/pubsub v1.23.1
+	cloud.google.com/go/pubsub v1.24.0
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/bwmarrin/discordgo v0.25.0
