@@ -11,7 +11,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: docker.io/golang:1.18@sha256:9349ed889adb906efa5ebc06485fe1b6a12fb265a01c9266a137bb1352565560
+      image: docker.io/golang:1.18@sha256:8a62670f5902989319c4997fe21ecae7fe5aaec8ee44e4e663cfed0a3a8172fc
     steps:
       - name: clone
         uses: actions/checkout@v3
