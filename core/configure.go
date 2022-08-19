@@ -45,7 +45,7 @@ func configureChatApplication(bot *models.Bot) {
 
 	if bot.ChatApplication != "" {
 		switch strings.ToLower(bot.ChatApplication) {
-		// nolint:goconst // refactor
+		//nolint:goconst // refactor
 		case "discord":
 			// Discord bot token
 			token, err := utils.Substitute(bot.DiscordToken, emptyMap)
@@ -74,11 +74,11 @@ func configureChatApplication(bot *models.Bot) {
 				bot.RunChat = false
 			}
 
-		// nolint:goconst // refactor
+		//nolint:goconst // refactor
 		case "slack":
 			configureSlackBot(bot)
 
-		// nolint:goconst // refactor
+		//nolint:goconst // refactor
 		case "telegram":
 			token, err := utils.Substitute(bot.TelegramToken, emptyMap)
 			if err != nil {
@@ -95,7 +95,7 @@ func configureChatApplication(bot *models.Bot) {
 
 			bot.TelegramToken = token
 
-		// nolint:goconst // refactor
+		//nolint:goconst // refactor
 		case "google_chat":
 			gchat.Configure(bot)
 

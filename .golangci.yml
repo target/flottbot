@@ -140,7 +140,6 @@ linters-settings:
 
   # https://github.com/golangci/golangci-lint/blob/master/pkg/golinters/nolintlint
   nolintlint:
-    allow-leading-space: true     # allow non-"machine-readable" format (ie. with leading space) 
     allow-unused: false           # allow nolint directives that don't address a linting issue
     require-explanation: true     # require an explanation for nolint directives
     require-specific: true        # require nolint directives to be specific about which linter is being skipped

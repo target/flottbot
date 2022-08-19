@@ -48,7 +48,7 @@ func ScriptExec(args models.Action, msg *models.Message) (*models.ScriptResponse
 	bin := utils.ExecArgTokenizer(cmdProcessed)
 
 	// prep the command to be executed with context
-	// nolint:gosec // ignore "potential tainted input or cmd arguments" because bot owner controls usage
+	//nolint:gosec // ignore "potential tainted input or cmd arguments" because bot owner controls usage
 	cmd := exec.CommandContext(ctx, bin[0], bin[1:]...)
 
 	// run command and capture stdout/stderr
