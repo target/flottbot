@@ -11,7 +11,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     container:
-      image: docker.io/golang:1.18@sha256:0925a97af5f902fcc273341c839e45aca5b285d5f0492138adb8dbf0dbc2cdee
+      image: docker.io/golang:1.18@sha256:5540a6a6b3b612c382accc545b3f6702de21e77b15d89ad947116c94b5f42993
     steps:
       - name: clone
         uses: actions/checkout@v3
