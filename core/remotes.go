@@ -23,15 +23,21 @@ import (
 // 'Message' object and pass it along to the Matcher function (see '/core/matcher.go') for processing.
 // Currently, we support 3 types of remotes: chat applications, CLI, and Scheduler.
 // Remote 1: Chat applications
-//		This remote allows us to read messages from various chat application platforms, e.g. Slack, Discord, etc.
-//		We typically read the messages from these chat applications using their respective APIs.
-//		* Note: right now we only support reading from one chat application at a time.
+//
+//	This remote allows us to read messages from various chat application platforms, e.g. Slack, Discord, etc.
+//	We typically read the messages from these chat applications using their respective APIs.
+//	* Note: right now we only support reading from one chat application at a time.
+//
 // Remote 2: CLI
-//		This remote is enabled when 'CLI mode' is set to true in the bot.yml configuration.
-// 		Messages from this remote are read from the user's input via the terminal.
+//
+//	This remote is enabled when 'CLI mode' is set to true in the bot.yml configuration.
+//	Messages from this remote are read from the user's input via the terminal.
+//
 // Remote 3: Scheduler
-//		This remote allows us to read messages being sent internally by a running cronjob
-//		created by a schedule type rule, e.g. see '/config/rules/schedule.yml'.
+//
+//	This remote allows us to read messages being sent internally by a running cronjob
+//	created by a schedule type rule, e.g. see '/config/rules/schedule.yml'.
+//
 // TODO: Refactor to keep remote specific stuff in remote/.
 func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
 	// Run a chat application
