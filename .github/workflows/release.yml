@@ -12,7 +12,7 @@ jobs:
   binary:
     runs-on: ubuntu-latest
     container:
-      image: docker.io/golang:1.18@sha256:616aa980e2a8f3944baf5975d475f6ef1a3e50f1ec56fecd2e88280f5d1b4bf2
+      image: docker.io/golang:1.18@sha256:0925a97af5f902fcc273341c839e45aca5b285d5f0492138adb8dbf0dbc2cdee
     steps:
       - name: clone
         uses: actions/checkout@v3
