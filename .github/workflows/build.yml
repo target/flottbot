@@ -10,20 +10,18 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: docker.io/golang:1.18@sha256:0925a97af5f902fcc273341c839e45aca5b285d5f0492138adb8dbf0dbc2cdee
+
     steps:
       - name: clone
         uses: actions/checkout@v3
       - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
-      - name: cache
-        uses: actions/cache@v3
+      - name: install go
+        uses: actions/setup-go@v3
         with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-gomod-
+          # use version from go.mod file
+          go-version-file: 'go.mod'
+          cache: true
 
       - name: build
         run: |

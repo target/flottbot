@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -53,18 +54,47 @@ func ScriptExec(args models.Action, msg *models.Message) (*models.ScriptResponse
 
 	// run command and capture stdout/stderr
 	out, err := cmd.CombinedOutput()
-
-	// handle timeouts
-	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-		result.Output = "Hmm, the command timed out. Please try again."
-
-		return result, fmt.Errorf("timeout reached, exec process for action %#q canceled", args.Name)
-	}
-
-	// deal with non-zero exit codes
 	if err != nil {
-		result.Status = cmd.ProcessState.ExitCode()
-		result.Output = strings.Trim(string(out), " \n")
+		// handle timeouts
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			result.Output = "Hmm, the command timed out. Please try again."
+
+			return result, fmt.Errorf("timeout reached, exec process for action %#q canceled", args.Name)
+		}
+
+		// check if file couldn't be found
+		errFileNotFoundMsg := "file not found: %s"
+		if os.IsNotExist(err) {
+			result.Output = fmt.Sprintf(errFileNotFoundMsg, args.Cmd)
+		}
+
+		// check other variations that might
+		// indicate that a file couldn't be found
+		// whether called directly,
+		// or indirectly
+		outAsLower := strings.ToLower(string(out))
+		if strings.Contains(outAsLower, "no such file") ||
+			strings.Contains(outAsLower, "can't open") ||
+			strings.Contains(err.Error(), "file not found") {
+			result.Output = fmt.Sprintf("file not found: %s", args.Cmd)
+		}
+
+		// grab the statuscode of the process
+		exitCode := cmd.ProcessState.ExitCode()
+
+		// this might be -1 if process didn't exit
+		// or was terminated otherwise
+		//
+		// only pass on "real" error codes
+		if exitCode > 0 {
+			result.Status = exitCode
+		}
+
+		// if we had an error not covered above,
+		// attempt to grab the output
+		if result.Output == "" {
+			result.Output = strings.Trim(string(out), " \n")
+		}
 
 		return result, err
 	}

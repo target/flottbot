@@ -6,7 +6,6 @@ package handlers
 
 import (
 	"reflect"
-	"regexp"
 	"testing"
 
 	"github.com/target/flottbot/models"
@@ -23,8 +22,8 @@ func newExecAction(cmd string) models.Action {
 
 func TestScriptExec(t *testing.T) {
 	type args struct {
-		args models.Action
-		msg  *models.Message
+		action models.Action
+		msg    *models.Message
 	}
 
 	simpleScriptMessage := models.NewMessage()
@@ -42,64 +41,138 @@ func TestScriptExec(t *testing.T) {
 
 	msgBeforeExit := newExecAction(`/bin/sh ../testdata/fail.sh`)
 
+	notExists := newExecAction(`./trap.sh`)
+
+	notExistsInPath := newExecAction(`trap.sh`)
+
+	// assumes existence of /bin/sh
+	fileNotFound := newExecAction(`/bin/sh ./this/is/a/trap.sh`)
+
 	tests := []struct {
 		name    string
 		args    args
 		want    *models.ScriptResponse
 		wantErr bool
 	}{
-		{"Simple Script", args{args: simpleScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 0, Output: "hi there"}, false},
-		{"Slow Script", args{args: slowScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 1, Output: "Hmm, the command timed out. Please try again."}, true},
-		{"Error Script", args{args: errorScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 1, Output: ""}, true},
-		{"Existing Var Script", args{args: varExistsScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 0, Output: "echo"}, false},
-		{"Missing Var Script", args{args: varMissingScriptAction, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 1, Output: ""}, true},
-		{"StdOut before exit code 1", args{args: msgBeforeExit, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 1, Output: "error is coming"}, true},
+		{
+			"Simple Script",
+			args{
+				action: simpleScriptAction,
+				msg:    &simpleScriptMessage,
+			},
+			&models.ScriptResponse{
+				Status: 0,
+				Output: "hi there",
+			},
+			false,
+		},
+		{
+			"Slow Script",
+			args{
+				action: slowScriptAction,
+				msg:    &simpleScriptMessage,
+			},
+			&models.ScriptResponse{
+				Status: 1,
+				Output: "Hmm, the command timed out. Please try again.",
+			},
+			true,
+		},
+		{
+			"Error Script",
+			args{
+				action: errorScriptAction,
+				msg:    &simpleScriptMessage,
+			},
+			&models.ScriptResponse{
+				Status: 1,
+				Output: "",
+			},
+			true,
+		},
+		{
+			"Existing Var Script",
+			args{
+				action: varExistsScriptAction,
+				msg:    &simpleScriptMessage,
+			},
+			&models.ScriptResponse{
+				Status: 0,
+				Output: "echo",
+			},
+			false,
+		},
+		{
+			"Missing Var Script",
+			args{
+				action: varMissingScriptAction,
+				msg:    &simpleScriptMessage,
+			},
+			&models.ScriptResponse{
+				Status: 1,
+				Output: "",
+			},
+			true,
+		},
+		{
+			"StdOut before exit code 1",
+			args{
+				action: msgBeforeExit,
+				msg:    &simpleScriptMessage,
+			},
+			&models.ScriptResponse{
+				Status: 1,
+				Output: "error is coming",
+			},
+			true,
+		},
+		{
+			"Script doesn't exist",
+			args{
+				action: notExists,
+				msg:    &simpleScriptMessage,
+			},
+			&models.ScriptResponse{
+				Status: 1,
+				Output: "file not found: ./trap.sh",
+			},
+			true,
+		},
+		{
+			"Script doesn't exist in PATH",
+			args{
+				action: notExistsInPath,
+				msg:    &simpleScriptMessage,
+			},
+			&models.ScriptResponse{
+				Status: 1,
+				Output: "file not found: trap.sh",
+			},
+			true,
+		},
+		{
+			"Calling file doesn't exist",
+			args{
+				action: fileNotFound,
+				msg:    &simpleScriptMessage,
+			},
+			&models.ScriptResponse{
+				Status: 127,
+				Output: "file not found: /bin/sh ./this/is/a/trap.sh",
+			},
+			true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ScriptExec(tt.args.args, tt.args.msg)
+			got, err := ScriptExec(tt.args.action, tt.args.msg)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ScriptExec() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ScriptExec() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestScriptExecWithRegex(t *testing.T) {
-	type args struct {
-		args models.Action
-		msg  *models.Message
-	}
-
-	simpleScriptMessage := models.NewMessage()
-
-	cmdNotFound := newExecAction(`/bin/sh ./this/is/a/trap.sh`)
-
-	tests := []struct {
-		name       string
-		args       args
-		want       *models.ScriptResponse
-		wantErr    bool
-		wantRegexp *regexp.Regexp
-	}{
-		{"Script does not exist", args{args: cmdNotFound, msg: &simpleScriptMessage}, &models.ScriptResponse{Status: 2}, true, regexp.MustCompile(`No such file`)},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := ScriptExec(tt.args.args, tt.args.msg)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ScriptExec() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			if !tt.wantRegexp.MatchString(got.Output) {
-				t.Errorf("ScriptExec() = %v, want %v", got.Output, "Regexp(`"+tt.wantRegexp.String()+"`)")
 			}
 		})
 	}
