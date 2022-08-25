@@ -16,7 +16,7 @@ require (
 	github.com/rs/zerolog v1.27.0
 	github.com/slack-go/slack v0.11.2
 	github.com/spf13/viper v1.12.0
-	google.golang.org/api v0.93.0
+	google.golang.org/api v0.94.0
 )
 
 require (
@@ -58,7 +58,7 @@ require (
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
 	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e // indirect
-	golang.org/x/oauth2 v0.0.0-20220622183110-fd043fe589d2 // indirect
+	golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094 // indirect
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f // indirect
 	golang.org/x/sys v0.0.0-20220624220833-87e55d714810 // indirect
 	golang.org/x/text v0.3.7 // indirect
