@@ -13,7 +13,7 @@ require (
 	github.com/prometheus/client_golang v1.13.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/xid v1.4.0
-	github.com/rs/zerolog v1.27.0
+	github.com/rs/zerolog v1.28.0
 	github.com/slack-go/slack v0.11.2
 	github.com/spf13/viper v1.12.0
 	google.golang.org/api v0.94.0
