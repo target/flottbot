@@ -1,4 +1,4 @@
-FROM docker.io/golang:1.18-alpine@sha256:8e45e2ef37d2b6d98900392029db2bc88f42c0f2a9a8035fa7da90014698e86b AS build
+FROM docker.io/golang:1.18-alpine@sha256:5b58b2e5963db4cc97d5c5d2580744713303e8ddc979ff89d939c559502ec263 AS build
 ARG VERSION
 
 # needed for vcs feature introduced in go 1.18
