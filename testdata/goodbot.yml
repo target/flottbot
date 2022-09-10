@@ -25,12 +25,8 @@ debug: true
 # false: disable logging
 
 log_json: false
-# true: logs will be in JOSN format
+# true: logs will be in JSON format
 # false: logs will be in plain text
-
-interactive_components: false
-# true: enables users to create and interact with chat platforms interactive components (e.g. Slack message attachments)
-# false (defualt): disables interactive components for all supported chat platform
 
 # for prometheus metrics capabilities
 metrics: false

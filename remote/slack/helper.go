@@ -19,7 +19,6 @@ import (
 	"github.com/slack-go/slack/socketmode"
 
 	"github.com/target/flottbot/models"
-	"github.com/target/flottbot/utils"
 )
 
 /*
@@ -27,71 +26,6 @@ import (
 Slack helper functions (anything that uses the 'slack-go/slack' package)
 ======================================================================
 */
-
-// constructInteractiveComponentMessage creates a message specifically for a matched rule from the Interactive Components server.
-func constructInteractiveComponentMessage(callback slack.AttachmentActionCallback, bot *models.Bot) models.Message {
-	text := ""
-
-	if len(callback.ActionCallback.AttachmentActions) > 0 {
-		for _, action := range callback.ActionCallback.AttachmentActions {
-			if action.Value != "" {
-				text = fmt.Sprintf("<@%s> %s", bot.ID, action.Value)
-				break
-			}
-		}
-	}
-
-	message := models.NewMessage()
-
-	messageType, err := getMessageType(callback.Channel.ID)
-	if err != nil {
-		log.Error().Msg(err.Error())
-	}
-
-	userNames := strings.Split(callback.User.Name, ".")
-	user := &slack.User{
-		ID:       callback.User.ID,
-		TeamID:   callback.User.TeamID,
-		Name:     callback.User.Name,
-		Color:    callback.User.Color,
-		RealName: callback.User.RealName,
-		TZ:       callback.User.TZ,
-		TZLabel:  callback.User.TZLabel,
-		TZOffset: callback.User.TZOffset,
-		Profile: slack.UserProfile{
-			FirstName:             userNames[0],
-			LastName:              userNames[len(userNames)-1],
-			RealNameNormalized:    callback.User.Profile.RealNameNormalized,
-			DisplayName:           callback.User.Profile.DisplayName,
-			DisplayNameNormalized: callback.User.Profile.DisplayName,
-			Email:                 callback.User.Profile.Email,
-			Skype:                 callback.User.Profile.Skype,
-			Phone:                 callback.User.Profile.Phone,
-			Title:                 callback.User.Profile.Title,
-			StatusText:            callback.User.Profile.StatusText,
-			StatusEmoji:           callback.User.Profile.StatusEmoji,
-			Team:                  callback.User.Profile.Team,
-		},
-	}
-	channel := callback.Channel.Name
-
-	if callback.Channel.IsPrivate {
-		channel = callback.Channel.ID
-	}
-
-	msgType, err := getMessageType(callback.Channel.ID)
-	if err != nil {
-		log.Error().Msg(err.Error())
-	}
-
-	if msgType == models.MsgTypePrivateChannel {
-		channel = callback.Channel.ID
-	}
-
-	contents, mentioned := removeBotMention(text, bot.ID)
-
-	return populateMessage(message, messageType, channel, contents, callback.MessageTs, callback.MessageTs, "", mentioned, user, bot)
-}
 
 // getEventsAPIHealthHandler creates and returns the handler for health checks on the Slack Events API reader.
 func getEventsAPIHealthHandler(bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
@@ -281,101 +215,6 @@ func getEventsAPIEventHandler(api *slack.Client, signingSecret string, inputMsgs
 			//nolint:contextcheck // TODO: fix to pass context
 			handleCallBack(api, eventsAPIEvent.InnerEvent, bot, inputMsgs, w)
 		}
-	}
-}
-
-// getInteractiveComponentHealthHandler creates and returns the handler for health checks on the Interactive Component server.
-func getInteractiveComponentHealthHandler(bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			log.Error().Msgf("received invalid method: %s", r.Method)
-			w.WriteHeader(http.StatusMethodNotAllowed)
-
-			return
-		}
-
-		log.Debug().Msg("bot interaction health endpoint hit")
-
-		w.WriteHeader(http.StatusOK)
-
-		_, err := w.Write([]byte("OK"))
-		if err != nil {
-			log.Error().Msgf("failed to handle interactive component: %v", err)
-		}
-	}
-}
-
-// getInteractiveComponentRuleHandler creates and returns the handler for processing and sending out messages from the Interactive Component server.
-func getInteractiveComponentRuleHandler(inputMsgs chan<- models.Message, rule models.Rule, bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			log.Error().Msgf("received invalid method: %s", r.Method)
-
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			w.Header().Set("Content-Type", "text/plain")
-
-			_, err := w.Write([]byte("Oops! I encountered an unexpected HTTP verb"))
-			if err != nil {
-				log.Error().Msgf("failed to send response for interactive component handler: %v", err)
-			}
-
-			return
-		}
-
-		buff, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Error().Msgf("failed to read request body: %v", err)
-		}
-
-		contents, err := sanitizeContents(buff)
-		if err != nil {
-			log.Error().Msgf("failed to sanitize content: %v", err)
-		}
-
-		var callback slack.AttachmentActionCallback
-		if err := json.Unmarshal([]byte(contents), &callback); err != nil {
-			log.Error().Msgf("failed to decode callback json %#q: %v", contents, err)
-
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Header().Set("Content-Type", "text/plain")
-
-			_, err := w.Write([]byte("Oops! Looks like I failed to decode some JSON in the backend. Please contact admins for more info!"))
-			if err != nil {
-				log.Error().Msgf("failed to send response for error during unmarshal process: %v", err)
-			}
-
-			return
-		}
-
-		// Only accept message from slack with valid token
-		if callback.Token != bot.SlackSigningSecret {
-			log.Error().Msg("invalid 'slack_signing_secret'")
-
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Header().Set("Content-Type", "text/plain")
-
-			_, err := w.Write([]byte("Sorry, but I didn't recognize your signing secret! Perhaps check if it's a valid secret."))
-			if err != nil {
-				log.Error().Msg("failed to send response for validating secret.")
-			}
-
-			return
-		}
-
-		// Construct and send out message
-		message := constructInteractiveComponentMessage(callback, bot)
-		inputMsgs <- message
-
-		// Respond
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "text/plain")
-
-		_, err = w.Write([]byte("Rodger that!"))
-		if err != nil {
-			log.Error().Msgf("failed to send response: %v", err)
-		}
-
-		log.Info().Msgf("triggering rule: %s", rule.Name)
 	}
 }
 
@@ -600,31 +439,6 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 	default:
 		log.Debug().Msgf("read message of unsupported type '%T' - unable to populate message attributes", msgType)
 		return message
-	}
-}
-
-// processInteractiveComponentRule processes a rule that was triggered by an interactive component, e.g. Slack interactive messages.
-func processInteractiveComponentRule(rule models.Rule, message *models.Message) {
-	// Get slack attachments from hit rule and append to outgoing message
-	config := rule.Remotes.Slack
-	if config.Attachments != nil {
-		log.Debug().Msgf("found attachment for rule %#q", rule.Name)
-
-		config.Attachments[0].CallbackID = message.ID
-
-		if len(config.Attachments[0].Actions) > 0 {
-			for i, action := range config.Attachments[0].Actions {
-				actionValue, err := utils.Substitute(action.Value, message.Vars)
-				if err != nil {
-					log.Warn().Msg(err.Error())
-				}
-
-				config.Attachments[0].Actions[i].Value = actionValue
-			}
-		}
-
-		message.Remotes.Slack.Attachments = config.Attachments
-		message.IsEphemeral = true // We default Slack Message attachment's as ephemeral
 	}
 }
 

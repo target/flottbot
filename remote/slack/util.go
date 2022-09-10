@@ -6,7 +6,6 @@ package slack
 
 import (
 	"fmt"
-	"net/url"
 	"regexp"
 	"strings"
 
@@ -54,20 +53,6 @@ func getMessageType(channel string) (models.MessageType, error) {
 	return models.MsgTypeUnknown, fmt.Errorf("unable to handle channel: UNKNOWN_%s", channel)
 }
 
-// isValidPath - regex matches a URL's path string to check if it is a correct path.
-func isValidPath(path string) bool {
-	pathPattern := regexp.MustCompile(`^([a-z][a-z0-9+\-.]*:(//[^/?#]+)?)?([a-z0-9\-._~%!$&'()*+,;=:@/]*)`)
-	matches := pathPattern.FindAllString(path, -1)
-
-	if matches != nil {
-		if matches[0] == path {
-			return true
-		}
-	}
-
-	return false
-}
-
 // removeBotMention - parse out the prepended bot mention in a message.
 func removeBotMention(contents, botID string) (string, bool) {
 	mention := fmt.Sprintf("<@%s> ", botID)
@@ -80,19 +65,4 @@ func removeBotMention(contents, botID string) (string, bool) {
 	}
 
 	return contents, wasMentioned
-}
-
-// sanitizeContents - sanitizes a buffer's contents from incoming http payloads.
-func sanitizeContents(b []byte) (string, error) {
-	contents := string(b)
-	contents = strings.Replace(contents, "payload=", "", 1)
-
-	contents, err := url.QueryUnescape(contents)
-	if err != nil {
-		return "", err
-	}
-
-	contents = strings.ReplaceAll(contents, `\/`, `/`)
-
-	return contents, nil
 }

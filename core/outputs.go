@@ -49,10 +49,6 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 				}
 
 				if service == models.MsgServiceChat {
-					if bot.InteractiveComponents {
-						remoteSlack.InteractiveComponents(nil, &message, rule, bot)
-					}
-
 					remoteSlack.Reaction(message, rule, bot)
 				}
 

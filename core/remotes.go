@@ -64,7 +64,6 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 			}
 			// Read messages from Slack
 			go remoteSlack.Read(inputMsgs, rules, bot)
-			go remoteSlack.InteractiveComponents(inputMsgs, nil, rules[""], bot)
 		// Setup remote to use the Telegram client to read from Telegram
 		case "telegram":
 			remoteTelegram := &telegram.Client{

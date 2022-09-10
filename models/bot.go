@@ -37,7 +37,6 @@ type Bot struct {
 	Scheduler                     bool              `mapstructure:"scheduler,omitempty"`
 	ChatApplication               string            `mapstructure:"chat_application" binding:"required"`
 	Debug                         bool              `mapstructure:"debug,omitempty"`
-	InteractiveComponents         bool              `mapstructure:"interactive_components,omitempty"`
 	Metrics                       bool              `mapstructure:"metrics,omitempty"`
 	CustomHelpText                string            `mapstructure:"custom_help_text,omitempty"`
 	DisableNoMatchHelp            bool              `mapstructure:"disable_no_match_help,omitempty"`
