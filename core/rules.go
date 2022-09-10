@@ -25,9 +25,17 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 	// Check if the rules directory even exists
 	log.Debug().Msg("looking for rules directory...")
 
-	searchDir, err := utils.PathExists(path.Join("config", "rules"))
+	currDir, err := os.Getwd()
 	if err != nil {
-		log.Error().Msgf("could not parse rules: %v", err)
+		log.Error().Msg("can't get current working directory")
+	}
+
+	// TODO: make customizable
+	rulesDir := path.Join(currDir, "config", "rules")
+
+	_, err = os.Stat(rulesDir)
+	if err != nil {
+		log.Error().Msg("config/rules directory not found")
 	}
 
 	// Loop through the rules directory and create a list of rules
@@ -35,8 +43,8 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 
 	fileList := []string{}
 
-	err = filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
-		if !f.IsDir() {
+	err = filepath.Walk(rulesDir, func(path string, f os.FileInfo, err error) error {
+		if f != nil && !f.IsDir() {
 			fileList = append(fileList, path)
 		}
 
@@ -46,7 +54,7 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 		log.Error().Msgf("could not parse rules: %v", err)
 	}
 
-	// If the rules directory is empty, log a warning and exit the function
+	// If the rules directory is empty, log a warning and exit
 	if len(fileList) == 0 {
 		log.Warn().Msg("looks like there aren't any rules")
 
@@ -73,7 +81,7 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 			log.Error().Msg(err.Error())
 		}
 
-		err = validateRule(bot, &rule)
+		err = validateRule(&rule)
 		if err != nil {
 			log.Error().Msg(err.Error())
 		}
@@ -85,7 +93,7 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 }
 
 // Validate applies any environmental changes.
-func validateRule(bot *models.Bot, r *models.Rule) error {
+func validateRule(r *models.Rule) error {
 	for i := range r.OutputToRooms {
 		token, err := utils.Substitute(r.OutputToRooms[i], map[string]string{})
 		if err != nil {

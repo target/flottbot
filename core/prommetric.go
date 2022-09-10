@@ -57,6 +57,7 @@ func Prommetric(input string, bot *models.Bot) {
 
 			// start prometheus server
 			go func() {
+				//nolint:gosec // fix to make sure http serve is done with timeout in place
 				err := http.ListenAndServe(":8080", promRouter)
 				if err != nil {
 					log.Fatal().Msgf("Prometheus handler errored: %v", err)

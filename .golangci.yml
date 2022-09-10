@@ -30,7 +30,6 @@ linters:
     - bidichk             # checks for dangerous unicode character sequences
     - bodyclose           # checks whether HTTP response body is closed successfully
     - contextcheck        # check the function whether use a non-inherited context
-    - deadcode            # finds unused code
     - dupl                # code clone detection
     - errcheck            # checks for unchecked errors
     - errorlint           # find misuses of errors
@@ -57,14 +56,12 @@ linters:
     - nolintlint          # reports ill-formed or insufficient nolint directives
     - revive              # linter for go
     - staticcheck         # applies static analysis checks, go vet on steroids
-    - structcheck         # finds unused struct fields
     - stylecheck          # replacement for golint
     - tenv                # analyzer that detects using os.Setenv instead of t.Setenv since Go1.17
     - typecheck           # parses and type-checks go code, like the front-end of a go compiler
     - unconvert           # remove unnecessary type conversions
     - unparam             # reports unused function parameters
     - unused              # checks for unused constants, variables, functions and types
-    - varcheck            # finds unused global variables and constants
     - whitespace          # detects leading and trailing whitespace
     - wsl                 # forces code to use empty lines
 
@@ -72,6 +69,7 @@ linters:
   # chosen to leave disabled for now
   # - asciicheck          - non-critical
   # - cyclop              - unused complexity metric
+  # - deadcode            - finds unused code (deprecated)
   # - depguard            - unused
   # - dogsled             - blanks allowed
   # - durationcheck       - unused
@@ -107,9 +105,11 @@ linters:
   # - rowserrcheck        - unused
   # - scopelint           - deprecated - replaced with exportloopref
   # - sqlclosecheck       - unused
+  # - structcheck         - finds unused struct fields (deprecated)
   # - tagliatelle         - use a mix of variable naming
   # - testpackage         - don't use this style of testing
   # - thelper             - false-positives
+  # - varcheck            - finds unused global variables and constants (deprecated)
   # - varnamelen          - unused
   # - wastedassign        - duplicate functionality
   # - wrapcheck           - style preference

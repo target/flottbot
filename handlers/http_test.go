@@ -37,11 +37,7 @@ func Test_extractFields(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := extractFields(tt.args.raw)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("extractFields() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			got := extractFields(tt.args.raw)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("extractFields() = %v, want %v", got, tt.want)
 			}

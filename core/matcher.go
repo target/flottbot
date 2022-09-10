@@ -342,7 +342,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 		}
 
 		// Handle reaction update
-		updateReaction(action, &rule, message.Vars, bot)
+		updateReaction(action, &rule, message.Vars)
 
 		// Handle error
 		if err != nil {
@@ -562,7 +562,7 @@ func handleReaction(outputMsgs chan<- models.Message, msg *models.Message, hitRu
 }
 
 // Update emoji reaction when specified.
-func updateReaction(action models.Action, rule *models.Rule, vars map[string]string, bot *models.Bot) {
+func updateReaction(action models.Action, rule *models.Rule, vars map[string]string) {
 	if action.Reaction != "" && rule.Reaction != "" {
 		// Check if the value contains html/template code
 		if strings.Contains(action.Reaction, "{{") {

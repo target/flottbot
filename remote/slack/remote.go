@@ -150,7 +150,7 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	// send message  based on type
 	switch message.Type {
 	case models.MsgTypeDirect, models.MsgTypeChannel, models.MsgTypePrivateChannel:
-		send(api, message, bot)
+		send(api, message)
 	default:
 		log.Warn().Msg("received unknown message type - no message to send")
 	}
@@ -178,7 +178,7 @@ func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message 
 			interactionsRouter.HandleFunc("/interaction_health", getInteractiveComponentHealthHandler(bot)).Methods("GET")
 
 			// Rule handler and endpoint
-			ruleHandle := getInteractiveComponentRuleHandler(c.SigningSecret, inputMsgs, message, rule, bot)
+			ruleHandle := getInteractiveComponentRuleHandler(inputMsgs, rule, bot)
 
 			// We use regex for interactions routing for any bot using this framework
 			// e.g. /slack_events/v1/mybot_dev-v1_interactions
@@ -193,6 +193,7 @@ func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message 
 
 			// start Interactive Components server
 			go func() {
+				//nolint:gosec // fix to use server with timeout
 				err := http.ListenAndServe(":4000", interactionsRouter)
 				if err != nil {
 					log.Error().Msgf("unable to start interactions endpoint: %v", err)
@@ -203,6 +204,6 @@ func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message 
 		}
 
 		// Process the hit rule for Interactive Components, e.g. interactive messages
-		processInteractiveComponentRule(rule, message, bot)
+		processInteractiveComponentRule(rule, message)
 	}
 }
