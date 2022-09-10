@@ -1,7 +1,7 @@
 # ignore everything
 *
 
-# needed for go 1.18 build
+# needed for go 1.18+ build
 !.git/
 !.gitignore
 
