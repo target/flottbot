@@ -5,10 +5,10 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -51,7 +51,7 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 		return nil, err
 	}
 
-	req, err := http.NewRequest(args.Type, url, payload)
+	req, err := http.NewRequestWithContext(context.Background(), args.Type, url, payload)
 	if err != nil {
 		log.Error().Msg("failed to create a new http request")
 		return nil, err
@@ -78,17 +78,13 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 
 	defer resp.Body.Close()
 
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Error().Msg("failed to read response from http request")
 		return nil, err
 	}
 
-	fields, err := extractFields(bodyBytes)
-	if err != nil {
-		log.Error().Msg("failed to extract the fields from the http response")
-		return nil, err
-	}
+	fields := extractFields(bodyBytes)
 
 	result := models.HTTPResponse{
 		Status: resp.StatusCode,
@@ -126,8 +122,11 @@ func prepRequestData(url, actionType string, data map[string]any, msg *models.Me
 	return url, nil, nil
 }
 
-// Unmarshal arbitrary JSON.
-func extractFields(raw []byte) (any, error) {
+// Unmarshal arbitrary JSON
+// Tries to unmarshal response as
+// object and array and returns raw
+// contents if either fail.
+func extractFields(raw []byte) any {
 	var resp map[string]any
 
 	err := json.Unmarshal(raw, &resp)
@@ -136,13 +135,13 @@ func extractFields(raw []byte) (any, error) {
 
 		err := json.Unmarshal(raw, &arrResp)
 		if err != nil {
-			return string(raw), nil
+			return string(raw)
 		}
 
-		return arrResp, nil
+		return arrResp
 	}
 
-	return resp, nil
+	return resp
 }
 
 // Create GET query string.

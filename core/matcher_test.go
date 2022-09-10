@@ -511,14 +511,12 @@ func TestUpdateReaction(t *testing.T) {
 		action models.Action
 		rule   *models.Rule
 		vars   map[string]string
-		bot    *models.Bot
 	}
 
 	// Init test args
 	testAction := new(models.Action)
 	testRule := new(models.Rule)
 	testVars := make(map[string]string)
-	bot := new(models.Bot)
 
 	// Set test variables
 	testHTTPStatusTemplate := `
@@ -542,12 +540,12 @@ func TestUpdateReaction(t *testing.T) {
 		updateReaction string
 		want           string
 	}{
-		{"No reaction to update", args{*testAction, testRule, testVars, bot}, "wait", "", "wait"},
-		{"Update wait to done", args{*testAction, testRule, testVars, bot}, "wait", "done", "done"},
-		{"Update wait to check_mark with golang templating (http status)", args{*testAction, testRule, testVars, bot}, "wait", testHTTPStatusTemplate, "check_mark"},
-		{"Update wait to x with golang templating (http status)", args{*testAction, testRule, testVars, bot}, "wait", testHTTPStatusTemplate, "x"},
-		{"Update wait to check_mark with golang templating (exec status)", args{*testAction, testRule, testVars, bot}, "wait", testExecStatusTemplate, "check_mark"},
-		{"Update wait to x with golang templating (exec status)", args{*testAction, testRule, testVars, bot}, "wait", testExecStatusTemplate, "x"},
+		{"No reaction to update", args{*testAction, testRule, testVars}, "wait", "", "wait"},
+		{"Update wait to done", args{*testAction, testRule, testVars}, "wait", "done", "done"},
+		{"Update wait to check_mark with golang templating (http status)", args{*testAction, testRule, testVars}, "wait", testHTTPStatusTemplate, "check_mark"},
+		{"Update wait to x with golang templating (http status)", args{*testAction, testRule, testVars}, "wait", testHTTPStatusTemplate, "x"},
+		{"Update wait to check_mark with golang templating (exec status)", args{*testAction, testRule, testVars}, "wait", testExecStatusTemplate, "check_mark"},
+		{"Update wait to x with golang templating (exec status)", args{*testAction, testRule, testVars}, "wait", testExecStatusTemplate, "x"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -563,7 +561,7 @@ func TestUpdateReaction(t *testing.T) {
 			}
 			tt.args.rule.Reaction = tt.reaction
 			tt.args.action.Reaction = tt.updateReaction
-			updateReaction(tt.args.action, tt.args.rule, tt.args.vars, tt.args.bot)
+			updateReaction(tt.args.action, tt.args.rule, tt.args.vars)
 			if tt.args.rule.Reaction != tt.want {
 				t.Errorf("updateReaction() wanted %s, but got %s", tt.want, tt.args.rule.Reaction)
 			}

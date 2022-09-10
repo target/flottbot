@@ -1,7 +1,7 @@
 <p align="center">
-  <img alt="flottbot logo" src="https://i.imgur.com/P9NI00w.png" height="160" />
+<img alt="flottbot logo" src="https://i.imgur.com/P9NI00w.png" height="160" />
 
-  <h3 align="center">Flottbot</h3>
+<h3 align="center">Flottbot</h3>
 </p>
 
 ---
@@ -44,7 +44,7 @@ We currently provide a few Docker images:
 
 [target/flottbot:ruby](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and ruby v3.1 installed
 
-[target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.18 installed
+[target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.19 installed
 
 [target/flottbot:python](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and python v3.10 installed
 

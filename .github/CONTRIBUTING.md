@@ -13,7 +13,7 @@ To ensure that all developers follow the same guidelines for development, we hav
 - Clone this repository to your Go workspace:
 
 ```sh
-# Make sure you are running go 1.18 or later
+# Make sure you are running go 1.19 or later
 
 # Clone the project
 git clone git@github.com:target/flottbot.git somepath/flottbot
@@ -76,4 +76,4 @@ DEBU[0001] Connection established!
 - After the Github Actions build passes and you have an approved review, we will merge your PR.
 
 - We will tag a release for flottbot when the desired functionality is present and stable.
-  - Production images of your changes will be published to Docker Hub and new binaries will be built and made available via Github Releases
+- Production images of your changes will be published to Docker Hub and new binaries will be built and made available via Github Releases
