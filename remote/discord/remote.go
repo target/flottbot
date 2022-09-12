@@ -175,11 +175,6 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	}
 }
 
-// InteractiveComponents implementation to satisfy remote interface.
-func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
-	// not implemented for Discord
-}
-
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the authenticated bot has access to.
 func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) any {

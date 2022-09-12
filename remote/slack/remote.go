@@ -5,9 +5,6 @@
 package slack
 
 import (
-	"net/http"
-
-	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/slack-go/slack"
@@ -153,57 +150,5 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 		send(api, message)
 	default:
 		log.Warn().Msg("received unknown message type - no message to send")
-	}
-}
-
-var interactionsRouter *mux.Router
-
-// InteractiveComponents implementation to satisfy remote interface
-// It will serve as a way for your bot to handle advance messaging, such as message attachments.
-// When your bot is up and running, it will have an http/https endpoint to handle rules for sending attachments.
-func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
-	if bot.InteractiveComponents && c.SigningSecret != "" {
-		if bot.SlackInteractionsCallbackPath == "" {
-			log.Error().Msg("need to specify a callback path for the 'slack_interactions_callback_path' field in the bot.yml (e.g. \"/slack_events/v1/mybot_dev-v1_interactions\")")
-			log.Warn().Msg("closing interactions reader (will not be able to read interactive components)")
-
-			return
-		}
-
-		if interactionsRouter == nil {
-			// create router for the Interactive Components server
-			interactionsRouter = mux.NewRouter()
-
-			// interaction health check handler
-			interactionsRouter.HandleFunc("/interaction_health", getInteractiveComponentHealthHandler(bot)).Methods("GET")
-
-			// Rule handler and endpoint
-			ruleHandle := getInteractiveComponentRuleHandler(inputMsgs, rule, bot)
-
-			// We use regex for interactions routing for any bot using this framework
-			// e.g. /slack_events/v1/mybot_dev-v1_interactions
-			if !isValidPath(bot.SlackInteractionsCallbackPath) {
-				log.Error().Msg(`invalid events path - please double check your path value/syntax (e.g. "/slack_events/v1/mybot_dev-v1_interactions")`)
-				log.Warn().Msg("closing interaction components reader (will not be able to read interactive components)")
-
-				return
-			}
-
-			interactionsRouter.HandleFunc(bot.SlackInteractionsCallbackPath, ruleHandle).Methods("POST")
-
-			// start Interactive Components server
-			go func() {
-				//nolint:gosec // fix to use server with timeout
-				err := http.ListenAndServe(":4000", interactionsRouter)
-				if err != nil {
-					log.Error().Msgf("unable to start interactions endpoint: %v", err)
-				}
-			}()
-
-			log.Info().Msgf("slack interactive components server is listening to %#q", bot.SlackInteractionsCallbackPath)
-		}
-
-		// Process the hit rule for Interactive Components, e.g. interactive messages
-		processInteractiveComponentRule(rule, message)
 	}
 }

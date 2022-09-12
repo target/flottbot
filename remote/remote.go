@@ -25,8 +25,6 @@ type Remote interface {
 
 	Send(message models.Message, bot *models.Bot)
 
-	InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot)
-
 	Name() string
 }
 
@@ -43,11 +41,6 @@ func Read(c context.Context, inputMsgs chan<- models.Message, rules map[string]m
 // Send enables the bot to send messages to a remote.
 func Send(c context.Context, message models.Message, bot *models.Bot) {
 	FromContext(c).Send(message, bot)
-}
-
-// InteractiveComponents enables the bot to listen to Interactive Components coming from a remote.
-func InteractiveComponents(c context.Context, inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
-	FromContext(c).InteractiveComponents(inputMsgs, message, rule, bot)
 }
 
 // Name returns the name of the remote.

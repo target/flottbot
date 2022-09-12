@@ -94,8 +94,3 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	fmt.Fprint(w, user+"> ")
 	w.Flush()
 }
-
-// InteractiveComponents implementation to satisfy remote interface.
-func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
-	// not implemented for CLI
-}

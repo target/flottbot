@@ -115,36 +115,31 @@ func Test_configureChatApplication(t *testing.T) {
 	validateRemoteSetup(testBotTelegramBadToken)
 
 	tests := []struct {
-		name                           string
-		args                           args
-		shouldRunChat                  bool
-		shouldRunInteractiveComponents bool
+		name          string
+		args          args
+		shouldRunChat bool
 	}{
-		{"Fail", args{bot: testBot}, false, false},
-		{"Fail - no chat_application not set", args{bot: testBotNoChat}, false, false},
-		{"Fail - Invalid value for chat_application", args{bot: testBotInvalidChat}, false, false},
-		{"Bad Name", args{bot: testBotBadName}, false, false},
-		{"Slack - no token", args{bot: testBotSlackNoToken}, false, false},
-		{"Slack - bad token", args{bot: testBotSlackBadToken}, false, false},
-		{"Slack - bad signing secret", args{bot: testBotSlackBadSigningSecret}, false, false},
-		{"Slack", args{bot: testBotSlack}, true, false},
-		{"Discord - no token", args{bot: testBotDiscordNoToken}, false, false},
-		{"Discord - bad token", args{bot: testBotDiscordBadToken}, false, false},
-		{"Discord w/ server id", args{bot: testBotDiscordServerID}, true, false},
-		{"Discord w/ bad server id", args{bot: testBotDiscordBadServerID}, false, false},
-		{"Telegram", args{bot: testBotTelegram}, true, false},
-		{"Telegram - no token", args{bot: testBotTelegramNoToken}, false, false},
-		{"Telegram - bad token", args{bot: testBotTelegramBadToken}, false, false},
+		{"Fail", args{bot: testBot}, false},
+		{"Fail - no chat_application not set", args{bot: testBotNoChat}, false},
+		{"Fail - Invalid value for chat_application", args{bot: testBotInvalidChat}, false},
+		{"Bad Name", args{bot: testBotBadName}, false},
+		{"Slack - no token", args{bot: testBotSlackNoToken}, false},
+		{"Slack - bad token", args{bot: testBotSlackBadToken}, false},
+		{"Slack - bad signing secret", args{bot: testBotSlackBadSigningSecret}, false},
+		{"Slack", args{bot: testBotSlack}, true},
+		{"Discord - no token", args{bot: testBotDiscordNoToken}, false},
+		{"Discord - bad token", args{bot: testBotDiscordBadToken}, false},
+		{"Discord w/ server id", args{bot: testBotDiscordServerID}, true},
+		{"Discord w/ bad server id", args{bot: testBotDiscordBadServerID}, false},
+		{"Telegram", args{bot: testBotTelegram}, true},
+		{"Telegram - no token", args{bot: testBotTelegramNoToken}, false},
+		{"Telegram - bad token", args{bot: testBotTelegramBadToken}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			configureChatApplication(tt.args.bot)
 			if tt.shouldRunChat != tt.args.bot.RunChat {
 				t.Errorf("configureChatApplication() wanted RunChat set to %v, but got %v", tt.shouldRunChat, tt.args.bot.RunChat)
-			}
-
-			if tt.shouldRunInteractiveComponents != tt.args.bot.InteractiveComponents {
-				t.Errorf("configureChatApplication() wanted InteractiveComponents set to %v, but got %v", tt.shouldRunInteractiveComponents, tt.args.bot.InteractiveComponents)
 			}
 		})
 	}
@@ -157,7 +152,6 @@ func Test_setSlackListenerPort(t *testing.T) {
 	baseBot := func() *models.Bot {
 		bot := new(models.Bot)
 		bot.CLI = true
-		bot.InteractiveComponents = true
 		bot.ChatApplication = "slack"
 		bot.SlackToken = "${TEST_SLACK_TOKEN}"
 		bot.SlackInteractionsCallbackPath = "${TEST_SLACK_INTERACTIONS_CALLBACK_PATH}"

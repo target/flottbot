@@ -109,11 +109,6 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	}
 }
 
-// InteractiveComponents implementation to satisfy remote interface.
-func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
-	// TODO: add support for InteractiveComponents with Google Chat Cards
-}
-
 // Reaction implementation to satisfy remote interface.
 func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
 	// Not implemented for Google Chat
