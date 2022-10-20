@@ -6,22 +6,29 @@ on:
   pull_request:
   push:
 
+permissions:
+  contents: read
+
 # pipeline to execute
 jobs:
   test:
+    permissions:
+      pull-requests: write # so coveralls can write to the PR
+
     runs-on: ubuntu-latest
 
     steps:
       - name: clone
-        uses: actions/checkout@v3
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3
       - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
       - name: install go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v3
         with:
           # use version from go.mod file
           go-version-file: 'go.mod'
           cache: true
+          check-latest: true
 
       - name: test
         run: |
