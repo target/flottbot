@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: clone
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3
+        uses: actions/checkout@1f9a0c22da41e6ebfa534300ef656657ea2c6707 # v3
       - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
       - name: install go
