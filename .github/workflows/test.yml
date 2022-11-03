@@ -23,7 +23,7 @@ jobs:
       - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
       - name: install go
-        uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v3
+        uses: actions/setup-go@27b43e1b0d324a64f8fcc14f931e45ae178f6b19 # v3
         with:
           # use version from go.mod file
           go-version-file: 'go.mod'
