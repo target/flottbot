@@ -16,7 +16,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
   go build -a -ldflags "-s -w -X github.com/target/flottbot/version.Version=${VERSION}" \
   -o flottbot ./cmd/flottbot
 
-FROM docker.io/ruby:3.1.2-alpine@sha256:6914f3f517a1ad54744e3d75ad97c57669262f8a80648271805792da08c42180
+FROM docker.io/ruby:3.1.2-alpine@sha256:05b990dbaa3a118f96e9ddbf046f388b3c4953d5ef3d18908af96f42c0e138d9
 
 ENV USERNAME=flottbot
 ENV GROUP=flottbot
