@@ -5,7 +5,7 @@
 package handlers
 
 import (
-  "reflect"
+	"reflect"
 	"testing"
 
 	"github.com/target/flottbot/models"
@@ -171,31 +171,30 @@ func TestScriptExec(t *testing.T) {
 				t.Errorf("ScriptExec() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-      
-      // special error handling
-      if err != nil {
-        // if there's an error, the status should not be 0
-        // we're not matching the exit code exactly due to
-        // architecture/os not being consistent here
-        if got.Status == 0 {
-          t.Errorf("Status = %v, want %v", got.Status, tt.want.Status)
-        }
-  
-        // if there's an error, the output should still match
-        if got.Output != tt.want.Output {
-          t.Errorf("Output = %v, want %v", got.Status, tt.want.Output)
-        }
 
-        // exit
-        return
-      }
+			// special error handling
+			if err != nil {
+				// if there's an error, the status should not be 0
+				// we're not matching the exit code exactly due to
+				// architecture/os not being consistent here
+				if got.Status == 0 {
+					t.Errorf("Status = %v, want %v", got.Status, tt.want.Status)
+				}
 
-      // for non-error, check to make sure
-      // response is as expected
-      if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ScriptExec() = %v, want %v", got, tt.want)
+				// if there's an error, the output should still match
+				if got.Output != tt.want.Output {
+					t.Errorf("Output = %v, want %v", got.Status, tt.want.Output)
+				}
+
+				// exit
+				return
 			}
 
+			// for non-error, check to make sure
+			// response is as expected
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ScriptExec() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }
