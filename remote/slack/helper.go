@@ -219,7 +219,7 @@ func getEventsAPIEventHandler(api *slack.Client, signingSecret string, inputMsgs
 
 		// process regular Callback events
 		if eventsAPIEvent.Type == slackevents.CallbackEvent {
-      //nolint:contextcheck // TODO: create and pass context?
+			//nolint:contextcheck // TODO: create and pass context?
 			handleCallBack(api, eventsAPIEvent.InnerEvent, bot, inputMsgs, w)
 		}
 	}
