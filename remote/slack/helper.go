@@ -133,8 +133,15 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 	case *slackevents.MemberJoinedChannelEvent:
 		// limit to our bot
 		if ev.User == bot.ID {
+			// options for getting channel info
+			opts := &slack.GetConversationInfoInput{
+				ChannelID:         ev.Channel,
+				IncludeLocale:     false,
+				IncludeNumMembers: true,
+			}
+
 			// look up channel info, since 'ev' only gives us ID
-			channel, err := api.GetConversationInfo(ev.Channel, false)
+			channel, err := api.GetConversationInfo(opts)
 			if err != nil {
 				log.Error().Msgf("unable to fetch channel info for channel joined event: %v", err)
 			}
@@ -212,7 +219,7 @@ func getEventsAPIEventHandler(api *slack.Client, signingSecret string, inputMsgs
 
 		// process regular Callback events
 		if eventsAPIEvent.Type == slackevents.CallbackEvent {
-			//nolint:contextcheck // TODO: fix to pass context
+			//nolint:contextcheck // TODO: create and pass context?
 			handleCallBack(api, eventsAPIEvent.InnerEvent, bot, inputMsgs, w)
 		}
 	}
@@ -579,8 +586,15 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 					case *slackevents.MemberJoinedChannelEvent:
 						// limit to our bot
 						if ev.User == bot.ID {
+							// options for getting channel info
+							opts := &slack.GetConversationInfoInput{
+								ChannelID:         ev.Channel,
+								IncludeLocale:     false,
+								IncludeNumMembers: true,
+							}
+
 							// look up channel info, since 'ev' only gives us ID
-							channel, err := sm.GetConversationInfo(ev.Channel, false)
+							channel, err := sm.GetConversationInfo(opts)
 							if err != nil {
 								log.Error().Msgf("unable to fetch channel info for channel joined event: %v", err)
 							}
