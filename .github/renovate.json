@@ -2,10 +2,22 @@
   "extends": [
     "config:base"
   ],
+  "labels": [
+    "dependencies"
+  ],
+  "semanticCommits": "enabled",
   "golang": {
     "postUpdateOptions": [
       "gomodTidy",
       "gomodUpdateImportPaths"
     ]
-  }
+  },
+  "packageRules": [
+    {
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "groupName": "patch deps"
+    }
+  ]
 }
