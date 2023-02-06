@@ -20,7 +20,7 @@ scheduler: false
 # true: enables rule scheduling
 # false: disables rule scheduling
 
-debug: true
+debug: ${DEBUG}
 # true: enable logging to console
 # false: disable logging
 
