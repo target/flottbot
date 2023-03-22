@@ -14,7 +14,7 @@
 
 Flottbot is a chatbot framework written in Go. But there's a catch, you don't need to know a lick of Go! Configure your bot via YAML files, extend functionality by writing scripts in your favorite language.
 
-The philosophy behind flottbot is to create very simple, lightweight, "dumb" bots that interact with APIs and scripts which house a bot's business logic. The word **flott** comes from the German word meaning _quick_/_speedy_.
+The philosophy behind flottbot is to create very simple, lightweight, "dumb" bots that interact with APIs and scripts which houses a bot's business logic. The word **flott** comes from the German word meaning _quick_/_speedy_.
 
 1. [Installation](#installation)
 1. [Docker images](#docker-images)
