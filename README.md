@@ -42,9 +42,9 @@ We currently provide a few Docker images:
 
 [target/flottbot](https://hub.docker.com/r/target/flottbot) - Alpine image and flottbot binary installed
 
-[target/flottbot:ruby](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and ruby v3.1 installed
+[target/flottbot:ruby](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and ruby v3.2 installed
 
-[target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.19 installed
+[target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.20 installed
 
 [target/flottbot:python](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and python v3.11 installed
 
