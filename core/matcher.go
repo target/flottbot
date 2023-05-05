@@ -334,8 +334,8 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 				directive = false
 			}
 			// Create copy of message so as to not overwrite other message action type messages
-			copy := deepcopy.Copy(message).(models.Message)
-			err = handleMessage(action, outputMsgs, &copy, directive, rule.StartMessageThread, hitRule, bot)
+			dcopy := deepcopy.Copy(message).(models.Message)
+			err = handleMessage(action, outputMsgs, &dcopy, directive, rule.StartMessageThread, hitRule, bot)
 		// Fallback to error if action type is invalid
 		default:
 			log.Error().Msgf("the rule %#q of type %#q is not a supported action", action.Name, action.Type)

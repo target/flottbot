@@ -27,7 +27,7 @@ func (c *Client) Name() string {
 }
 
 // Reaction implementation to satisfy remote interface.
-func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
+func (c *Client) Reaction(_ models.Message, _ models.Rule, _ *models.Bot) {
 	// not implemented for Scheduler
 }
 
@@ -123,7 +123,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 }
 
 // Send implementation to satisfy remote interface.
-func (c *Client) Send(message models.Message, bot *models.Bot) {
+func (c *Client) Send(_ models.Message, _ *models.Bot) {
 	// not implemented for Scheduler
 }
 

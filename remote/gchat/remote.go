@@ -50,7 +50,7 @@ func (c *Client) Name() string {
 }
 
 // Read messages from Google Chat.
-func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
+func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule, _ *models.Bot) {
 	ctx := context.Background()
 
 	// init client
@@ -79,7 +79,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 }
 
 // Send messages to Google Chat.
-func (c *Client) Send(message models.Message, bot *models.Bot) {
+func (c *Client) Send(message models.Message, _ *models.Bot) {
 	ctx := context.Background()
 
 	service, err := chat.NewService(
@@ -110,6 +110,6 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 }
 
 // Reaction implementation to satisfy remote interface.
-func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
+func (c *Client) Reaction(_ models.Message, _ models.Rule, _ *models.Bot) {
 	// Not implemented for Google Chat
 }

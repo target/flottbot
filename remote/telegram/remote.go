@@ -46,12 +46,12 @@ func (c *Client) Name() string {
 }
 
 // Reaction implementation to satisfy remote interface.
-func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
+func (c *Client) Reaction(_ models.Message, _ models.Rule, _ *models.Bot) {
 	// not implemented for Telegram
 }
 
 // Read implementation to satisfy remote interface.
-func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
+func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule, bot *models.Bot) {
 	telegramAPI := c.new()
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -132,7 +132,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 }
 
 // Send implementation to satisfy remote interface.
-func (c *Client) Send(message models.Message, bot *models.Bot) {
+func (c *Client) Send(message models.Message, _ *models.Bot) {
 	telegramAPI := c.new()
 
 	chatID, err := strconv.ParseInt(message.ChannelID, 10, 64)
