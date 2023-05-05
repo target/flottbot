@@ -28,7 +28,7 @@ Slack helper functions (anything that uses the 'slack-go/slack' package)
 */
 
 // getEventsAPIHealthHandler creates and returns the handler for health checks on the Slack Events API reader.
-func getEventsAPIHealthHandler(bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
+func getEventsAPIHealthHandler(_ *models.Bot) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			log.Error().Msgf("received invalid method: %s", r.Method)
@@ -219,7 +219,6 @@ func getEventsAPIEventHandler(api *slack.Client, signingSecret string, inputMsgs
 
 		// process regular Callback events
 		if eventsAPIEvent.Type == slackevents.CallbackEvent {
-			//nolint:contextcheck // TODO: create and pass context?
 			handleCallBack(api, eventsAPIEvent.InnerEvent, bot, inputMsgs, w)
 		}
 	}

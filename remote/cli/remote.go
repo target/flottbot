@@ -30,12 +30,12 @@ func (c *Client) Name() string {
 }
 
 // Reaction implementation to satisfy remote interface.
-func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
+func (c *Client) Reaction(_ models.Message, _ models.Rule, _ *models.Bot) {
 	// not implemented for CLI
 }
 
 // Read implementation to satisfy remote interface.
-func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
+func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule, bot *models.Bot) {
 	user := bot.CLIUser
 	if user == "" {
 		user = "Flottbot-CLI-User"

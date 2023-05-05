@@ -49,7 +49,7 @@ func (c *Client) Name() string {
 // .
 // reaction: 🔥
 // .
-func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
+func (c *Client) Reaction(message models.Message, rule models.Rule, _ *models.Bot) {
 	if rule.RemoveReaction != "" {
 		// Init api client
 		dg := c.new()
@@ -76,7 +76,7 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 }
 
 // Read implementation to satisfy remote interface.
-func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
+func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule, bot *models.Bot) {
 	dg := c.new()
 	if dg == nil {
 		log.Error().Msg("failed to initialize discord client")

@@ -51,7 +51,7 @@ func (l *slackLogger) Output(_ int, s string) error {
 }
 
 // Reaction implementation to satisfy remote interface.
-func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
+func (c *Client) Reaction(message models.Message, rule models.Rule, _ *models.Bot) {
 	if rule.RemoveReaction != "" {
 		// Init api client
 		api := c.new()
@@ -83,7 +83,7 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 
 // Read implementation to satisfy remote interface
 // Utilizes the Slack API client to read messages from Slack.
-func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
+func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule, bot *models.Bot) {
 	// init api client
 	api := c.new()
 
@@ -129,7 +129,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 }
 
 // Send implementation to satisfy remote interface.
-func (c *Client) Send(message models.Message, bot *models.Bot) {
+func (c *Client) Send(message models.Message, _ *models.Bot) {
 	log.Debug().Msgf("sending message %#q", message.ID)
 
 	api := c.new()
