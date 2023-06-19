@@ -493,7 +493,7 @@ func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models
 //
 // https://api.slack.com/apis/connections/socket
 //
-//nolint:gocyclo,funlen // needs refactor
+//nolint:gocyclo // needs refactor
 func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *models.Bot) {
 	// setup the client
 	client := socketmode.New(sm)
