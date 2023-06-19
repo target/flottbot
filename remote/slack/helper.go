@@ -362,19 +362,6 @@ func handleNonDirectMessage(api *slack.Client, users []slack.User, message model
 	return nil
 }
 
-// populateUsers populates slack users.
-func populateUsers(su []slack.User, bot *models.Bot) {
-	users := make(map[string]string)
-
-	// create a map of users
-	for _, user := range su {
-		users[user.Name] = user.ID
-	}
-
-	// add users to bot
-	bot.Users = users
-}
-
 // populateUserGroups populates slack user groups.
 func populateUserGroups(sug []slack.UserGroup, bot *models.Bot) {
 	userGroups := make(map[string]string)
@@ -459,9 +446,6 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 // readFromEventsAPI utilizes the Slack API client to read event-based messages.
 // This method of reading is preferred over the RTM method.
 func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models.Message, bot *models.Bot) {
-	// populate all the users
-	go getUsers(api, bot)
-
 	// populate user groups
 	go getUserGroups(api, bot)
 
@@ -605,9 +589,6 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 			case socketmode.EventTypeConnected:
 				log.Info().Msg("connected to slack with socket mode")
 
-				// populate users
-				go getUsers(sm, bot)
-
 				// populate usergroups
 				go getUserGroups(sm, bot)
 			default:
@@ -689,27 +670,6 @@ func sendMessage(api *slack.Client, ephemeral bool, channel, userID, text, threa
 	_, _, err := api.PostMessage(channel, opts...)
 
 	return err
-}
-
-// getUsers is a helper function to retrieve all users from the workspace
-// and populate the user lookup on the bot object.
-// this operation can take a long time on large workspaces and should be
-// run in a go routine.
-func getUsers(client *slack.Client, bot *models.Bot) {
-	start := time.Now()
-
-	// get the current users
-	users, err := client.GetUsers()
-	if err != nil {
-		log.Error().Msgf("error getting users: %v", err)
-	}
-
-	// add users to the bot
-	if users != nil {
-		populateUsers(users, bot)
-	}
-
-	log.Info().Msgf("fetched %d users in %s", len(users), time.Since(start).String())
 }
 
 // getUserGroups is a helper function to retrieve all usergroups from the workspace
