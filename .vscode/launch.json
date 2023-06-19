@@ -9,7 +9,6 @@
             "type": "go",
             "request": "launch",
             "mode": "exec",
-            "remotePath": "",
             "host": "127.0.0.1",
             "program": "${workspaceRoot}/debug",
             "preLaunchTask": "build-debug",
