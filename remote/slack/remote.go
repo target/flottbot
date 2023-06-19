@@ -5,6 +5,8 @@
 package slack
 
 import (
+	"time"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/slack-go/slack"
@@ -87,9 +89,6 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 	// init api client
 	api := c.new()
 
-	// get bot rooms
-	bot.Rooms = getRooms(api)
-
 	// get bot id
 	rat, err := api.AuthTest()
 	if err != nil {
@@ -97,6 +96,16 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 
 		return
 	}
+
+	// fetch rooms async
+	go func(b *models.Bot) {
+		start := time.Now()
+
+		// get bot rooms
+		b.Rooms = getRooms(api)
+
+		log.Info().Msgf("fetched %d rooms in %s", len(b.Rooms), time.Since(start).String())
+	}(bot)
 
 	// set the bot ID
 	bot.ID = rat.UserID
