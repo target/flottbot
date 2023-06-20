@@ -14,10 +14,15 @@
   },
   "packageRules": [
     {
+      "description": "Automerge non-major updates",
       "matchUpdateTypes": [
-        "patch"
+        "minor",
+        "digest",
+        "patch",
+        "pin"
       ],
-      "groupName": "patch deps"
+      "groupName": "mergeable deps",
+      "automerge": true
     }
   ]
 }
