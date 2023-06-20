@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
@@ -268,10 +269,14 @@ func getSlackUsers(api *slack.Client, message models.Message) ([]slack.User, err
 	slackUsers := []slack.User{}
 	// grab list of users to message if 'output_to_users' was specified
 	if len(message.OutputToUsers) > 0 {
+		start := time.Now()
+
 		res, err := api.GetUsers()
 		if err != nil {
 			return []slack.User{}, fmt.Errorf("did not find any users listed in 'output_to_users': %w", err)
 		}
+
+		log.Info().Msgf("fetched %d users in %s", len(res), time.Since(start).String())
 
 		slackUsers = res
 	}
@@ -326,8 +331,11 @@ func handleNonDirectMessage(api *slack.Client, users []slack.User, message model
 	}
 	// Is output to users set?
 	if len(message.OutputToUsers) > 0 {
+		// this assumes output to users is an email?? that's mentioned nowhere
 		for _, u := range message.OutputToUsers {
-			// Get users Slack user ID
+			// Get users Slack user ID based on username supplied in output to users
+			// which assumes that email follows certain pattern, ie. firstname.lastname -> firstname.lastname@example.com
+			// note: requires email scope
 			userID := getUserID(u, users)
 			if userID != "" {
 				// If 'direct_message_only' is 'false' but the user listed himself in the 'output_to_users'
@@ -352,19 +360,6 @@ func handleNonDirectMessage(api *slack.Client, users []slack.User, message model
 	}
 
 	return nil
-}
-
-// populateUsers populates slack users.
-func populateUsers(su []slack.User, bot *models.Bot) {
-	users := make(map[string]string)
-
-	// create a map of users
-	for _, user := range su {
-		users[user.Name] = user.ID
-	}
-
-	// add users to bot
-	bot.Users = users
 }
 
 // populateUserGroups populates slack user groups.
@@ -451,27 +446,8 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 // readFromEventsAPI utilizes the Slack API client to read event-based messages.
 // This method of reading is preferred over the RTM method.
 func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models.Message, bot *models.Bot) {
-	// get the current users
-	users, err := api.GetUsers()
-	if err != nil {
-		log.Error().Msgf("error getting users: %v", err)
-	}
-
-	// add users to the bot
-	if users != nil {
-		populateUsers(users, bot)
-	}
-
-	// get the user groups
-	usergroups, err := api.GetUserGroups()
-	if err != nil {
-		log.Error().Msgf("error getting user groups: %v", err)
-	}
-
-	// add user groups to the bot
-	if usergroups != nil {
-		populateUserGroups(usergroups, bot)
-	}
+	// populate user groups
+	go getUserGroups(api, bot)
 
 	// Create router for the events server
 	router := mux.NewRouter()
@@ -501,7 +477,7 @@ func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models
 //
 // https://api.slack.com/apis/connections/socket
 //
-//nolint:gocyclo,funlen // needs refactor
+//nolint:gocyclo // needs refactor
 func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *models.Bot) {
 	// setup the client
 	client := socketmode.New(sm)
@@ -613,27 +589,8 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 			case socketmode.EventTypeConnected:
 				log.Info().Msg("connected to slack with socket mode")
 
-				// get users
-				users, err := sm.GetUsers()
-				if err != nil {
-					log.Error().Msgf("unable to get users: %v", err)
-				}
-
-				// add users to bot
-				if users != nil {
-					populateUsers(users, bot)
-				}
-
-				// get user groups
-				usergroups, err := sm.GetUserGroups()
-				if err != nil {
-					log.Error().Msgf("unable to get user groups: %v", err)
-				}
-
-				// add user groups to bot
-				if usergroups != nil {
-					populateUserGroups(usergroups, bot)
-				}
+				// populate usergroups
+				go getUserGroups(sm, bot)
 			default:
 				log.Warn().Msgf("unhandled event type received: %s", evt.Type)
 			}
@@ -648,6 +605,9 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 
 // send - handles the sending logic of a message going to Slack.
 func send(api *slack.Client, message models.Message) {
+	// TODO: potentially long running call depending on workspace size
+	// only needed for output_to_users functionality which makes some
+	// unsound and restricting assumptions. refactor!
 	users, err := getSlackUsers(api, message)
 	if err != nil {
 		log.Error().Msgf("problem sending message: %v", err)
@@ -710,4 +670,25 @@ func sendMessage(api *slack.Client, ephemeral bool, channel, userID, text, threa
 	_, _, err := api.PostMessage(channel, opts...)
 
 	return err
+}
+
+// getUserGroups is a helper function to retrieve all usergroups from the workspace
+// and populate the usergroup lookup on the bot object.
+// this operation can take a long time on large workspaces and should be
+// run in a go routine.
+func getUserGroups(client *slack.Client, bot *models.Bot) {
+	start := time.Now()
+
+	// get the user groups
+	usergroups, err := client.GetUserGroups()
+	if err != nil {
+		log.Error().Msgf("error getting user groups: %v", err)
+	}
+
+	// add user groups to the bot
+	if usergroups != nil {
+		populateUserGroups(usergroups, bot)
+	}
+
+	log.Info().Msgf("fetched %d usergroups in %s", len(usergroups), time.Since(start).String())
 }
