@@ -16,7 +16,7 @@ require (
 	github.com/rs/zerolog v1.29.1
 	github.com/slack-go/slack v0.12.2
 	github.com/spf13/viper v1.16.0
-	google.golang.org/api v0.125.0
+	google.golang.org/api v0.128.0
 )
 
 require (
@@ -33,7 +33,7 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/s2a-go v0.1.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.2.4 // indirect
 	github.com/googleapis/gax-go/v2 v2.10.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
