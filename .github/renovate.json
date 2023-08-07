@@ -23,6 +23,16 @@
       ],
       "groupName": "mergeable deps",
       "automerge": true
+    },
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["^Makefile$"],
+      "matchStrings": [
+        "GOLANGCI_LINT_VERSION := \"(?<currentValue>.*?)\""
+      ],
+      "depNameTemplate": "github.com/golangci/golangci-lint",
+      "datasourceTemplate": "go"
     }
   ]
 }
