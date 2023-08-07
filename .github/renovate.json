@@ -1,6 +1,7 @@
 {
   "extends": [
-    "config:base"
+    "config:base",
+    "helpers:pinGitHubActionDigests"
   ],
   "labels": [
     "dependencies"
@@ -21,15 +22,15 @@
         "patch",
         "pin"
       ],
-      "groupName": "mergeable deps",
+      "groupName": "non-major deps",
       "automerge": true
-    },
+    }
   ],
   "regexManagers": [
     {
       "fileMatch": ["^Makefile$"],
       "matchStrings": [
-        "GOLANGCI_LINT_VERSION := \"(?<currentValue>.*?)\""
+        "GOLANGCI_LINT_VERSION := \"(?<currentValue>.*?)\"\\n"
       ],
       "depNameTemplate": "github.com/golangci/golangci-lint",
       "datasourceTemplate": "go"
