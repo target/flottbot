@@ -1,4 +1,4 @@
-FROM docker.io/golang:1.20.7-alpine@sha256:9d0cef5db27ca8a1ffcb442b3947c491a2999c7c677ffb3f2d7a47bfb45b2c1d AS build
+FROM docker.io/golang:1.21.0-alpine@sha256:445f34008a77b0b98bf1821bf7ef5e37bb63cc42d22ee7c21cc17041070d134f AS build
 ARG VERSION
 
 # needed for vcs feature introduced in go 1.18+
@@ -16,7 +16,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
   go build -a -ldflags "-s -w -X github.com/target/flottbot/version.Version=${VERSION}" \
   -o flottbot ./cmd/flottbot
 
-FROM docker.io/ruby:3.2.2-alpine@sha256:2689717977dd07ddc14b943b821f15662ee1005b087d61ab932d1a85f3fb01d5
+FROM docker.io/ruby:3.2.2-alpine@sha256:ee39ade2cbda43fd466d787a595f142c9fa318284dd1d6b3e2f9590a9f4f75ab
 
 ENV USERNAME=flottbot
 ENV GROUP=flottbot
