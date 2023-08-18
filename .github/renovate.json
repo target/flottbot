@@ -1,18 +1,17 @@
 {
   "extends": [
     "config:base",
+    "docker:pinDigests",
     "helpers:pinGitHubActionDigests"
   ],
   "labels": [
     "dependencies"
   ],
   "semanticCommits": "enabled",
-  "golang": {
-    "postUpdateOptions": [
-      "gomodTidy",
-      "gomodUpdateImportPaths"
-    ]
-  },
+  "postUpdateOptions": [
+    "gomodTidy",
+    "gomodUpdateImportPaths"
+  ],
   "packageRules": [
     {
       "description": "Automerge non-major updates",
@@ -20,7 +19,8 @@
         "minor",
         "digest",
         "patch",
-        "pin"
+        "pin",
+        "pinDigest"
       ],
       "groupName": "non-major deps",
       "automerge": true
