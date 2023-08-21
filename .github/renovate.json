@@ -1,17 +1,17 @@
 {
   "extends": [
-    "config:base"
+    "config:base",
+    "docker:pinDigests",
+    "helpers:pinGitHubActionDigests"
   ],
   "labels": [
     "dependencies"
   ],
   "semanticCommits": "enabled",
-  "golang": {
-    "postUpdateOptions": [
-      "gomodTidy",
-      "gomodUpdateImportPaths"
-    ]
-  },
+  "postUpdateOptions": [
+    "gomodTidy",
+    "gomodUpdateImportPaths"
+  ],
   "packageRules": [
     {
       "description": "Automerge non-major updates",
@@ -19,10 +19,21 @@
         "minor",
         "digest",
         "patch",
-        "pin"
+        "pin",
+        "pinDigest"
       ],
-      "groupName": "mergeable deps",
+      "groupName": "non-major deps",
       "automerge": true
+    }
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["^Makefile$"],
+      "matchStrings": [
+        "GOLANGCI_LINT_VERSION := \"(?<currentValue>.*?)\"\\n"
+      ],
+      "depNameTemplate": "github.com/golangci/golangci-lint",
+      "datasourceTemplate": "go"
     }
   ]
 }
