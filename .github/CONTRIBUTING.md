@@ -13,7 +13,7 @@ To ensure that all developers follow the same guidelines for development, we hav
 - Clone this repository to your Go workspace:
 
 ```sh
-# Make sure you are running go 1.19 or later
+# Make sure you are running go 1.21 or later
 
 # Clone the project
 git clone git@github.com:target/flottbot.git somepath/flottbot
