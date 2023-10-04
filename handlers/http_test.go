@@ -113,15 +113,15 @@ func TestHTTPReq(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *models.HTTPResponse
+		want    models.HTTPResponse
 		wantErr bool
 	}{
-		{"HTTPReq GET", args{args: TestGETAction, msg: &TestMessage}, &models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
-		{"HTTPReq POST", args{args: TestPOSTAction, msg: &TestMessage}, &models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
-		{"HTTPReq No Query", args{args: TestEmptyQueryAction, msg: &TestMessage}, &models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
-		{"HTTPReq Error Response", args{args: TestErrorResponseAction, msg: &TestMessage}, &models.HTTPResponse{Status: 502, Raw: "", Data: ""}, false},
-		{"HTTPReq with Sub", args{args: TestQueryWithSubsAction, msg: &TestMessage}, nil, true},
-		{"HTTPReq with Error", args{args: TestWithError, msg: &TestMessage}, nil, true},
+		{"HTTPReq GET", args{args: TestGETAction, msg: &TestMessage}, models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
+		{"HTTPReq POST", args{args: TestPOSTAction, msg: &TestMessage}, models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
+		{"HTTPReq No Query", args{args: TestEmptyQueryAction, msg: &TestMessage}, models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
+		{"HTTPReq Error Response", args{args: TestErrorResponseAction, msg: &TestMessage}, models.HTTPResponse{Status: 502, Raw: "", Data: ""}, false},
+		{"HTTPReq with Sub", args{args: TestQueryWithSubsAction, msg: &TestMessage}, models.HTTPResponse{Status: 0, Raw: "", Data: nil}, true},
+		{"HTTPReq with Error", args{args: TestWithError, msg: &TestMessage}, models.HTTPResponse{Status: 0, Raw: "", Data: nil}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

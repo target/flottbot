@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"html"
 	"html/template"
+	"net"
 	"regexp"
 	"strconv"
 	"strings"
@@ -365,15 +366,20 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 	// After running through all the actions, compose final message
 	val, err := craftResponse(rule, message)
 	if err != nil {
+		// error message will be ephemeral to not bother all users
+		message.IsEphemeral = true
+
 		log.Error().Msg(err.Error())
+
 		message.Output = err.Error()
-		outputMsgs <- message
-	} else {
-		message.Output = val
-		// Override out with an error message, if one was set
+		// if there was an error message defined, use it
 		if message.Error != "" {
 			message.Output = message.Error
 		}
+
+		outputMsgs <- message
+	} else {
+		message.Output = val
 		// Pass along whether the message should be a direct message
 		message.DirectMessageOnly = rule.DirectMessageOnly
 		outputMsgs <- message
@@ -458,7 +464,22 @@ func handleHTTP(action models.Action, msg *models.Message) error {
 
 	resp, err := handlers.HTTPReq(action, msg)
 	if err != nil {
+		// check if error is a timeout and handle custom timeout messaging
+		var netError net.Error
+		if errors.As(err, &netError) && err.(net.Error).Timeout() {
+			timeoutMsg := action.TimeoutMessage
+
+			if timeoutMsg == "" {
+				timeoutMsg = fmt.Sprintf("request for %#q action timed out", action.Name)
+			}
+
+			msg.Error = timeoutMsg
+
+			return err
+		}
+
 		msg.Error = fmt.Sprintf("error in request made by action %#q - see bot admin for more information", action.Name)
+
 		return err
 	}
 

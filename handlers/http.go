@@ -21,8 +21,10 @@ import (
 )
 
 // HTTPReq handles 'http' actions for rules.
-func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, error) {
+func HTTPReq(args models.Action, msg *models.Message) (models.HTTPResponse, error) {
 	log.Info().Msgf("executing http request for action %#q", args.Name)
+
+	result := models.HTTPResponse{}
 
 	if args.Timeout == 0 {
 		// Default HTTP Timeout of 10 seconds
@@ -37,7 +39,7 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 	url, err := utils.Substitute(args.URL, msg.Vars)
 	if err != nil {
 		log.Error().Msg("failed substituting variables in url parameter")
-		return nil, err
+		return result, err
 	}
 
 	// TODO: refactor querydata
@@ -48,13 +50,13 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 	url, payload, err := prepRequestData(url, args.Type, args.QueryData, msg)
 	if err != nil {
 		log.Error().Msg("failed preparing the request data for the http request")
-		return nil, err
+		return result, err
 	}
 
 	req, err := http.NewRequestWithContext(context.Background(), args.Type, url, payload)
 	if err != nil {
 		log.Error().Msg("failed to create a new http request")
-		return nil, err
+		return result, err
 	}
 
 	req.Close = true
@@ -64,7 +66,7 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 		value, err := utils.Substitute(v, msg.Vars)
 		if err != nil {
 			log.Error().Msg("failed substituting variables in custom headers")
-			return nil, err
+			return result, err
 		}
 
 		req.Header.Add(k, value)
@@ -73,7 +75,13 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Error().Msg("failed to execute the http request")
-		return nil, err
+
+		// if we have a response, at least capture its status code
+		if resp != nil {
+			result.Status = resp.StatusCode
+		}
+
+		return result, err
 	}
 
 	defer resp.Body.Close()
@@ -81,20 +89,18 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Error().Msg("failed to read response from http request")
-		return nil, err
+		return result, err
 	}
 
 	fields := extractFields(bodyBytes)
 
-	result := models.HTTPResponse{
-		Status: resp.StatusCode,
-		Raw:    string(bodyBytes),
-		Data:   fields,
-	}
+	result.Status = resp.StatusCode
+	result.Raw = string(bodyBytes)
+	result.Data = fields
 
 	log.Info().Msgf("http request for action %#q completed", args.Name)
 
-	return &result, nil
+	return result, nil
 }
 
 // Depending on the type of request we want to deal with the payload accordingly.

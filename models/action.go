@@ -11,6 +11,7 @@ type Action struct {
 	URL              string            `mapstructure:"url"`
 	Cmd              string            `mapstructure:"cmd"`
 	Timeout          int               `mapstructure:"timeout"`
+	TimeoutMessage   string            `mapstructure:"timeout_message" binding:"omitempty"`
 	QueryData        map[string]any    `mapstructure:"query_data"`
 	CustomHeaders    map[string]string `mapstructure:"custom_headers"`
 	Auth             []Auth            `mapstructure:"auth"`
