@@ -24,9 +24,10 @@ Implementation for the Remote interface
 
 // Client struct.
 type Client struct {
-	Credentials    string
-	ProjectID      string
-	SubscriptionID string
+	Credentials        string
+	ProjectID          string
+	SubscriptionID     string
+	ForceReplyToThread bool
 }
 
 // validate that Client adheres to remote interface.
@@ -95,15 +96,17 @@ func (c *Client) Send(message models.Message, _ *models.Bot) {
 	// Best effort. If the instance goes away, so be it.
 	msg := &chat.Message{
 		Text: message.Output,
-	}
-
-	if message.ThreadID != "" {
-		msg.Thread = &chat.Thread{
+		Thread: &chat.Thread{
 			Name: message.ThreadID,
-		}
+		},
 	}
 
-	_, err = msgService.Create(message.ChannelID, msg).Do()
+	request := msgService.Create(message.ChannelID, msg)
+	if c.ForceReplyToThread {
+		request = request.MessageReplyOption("REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD")
+	}
+
+	_, err = request.Do()
 	if err != nil {
 		log.Error().Msgf("google_chat failed to create message: %s", err.Error())
 	}
