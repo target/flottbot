@@ -190,6 +190,10 @@ func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hit
 			// If custom_help_text is not set, use default Help Text, for each rule use help_text from rule file
 			if helpMsg == "" {
 				helpMsg = "I understand these commands: \n"
+				if bot.CustomHelpTextPrefix != "" {
+					helpMsg = bot.CustomHelpTextPrefix + "\n"
+				}
+
 				// Go through all the rules and collect the help_text
 				for _, rule := range rules {
 					// Is the rule active and does the user want to expose the help for it? 'hear' rules don't show in help by default
