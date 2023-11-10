@@ -33,6 +33,10 @@ metrics: false
 # false: disable prometheus metrics
 
 # Optional
+# If you just want to customize default text of help, and keep help generation as is
+# custom_help_text_prefix: "Hello from flotbot! I understand these commands:"
+
+# Optional
 # If you want to customize your help text
 # custom_help_text: >
 #   I can help you with this stuff:
