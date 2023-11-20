@@ -1,4 +1,7 @@
-FROM docker.io/golang:1.21.4-alpine@sha256:110b07af87238fbdc5f1df52b00927cf58ce3de358eeeb1854f10a8b5e5e1411 AS build
+FROM --platform=${BUILDPLATFORM} docker.io/golang:1.21.4-alpine@sha256:110b07af87238fbdc5f1df52b00927cf58ce3de358eeeb1854f10a8b5e5e1411 AS build
+
+ARG TARGETOS
+ARG TARGETARCH
 ARG VERSION
 
 # needed for vcs feature introduced in go 1.18+
@@ -12,7 +15,7 @@ RUN go mod download
 
 COPY / .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
   go build -a -ldflags "-s -w -X github.com/target/flottbot/version.Version=${VERSION}" \
   -o flottbot ./cmd/flottbot
 
