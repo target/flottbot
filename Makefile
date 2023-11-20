@@ -106,7 +106,7 @@ docker-build-push-latest: docker-login
 			--platform $(PLATFORM) \
 			--file "./docker/Dockerfile.$$flavor" \
 			--tag $(DOCKER_IMAGE):$$flavor \
-			--push .;
+			--push .; \
 	done
 
 .PHONY: docker-build-push
@@ -130,7 +130,7 @@ docker-build-push-latest: docker-login
 			--file "./docker/Dockerfile.$$flavor" \
 			--tag $(DOCKER_IMAGE):$$flavor-$(VERSION) \
 			--tag $(DOCKER_IMAGE):$$flavor \
-			--push .;
+			--push .; \
 	done
 
 # ┬─┐┬ ┬┌┐┌
