@@ -7,6 +7,7 @@ BUILD_LDFLAGS := -s -w
 BUILD_LDFLAGS += -X github.com/target/flottbot/version.Version=${VERSION}
 GOLANGCI_LINT_VERSION := "v1.55.2"
 PACKAGES := $(shell go list ./... | grep -v /config-example/)
+PLATFORM := "linux/amd64,linux/arm64"
 
 DOCKER_IMAGE ?= "target/flottbot"
 DOCKER_FLAVORS ?= golang ruby python
@@ -76,29 +77,6 @@ build: clean
 # ┌┬┐┌─┐┌─┐┬┌─┌─┐┬─┐
 #  │││ ││  ├┴┐├┤ ├┬┘
 # ─┴┘└─┘└─┘┴ ┴└─┘┴└─
-.PHONY: docker-base
-docker-base:
-	@echo "Creating base $@ image"
-	@docker build \
-		--build-arg "VERSION=$(VERSION)" \
-		-f "./docker/Dockerfile" \
-		-t $(DOCKER_IMAGE):$(VERSION) \
-		-t $(DOCKER_IMAGE):latest .
-
-.PHONY: docker-flavors
-docker-flavors:
-	@for flavor in $(DOCKER_FLAVORS); do \
-		echo "Creating image for $$flavor"; \
-		docker build \
-			--build-arg "VERSION=$(VERSION)" \
-			-f "./docker/Dockerfile.$$flavor" \
-			-t $(DOCKER_IMAGE):$$flavor \
-			-t $(DOCKER_IMAGE):$$flavor-$(VERSION) .; \
-	done
-
-.PHONY: docker-create-all
-docker-create-all: docker-base docker-flavors
-
 .PHONY: docker-login
 docker-login:
     ifndef DOCKER_USERNAME
@@ -109,28 +87,50 @@ docker-login:
 	@echo "Logging into docker hub"
 	@echo "$$DOCKER_PASSWORD" | docker login -u $$DOCKER_USERNAME --password-stdin
 
-.PHONY: docker-push
-docker-push: docker-login
-	@echo "Pushing $(DOCKER_IMAGE):$(VERSION) and :latest to docker hub"
-	@docker push $(DOCKER_IMAGE):$(VERSION)
-	@docker push $(DOCKER_IMAGE):latest
-	
+.PHONY: docker-build-push-latest
+docker-build-push-latest: docker-login
+	@echo "Building and pushing latest to docker hub..."
+	@echo "Building and pushing $(DOCKER_IMAGE):latest"
+	@docker buildx build \
+		--progress=plain \
+		--build-arg "VERSION=$(VERSION)" \
+		--platform $(PLATFORM) \
+		--file "./docker/Dockerfile" \
+		--tag $(DOCKER_IMAGE):latest \
+		--push .
 	@for flavor in $(DOCKER_FLAVORS); do \
-		echo "Pushing $(DOCKER_IMAGE):$$flavor to docker hub"; \
-		docker push $(DOCKER_IMAGE):$$flavor; \
-		docker push $(DOCKER_IMAGE):$$flavor-$(VERSION); \
+		echo "Building and pushing $(DOCKER_IMAGE):$$flavor"; \
+		docker buildx build \
+			--progress=plain \
+		  --build-arg "VERSION=$(VERSION)" \
+			--platform $(PLATFORM) \
+			--file "./docker/Dockerfile.$$flavor" \
+			--tag $(DOCKER_IMAGE):$$flavor \
+			--push .;
 	done
 
-.PHONY: docker-push-latest
-docker-push-latest: docker-login
-	@echo "Pushing to :latest images to docker hub..."
-	
-	@echo "Pushing $(DOCKER_IMAGE):latest"
-	@docker push $(DOCKER_IMAGE):latest
-	
+.PHONY: docker-build-push
+docker-build-push-latest: docker-login
+	@echo "Building and pushing $(VERSION) to docker hub..."
+	@echo "Building and pushing $(DOCKER_IMAGE):$(VERSION)"
+	@docker buildx build \
+		--progress=plain \
+		--build-arg "VERSION=$(VERSION)" \
+		--platform $(PLATFORM) \
+		--file "./docker/Dockerfile" \
+		--tag $(DOCKER_IMAGE):$(VERSION) \
+		--tag $(DOCKER_IMAGE):latest \
+		--push .
 	@for flavor in $(DOCKER_FLAVORS); do \
-		echo "Pushing $(DOCKER_IMAGE):$$flavor to docker hub"; \
-		docker push $(DOCKER_IMAGE):$$flavor; \
+		echo "Building and pushing $(DOCKER_IMAGE):$$flavor-$(VERSION)"; \
+		docker buildx build \
+			--progress=plain \
+		  --build-arg "VERSION=$(VERSION)" \
+			--platform $(PLATFORM) \
+			--file "./docker/Dockerfile.$$flavor" \
+			--tag $(DOCKER_IMAGE):$$flavor-$(VERSION) \
+			--tag $(DOCKER_IMAGE):$$flavor \
+			--push .;
 	done
 
 # ┬─┐┬ ┬┌┐┌
