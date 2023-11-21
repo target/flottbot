@@ -94,13 +94,12 @@ func toMessage(m *pubsub.Message) (models.Message, error) {
 	if event.User != nil {
 		message.Vars["_user.name"] = event.User.DisplayName
 		message.Vars["_user.id"] = event.User.Name
-		message.Vars["_user.internal_id"] = event.User.Name
 		message.Vars["_user.displayname"] = event.User.DisplayName
 
 		// Try parsing as a domain message to get user email
 		var domainEvent DomainEvent
 		if err := json.Unmarshal(m.Data, &domainEvent); err == nil {
-			message.Vars["_user.id"] = domainEvent.User.Email
+			message.Vars["_user.email"] = domainEvent.User.Email
 		}
 	}
 
