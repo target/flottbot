@@ -27,43 +27,42 @@ output:
 linters:
   disable-all: true
   enable:
-    - bidichk             # checks for dangerous unicode character sequences
-    - bodyclose           # checks whether HTTP response body is closed successfully
-    - contextcheck        # check the function whether use a non-inherited context
-    - dupl                # code clone detection
-    - errcheck            # checks for unchecked errors
-    - errorlint           # find misuses of errors
-    - exportloopref       # check for exported loop vars
-    - funlen              # detects long functions
-    - gci                 # consistent import order
-    - goconst             # finds repeated strings that could be replaced by a constant
-    - gocyclo             # computes and checks the cyclomatic complexity of functions
-    - godot               # checks if comments end in a period
-    - gofmt               # checks whether code was gofmt-ed
-    - goheader            # checks is file header matches to pattern
-    - goimports           # fixes imports and formats code in same style as gofmt
-    - gomoddirectives     # manage the use of 'replace', 'retract', and 'excludes' directives in go.mod
-    - goprintffuncname    # checks that printf-like functions are named with f at the end
-    - gosec               # inspects code for security problems
-    - gosimple            # linter that specializes in simplifying a code
-    - govet               # reports suspicious constructs, ex. Printf calls whose arguments don't align with the format string
-    - ineffassign         # detects when assignments to existing variables aren't used
-    - makezero            # finds slice declarations with non-zero initial length
-    - misspell            # finds commonly misspelled English words in comments
-    - nakedret            # finds naked returns in functions greater than a specified function length
-    - nilerr              # finds the code that returns nil even if it checks that the error is not nil
-    - noctx               # noctx finds sending http request without context.Context
-    - nolintlint          # reports ill-formed or insufficient nolint directives
-    - revive              # linter for go
-    - staticcheck         # applies static analysis checks, go vet on steroids
-    - stylecheck          # replacement for golint
-    - tenv                # analyzer that detects using os.Setenv instead of t.Setenv since Go1.17
-    - typecheck           # parses and type-checks go code, like the front-end of a go compiler
-    - unconvert           # remove unnecessary type conversions
-    - unparam             # reports unused function parameters
-    - unused              # checks for unused constants, variables, functions and types
-    - whitespace          # detects leading and trailing whitespace
-    - wsl                 # forces code to use empty lines
+    - bidichk # checks for dangerous unicode character sequences
+    - bodyclose # checks whether HTTP response body is closed successfully
+    - contextcheck # check the function whether use a non-inherited context
+    - dupl # code clone detection
+    - errcheck # checks for unchecked errors
+    - errorlint # find misuses of errors
+    - exportloopref # check for exported loop vars
+    - funlen # detects long functions
+    - gci # consistent import order
+    - goconst # finds repeated strings that could be replaced by a constant
+    - gocyclo # computes and checks the cyclomatic complexity of functions
+    - godot # checks if comments end in a period
+    - gofmt # checks whether code was gofmt-ed
+    - goheader # checks is file header matches to pattern
+    - gomoddirectives # manage the use of 'replace', 'retract', and 'excludes' directives in go.mod
+    - goprintffuncname # checks that printf-like functions are named with f at the end
+    - gosec # inspects code for security problems
+    - gosimple # linter that specializes in simplifying a code
+    - govet # reports suspicious constructs, ex. Printf calls whose arguments don't align with the format string
+    - ineffassign # detects when assignments to existing variables aren't used
+    - makezero # finds slice declarations with non-zero initial length
+    - misspell # finds commonly misspelled English words in comments
+    - nakedret # finds naked returns in functions greater than a specified function length
+    - nilerr # finds the code that returns nil even if it checks that the error is not nil
+    - noctx # noctx finds sending http request without context.Context
+    - nolintlint # reports ill-formed or insufficient nolint directives
+    - revive # linter for go
+    - staticcheck # applies static analysis checks, go vet on steroids
+    - stylecheck # replacement for golint
+    - tenv # analyzer that detects using os.Setenv instead of t.Setenv since Go1.17
+    - typecheck # parses and type-checks go code, like the front-end of a go compiler
+    - unconvert # remove unnecessary type conversions
+    - unparam # reports unused function parameters
+    - unused # checks for unused constants, variables, functions and types
+    - whitespace # detects leading and trailing whitespace
+    - wsl # forces code to use empty lines
 
   # static list of linters we know golangci can run but we've
   # chosen to leave disabled for now
@@ -78,13 +77,13 @@ linters:
   # - exhaustivestruct    - style preference
   # - forbidigo           - unused
   # - forcetypeassert     - unused
-  # - gci                 - use goimports
   # - gochecknoinits      - unused
   # - gochecknoglobals    - global variables allowed
-  # - gocognit            - unused complexity metric 
+  # - gocognit            - unused complexity metric
   # - gocritic            - style preference
   # - godox               - to be used in the future
   # - goerr113            - to be used in the future
+  # - goimports           - use gci instead
   # - golint              - archived, replaced with revive
   # - gofumpt             - use gofmt
   # - gomnd               - get too many false-positives
@@ -92,7 +91,7 @@ linters:
   # - ifshort             - use both styles
   # - ireturn             - allow interfaces to be returned
   # - importas            - want flexibility with naming
-  # - lll                 - not too concerned about line length 
+  # - lll                 - not too concerned about line length
   # - interfacer          - archived
   # - nestif              - non-critical
   # - nilnil              - style preference
@@ -101,7 +100,7 @@ linters:
   # - paralleltest        - false-positives
   # - prealloc            - don't use
   # - predeclared         - unused
-  # - promlinter          - style preference 
+  # - promlinter          - style preference
   # - rowserrcheck        - unused
   # - scopelint           - deprecated - replaced with exportloopref
   # - sqlclosecheck       - unused
@@ -128,6 +127,7 @@ linters-settings:
     statements: 70
 
   # https://github.com/daixiang0/gci
+  # gci write --skip-generated -s standard -s default -s prefix(github.com/target/flottbot)
   gci:
     sections:
       - standard
@@ -140,16 +140,14 @@ linters-settings:
 
   # https://github.com/golangci/golangci-lint/blob/master/pkg/golinters/nolintlint
   nolintlint:
-    allow-unused: false           # allow nolint directives that don't address a linting issue
-    require-explanation: true     # require an explanation for nolint directives
-    require-specific: true        # require nolint directives to be specific about which linter is being skipped
+    allow-unused: false # allow nolint directives that don't address a linting issue
+    require-explanation: true # require an explanation for nolint directives
+    require-specific: true # require nolint directives to be specific about which linter is being skipped
 
   # https://github.com/denis-tingaikin/go-header
   goheader:
     template: |-
-      Copyright (c) {{ YEAR }} Target Brands, Inc. All rights reserved.
-      
-      Use of this source code is governed by the LICENSE file in this repository.
+      SPDX-License-Identifier: Apache-2.0
 
 # This section provides the configuration for how golangci
 # will report the issues it finds.

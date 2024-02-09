@@ -1,6 +1,4 @@
-// Copyright (c) 2023 Target Brands, Inc. All rights reserved.
-//
-// Use of this source code is governed by the LICENSE file in this repository.
+// SPDX-License-Identifier: Apache-2.0
 
 package utils
 
@@ -40,6 +38,7 @@ func TestMatch(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("Match() got = %v, want %v", got, tt.want)
 			}
+
 			if got1 != tt.want1 {
 				t.Errorf("Match() got1 = %v, want %v", got1, tt.want1)
 			}
@@ -74,6 +73,7 @@ func TestSubstitute(t *testing.T) {
 				t.Errorf("Substitute() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			if got != tt.want {
 				t.Errorf("Substitute() = %v, want %v", got, tt.want)
 			}

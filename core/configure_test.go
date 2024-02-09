@@ -1,6 +1,4 @@
-// Copyright (c) 2023 Target Brands, Inc. All rights reserved.
-//
-// Use of this source code is governed by the LICENSE file in this repository.
+// SPDX-License-Identifier: Apache-2.0
 
 package core
 
@@ -138,6 +136,7 @@ func Test_configureChatApplication(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			configureChatApplication(tt.args.bot)
+
 			if tt.shouldRunChat != tt.args.bot.RunChat {
 				t.Errorf("configureChatApplication() wanted RunChat set to %v, but got %v", tt.shouldRunChat, tt.args.bot.RunChat)
 			}
@@ -162,12 +161,15 @@ func Test_setSlackListenerPort(t *testing.T) {
 	t.Run("slack listener port reads from env var config", func(t *testing.T) {
 		bot := baseBot()
 		bot.SlackListenerPort = "${TEST_SLACK_LISTENER_PORT}"
+
 		t.Setenv("TEST_SLACK_LISTENER_PORT", "TESTPORT")
+
 		validateRemoteSetup(bot)
 		configureChatApplication(bot)
 
 		expected := "TESTPORT"
 		actual := bot.SlackListenerPort
+
 		if expected != actual {
 			t.Errorf("configureChatApplication() wanted SlackListenerPort set to %v, but got %v", expected, actual)
 		}
@@ -180,6 +182,7 @@ func Test_setSlackListenerPort(t *testing.T) {
 
 		expected := defaultSlackListenerPort
 		actual := bot.SlackListenerPort
+
 		if expected != actual {
 			t.Errorf("configureChatApplication() wanted SlackListenerUnsetPortVar set to %v, but got %v", expected, actual)
 		}
@@ -193,6 +196,7 @@ func Test_setSlackListenerPort(t *testing.T) {
 
 		expected := defaultSlackListenerPort
 		actual := bot.SlackListenerPort
+
 		if expected != actual {
 			t.Errorf("configureChatApplication() wanted SlackListenerNoPort set to %v, but got %v", expected, actual)
 		}
@@ -254,6 +258,7 @@ func Test_validateRemoteSetup(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			validateRemoteSetup(tt.args.bot)
+
 			if tt.shouldRunChat != tt.args.bot.RunChat {
 				t.Errorf("validateRemoteSetup() wanted RunChat set to %v, but got %v", tt.shouldRunChat, tt.args.bot.RunChat)
 			}

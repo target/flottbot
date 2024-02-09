@@ -1,6 +1,4 @@
-// Copyright (c) 2023 Target Brands, Inc. All rights reserved.
-//
-// Use of this source code is governed by the LICENSE file in this repository.
+// SPDX-License-Identifier: Apache-2.0
 
 package version
 
@@ -18,6 +16,7 @@ func TestString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			Version = tt.version
+
 			if got := String(); got != tt.want {
 				t.Errorf("String() = %v, want %v", got, tt.want)
 			}

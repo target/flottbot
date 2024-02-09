@@ -1,6 +1,4 @@
-// Copyright (c) 2023 Target Brands, Inc. All rights reserved.
-//
-// Use of this source code is governed by the LICENSE file in this repository.
+// SPDX-License-Identifier: Apache-2.0
 
 package core
 
@@ -43,7 +41,7 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 
 	fileList := []string{}
 
-	err = filepath.Walk(rulesDir, func(path string, f os.FileInfo, err error) error {
+	err = filepath.Walk(rulesDir, func(path string, f os.FileInfo, _ error) error {
 		if f != nil && !f.IsDir() {
 			fileList = append(fileList, path)
 		}
