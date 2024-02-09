@@ -1,6 +1,4 @@
-// Copyright (c) 2023 Target Brands, Inc. All rights reserved.
-//
-// Use of this source code is governed by the LICENSE file in this repository.
+// SPDX-License-Identifier: Apache-2.0
 
 package gchat
 
@@ -59,7 +57,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 
 	sub := client.Subscription(c.SubscriptionID)
 
-	err := sub.Receive(ctx, func(ctx context.Context, m *pubsub.Message) {
+	err := sub.Receive(ctx, func(_ context.Context, m *pubsub.Message) {
 		defer m.Ack()
 
 		// Convert Google Chat Message to Flottbot Message

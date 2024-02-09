@@ -1,6 +1,4 @@
-// Copyright (c) 2023 Target Brands, Inc. All rights reserved.
-//
-// Use of this source code is governed by the LICENSE file in this repository.
+// SPDX-License-Identifier: Apache-2.0
 
 package models
 
@@ -15,7 +13,7 @@ type Rule struct {
 	OutputToRooms      []string `mapstructure:"output_to_rooms" binding:"omitempty"`
 	OutputToUsers      []string `mapstructure:"output_to_users" binding:"omitempty"`
 	AllowUsers         []string `mapstructure:"allow_users" binding:"omitempty"`
-	AllowUserIds       []string `mapstructure:"allow_userids" binding:"omitempty"`
+	AllowUserIDs       []string `mapstructure:"allow_userids" binding:"omitempty"`
 	AllowUserGroups    []string `mapstructure:"allow_usergroups" binding:"omitempty"`
 	IgnoreUsers        []string `mapstructure:"ignore_users" binding:"omitempty"`
 	IgnoreUserGroups   []string `mapstructure:"ignore_usergroups" binding:"omitempty"`

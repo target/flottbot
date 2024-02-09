@@ -1,6 +1,4 @@
-// Copyright (c) 2023 Target Brands, Inc. All rights reserved.
-//
-// Use of this source code is governed by the LICENSE file in this repository.
+// SPDX-License-Identifier: Apache-2.0
 
 package utils
 
@@ -19,7 +17,7 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	var canRunRule bool
 
 	// no restriction were given for this rule, allow to proceed
-	if len(rule.AllowUsers)+len(rule.AllowUserGroups)+len(rule.AllowUserIds)+len(rule.IgnoreUsers)+len(rule.IgnoreUserGroups) == 0 {
+	if len(rule.AllowUsers)+len(rule.AllowUserGroups)+len(rule.AllowUserIDs)+len(rule.IgnoreUsers)+len(rule.IgnoreUserGroups) == 0 {
 		return true
 	}
 
@@ -45,7 +43,7 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	}
 
 	// if they didn't get denied at this point and no 'allow' rules are set, let them through
-	if len(rule.AllowUsers)+len(rule.AllowUserGroups)+len(rule.AllowUserIds) == 0 {
+	if len(rule.AllowUsers)+len(rule.AllowUserGroups)+len(rule.AllowUserIDs) == 0 {
 		return true
 	}
 
@@ -58,7 +56,7 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	}
 
 	// check if they are part of the allow users ids list
-	for _, userID := range rule.AllowUserIds {
+	for _, userID := range rule.AllowUserIDs {
 		if userID == currentUserID {
 			canRunRule = true
 			break
@@ -83,9 +81,9 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 				Msgf("%#q is not part of allow_users: %#q", currentUserName, strings.Join(rule.AllowUsers, ", "))
 		}
 
-		if len(rule.AllowUserIds) > 0 {
+		if len(rule.AllowUserIDs) > 0 {
 			log.Info().
-				Msgf("%#q is not part of allow_userids: %#q", currentUserID, strings.Join(rule.AllowUserIds, ", "))
+				Msgf("%#q is not part of allow_userids: %#q", currentUserID, strings.Join(rule.AllowUserIDs, ", "))
 		}
 
 		if len(rule.AllowUserGroups) > 0 {

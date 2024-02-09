@@ -1,6 +1,4 @@
-// Copyright (c) 2023 Target Brands, Inc. All rights reserved.
-//
-// Use of this source code is governed by the LICENSE file in this repository.
+// SPDX-License-Identifier: Apache-2.0
 
 package utils
 
@@ -34,9 +32,9 @@ func TestCanTrigger(t *testing.T) {
 	}{
 		{"No restrictions", args{"jane.doe", "F123456", models.Rule{}, testBot}, true},
 		{"User is allowed", args{"jane.doe", "F123456", models.Rule{AllowUsers: []string{"john.doe", "jane.doe"}}, testBot}, true},
-		{"User is allowed by Id", args{"jane.doe", "F123456", models.Rule{AllowUserIds: []string{"F123456", "G123456"}}, testBot}, true},
+		{"User is allowed by Id", args{"jane.doe", "F123456", models.Rule{AllowUserIDs: []string{"F123456", "G123456"}}, testBot}, true},
 		{"User not allowed", args{"jane.doe", "F123456", models.Rule{AllowUsers: []string{"john.doe", "jack.jill"}}, testBot}, false},
-		{"User not allowed by Id", args{"jane.doe", "F123456", models.Rule{AllowUserIds: []string{"H123456", "I123456"}}, testBot}, false},
+		{"User not allowed by Id", args{"jane.doe", "F123456", models.Rule{AllowUserIDs: []string{"H123456", "I123456"}}, testBot}, false},
 		{"User is ignored", args{"jane.doe", "F123456", models.Rule{IgnoreUsers: []string{"jane.doe", "jack.jill"}}, testBot}, false},
 		{"User not in ignore list", args{"jane.doe", "F123456", models.Rule{IgnoreUsers: []string{"john.doe", "jack.jill"}}, testBot}, true},
 		{"User is allowed but ignored", args{"jane.doe", "F123456", models.Rule{AllowUsers: []string{"jane.doe"}, IgnoreUsers: []string{"jane.doe", "jack.jill"}}, testBot}, false},

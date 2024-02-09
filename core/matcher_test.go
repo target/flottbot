@@ -1,6 +1,4 @@
-// Copyright (c) 2023 Target Brands, Inc. All rights reserved.
-//
-// Use of this source code is governed by the LICENSE file in this repository.
+// SPDX-License-Identifier: Apache-2.0
 
 package core
 
@@ -133,6 +131,7 @@ func TestCraftResponse(t *testing.T) {
 				t.Errorf("craftResponse() error = \"%v\", wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			if !tt.wantErr { // all happy paths (i.e. no errors) go here
 				if got != tt.wantOutput {
 					t.Errorf("craftResponse() got = \"%s\", wantOutput %s", got, tt.wantOutput)
@@ -198,10 +197,12 @@ func TestHandleExec(t *testing.T) {
 				t.Errorf("handleExec() error = \"%v\", wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			if !tt.wantErr { // all happy paths (i.e. no errors) go here
 				if tt.args.msg.Vars["_exec_output"] != tt.wantScriptResponse.Output {
 					t.Errorf("handleExec() = \"%s\", want \"%v\"", tt.args.msg.Vars["_exec_output"], tt.wantScriptResponse.Output)
 				}
+
 				if tt.args.msg.Vars["_exec_status"] != strconv.Itoa(tt.wantScriptResponse.Status) {
 					t.Errorf("handleExec() = %s, want %v", tt.args.msg.Vars["_exec_status"], tt.wantScriptResponse.Status)
 				}
@@ -217,7 +218,7 @@ func TestHandleHTTP(t *testing.T) {
 	}
 
 	// Init test variables
-	tsOK := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	tsOK := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 
 		_, err := w.Write([]byte("hello"))
@@ -227,7 +228,7 @@ func TestHandleHTTP(t *testing.T) {
 	}))
 	defer tsOK.Close()
 
-	tsError := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	tsError := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 
 		_, err := w.Write([]byte("not found"))
@@ -237,7 +238,7 @@ func TestHandleHTTP(t *testing.T) {
 	}))
 	defer tsError.Close()
 
-	tsOKJSON := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	tsOKJSON := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 
 		_, err := w.Write([]byte(`{"test": "value"}`))
@@ -315,10 +316,12 @@ func TestHandleHTTP(t *testing.T) {
 				t.Errorf("handleHTTP() error = \"%v\", wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			if !tt.wantErr { // all happy paths (i.e. no errors) go here
 				if tt.args.msg.Vars["_raw_http_output"] != tt.wantResponse.Raw {
 					t.Errorf("handleHTTP() = \"%s\", want \"%v\"", tt.args.msg.Vars["_raw_http_output"], tt.wantResponse.Raw)
 				}
+
 				if tt.args.msg.Vars["_raw_http_status"] != strconv.Itoa(tt.wantResponse.Status) {
 					t.Errorf("handleHTTP() = %s, want %v", tt.args.msg.Vars["_raw_http_status"], tt.wantResponse.Status)
 				}
@@ -436,11 +439,14 @@ func TestHandleMessage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set test variables
 			var testOutputMsgs chan models.Message
+
 			var testHitRule chan models.Rule
+
 			tt.args.action.LimitToRooms = tt.wantLimitToRooms
 			tt.args.action.Message = tt.wantActionMessage
 			tt.args.msg.OutputToRooms = tt.wantOutputToRooms
 			tt.args.msg.Output = tt.wantOutputMessage
+
 			if !tt.wantErr { // all happy paths (i.e. no errors) go here
 				testOutputMsgs = make(chan models.Message, 1)
 				testHitRule = make(chan models.Rule, 1)
@@ -454,6 +460,7 @@ func TestHandleMessage(t *testing.T) {
 			} else if (err == nil) == tt.wantErr {
 				t.Errorf("handleMessage() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
 			if !tt.wantErr { // all happy paths (i.e. no errors) go here // this is actually pretty dangerous - this could cause a blocking wait and a panic... maybe look to test this better
 				resultMsg := <-testOutputMsgs
 				if tt.wantOutputMessage != resultMsg.Output {
@@ -495,11 +502,14 @@ func TestHandleReaction(t *testing.T) {
 		test.args.rule.Name = test.wantRuleName
 		// Do test
 		handleReaction(test.args.outputMsgs, test.args.msg, test.args.hitRule, test.args.rule)
+
 		resultMsg := <-testOutputMsgs
 		resultRule := <-testHitRule
+
 		if test.wantMessage != resultMsg.Output {
 			t.Errorf("handReaction() wanted message \"%s\", but got \"%s\"", test.wantMessage, resultMsg.Output)
 		}
+
 		if test.wantRuleName != resultRule.Name {
 			t.Errorf("handReaction() wanted rule %#q, but got %#q", test.wantRuleName, resultRule.Name)
 		}
@@ -559,9 +569,12 @@ func TestUpdateReaction(t *testing.T) {
 			default:
 				break
 			}
+
 			tt.args.rule.Reaction = tt.reaction
 			tt.args.action.Reaction = tt.updateReaction
+
 			updateReaction(tt.args.action, tt.args.rule, tt.args.vars)
+
 			if tt.args.rule.Reaction != tt.want {
 				t.Errorf("updateReaction() wanted %s, but got %s", tt.want, tt.args.rule.Reaction)
 			}
@@ -594,6 +607,7 @@ func Test_getProccessedInputAndHitValue(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("getProccessedInputAndHitValue() got = %v, want %v", got, tt.want)
 			}
+
 			if got1 != tt.want1 {
 				t.Errorf("getProccessedInputAndHitValue() got1 = %v, want %v", got1, tt.want1)
 			}
@@ -817,9 +831,11 @@ func Test_handleChatServiceRule(t *testing.T) {
 				if tt.expectMsg != output.Output {
 					t.Errorf("Output message didn't match, got = %v, want %v", output.Output, tt.expectMsg)
 				}
+
 				if got != tt.want {
 					t.Errorf("handleChatServiceRule() got = %v, want %v", got, tt.want)
 				}
+
 				if got1 != tt.want1 {
 					t.Errorf("handleChatServiceRule() got1 = %v, want %v", got1, tt.want1)
 				}
@@ -827,9 +843,11 @@ func Test_handleChatServiceRule(t *testing.T) {
 				if got != tt.want {
 					t.Errorf("handleChatServiceRule() got = %v, want %v", got, tt.want)
 				}
+
 				if got1 != tt.want1 {
 					t.Errorf("handleChatServiceRule() got1 = %v, want %v", got1, tt.want1)
 				}
+
 				for argk, argv := range tt.expectedVars {
 					if tt.args.message.Vars[argk] != argv {
 						t.Errorf("handleChatServiceRules() did not extract argument %v. got = %v, want %v", argk, tt.args.message.Vars[argk], argv)
@@ -881,6 +899,7 @@ func Test_handleSchedulerServiceRule(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("handleSchedulerServiceRule() got = %v, want %v", got, tt.want)
 			}
+
 			if got1 != tt.want1 {
 				t.Errorf("handleSchedulerServiceRule() got1 = %v, want %v", got1, tt.want1)
 			}
@@ -1011,7 +1030,7 @@ func Test_doRuleActions(t *testing.T) {
 		FormatOutput: "boo",
 	}
 
-	tsOK := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	tsOK := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 
 		_, err := w.Write([]byte("OK"))
@@ -1088,6 +1107,7 @@ func Test_doRuleActions(t *testing.T) {
 			tt.args.outputMsgs = testOutput
 
 			doRuleActions(tt.args.message, tt.args.outputMsgs, tt.args.rule, tt.args.hitRule, tt.args.bot)
+
 			output := <-testOutput
 
 			if output.Output != tt.expectedMessage {

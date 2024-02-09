@@ -1,6 +1,4 @@
-// Copyright (c) 2023 Target Brands, Inc. All rights reserved.
-//
-// Use of this source code is governed by the LICENSE file in this repository.
+// SPDX-License-Identifier: Apache-2.0
 
 package handlers
 
@@ -51,12 +49,12 @@ func TestHTTPReq(t *testing.T) {
 		msg  *models.Message
 	}
 
-	tsOK := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	tsOK := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer tsOK.Close()
 
-	tsError := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	tsError := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusBadGateway)
 	}))
 	defer tsError.Close()
@@ -130,6 +128,7 @@ func TestHTTPReq(t *testing.T) {
 				t.Errorf("HTTPReq() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("HTTPReq() = %v, want %v", got, tt.want)
 			}
@@ -162,9 +161,11 @@ func Test_prepRequestData(t *testing.T) {
 				t.Errorf("prepRequestData() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			if got != tt.want {
 				t.Errorf("prepRequestData() got = %v, want %v", got, tt.want)
 			}
+
 			if !reflect.DeepEqual(got1, tt.want1) {
 				t.Errorf("prepRequestData() got1 = %v, want %v", got1, tt.want1)
 			}
@@ -196,6 +197,7 @@ func Test_createGetQuery(t *testing.T) {
 				t.Errorf("createGetQuery() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			if got != tt.want {
 				t.Errorf("createGetQuery() = %v, want %v", got, tt.want)
 			}
@@ -232,6 +234,7 @@ func Test_createJSONPayload(t *testing.T) {
 				t.Errorf("createJSONPayload() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			if got != tt.want {
 				t.Errorf("createJSONPayload() = %v, want %v", got, tt.want)
 			}
