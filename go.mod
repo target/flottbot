@@ -1,6 +1,6 @@
 module github.com/target/flottbot
 
-go 1.22
+go 1.21
 
 require (
 	cloud.google.com/go/pubsub v1.36.1
