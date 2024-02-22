@@ -110,7 +110,7 @@ docker-build-push-latest: docker-login
 	done
 
 .PHONY: docker-build-push
-docker-build-push-latest: docker-login
+docker-build-push: docker-login
 	@echo "Building and pushing $(VERSION) to docker hub..."
 	@echo "Building and pushing $(DOCKER_IMAGE):$(VERSION)"
 	@docker buildx build \
