@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM} docker.io/golang:1.22.1-alpine@sha256:0466223b8544fb7d4ff04748acc4d75a608234bf4e79563bff208d2060c0dd79 AS build
+FROM --platform=${BUILDPLATFORM} docker.io/golang:1.22.2-alpine@sha256:cdc86d9f363e8786845bea2040312b4efa321b828acdeb26f393faa864d887b0 AS build
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -19,7 +19,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
   go build -a -ldflags "-s -w -X github.com/target/flottbot/version.Version=${VERSION}" \
   -o flottbot ./cmd/flottbot
 
-FROM docker.io/ruby:3.3.0-alpine@sha256:27013907b6320c9a8576c2b4784bce64f84de4ca14f87f9149def1200f2db378
+FROM docker.io/ruby:3.3.1-alpine@sha256:1a59193b7a14189a3a4a59ed68cdbe785bef97b63da31ed4f4b96a2c92206f21
 
 ENV USERNAME=flottbot
 ENV GROUP=flottbot
