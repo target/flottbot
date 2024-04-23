@@ -26,7 +26,7 @@ ENV GROUP=flottbot
 ENV UID=900
 ENV GID=900
 
-RUN apk --no-cache add ca-certificates && mkdir config && \
+RUN apk --no-cache add ca-certificates curl jq && mkdir config && \
   addgroup -g "$GID" -S "$GROUP" && adduser -S -u "$UID" -G "$GROUP" "$USERNAME"
 
 COPY --from=build /src/flottbot /flottbot
