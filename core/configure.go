@@ -42,6 +42,8 @@ func configureChatApplication(bot *models.Bot) {
 	bot.Name = token
 
 	if bot.ChatApplication != "" {
+		log.Info().Msgf("Looking for chat application '%#q'", bot.ChatApplication)
+
 		switch strings.ToLower(bot.ChatApplication) {
 		//nolint:goconst // refactor
 		case "discord":
@@ -75,6 +77,29 @@ func configureChatApplication(bot *models.Bot) {
 		//nolint:goconst // refactor
 		case "slack":
 			configureSlackBot(bot)
+
+		//nolint:goconst // refactor
+		case "mattermost":
+			log.Info().Msgf("Configuring remote '%#q'", bot.ChatApplication)
+			token, err := utils.Substitute(bot.MatterMostToken, emptyMap)
+
+			if err != nil {
+				log.Error().Msgf("could not set 'mattermost_token': %s", err.Error())
+
+				bot.RunChat = false
+			}
+
+			bot.MatterMostToken = token
+
+			server, err := utils.Substitute(bot.MatterMostServer, emptyMap)
+
+			if err != nil {
+				log.Error().Msgf("could not set 'mattermost_server': %s", err.Error())
+
+				bot.RunChat = false
+			}
+
+			bot.MatterMostServer = server
 
 		//nolint:goconst // refactor
 		case "telegram":

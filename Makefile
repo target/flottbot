@@ -30,6 +30,7 @@ getdeps:
 		sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION))
 
 .PHONY: lint
+.IGNORE: lint
 lint:
 	@echo "Running $@ check"
 	@golangci-lint run
@@ -71,8 +72,7 @@ clean: validate
 .PHONY: build
 build: clean
 	@echo "Building flottbot binary to './flottbot'"
-	@go build -a \
-		-ldflags '$(BUILD_LDFLAGS)' -o $(PWD)/flottbot ./cmd/flottbot
+	@go build -a -ldflags '$(BUILD_LDFLAGS)' -o $(PWD)/flottbot ./cmd/flottbot
 
 # ┌┬┐┌─┐┌─┐┬┌─┌─┐┬─┐
 #  │││ ││  ├┴┐├┤ ├┬┘

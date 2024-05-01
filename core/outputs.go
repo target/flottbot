@@ -11,6 +11,7 @@ import (
 	"github.com/target/flottbot/remote/cli"
 	"github.com/target/flottbot/remote/discord"
 	"github.com/target/flottbot/remote/gchat"
+	"github.com/target/flottbot/remote/mattermost"
 	"github.com/target/flottbot/remote/slack"
 	"github.com/target/flottbot/remote/telegram"
 )
@@ -37,6 +38,13 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 				remoteDiscord := &discord.Client{Token: bot.DiscordToken}
 				remoteDiscord.Reaction(message, rule, bot)
 				remoteDiscord.Send(message, bot)
+			case "mattermost":
+				remoteMM := &mattermost.Client{
+					Server: bot.MatterMostServer,
+					Token:  bot.MatterMostToken,
+				}
+
+				remoteMM.Send(message, bot)
 			case "slack":
 				// Create Slack client
 				remoteSlack := &slack.Client{
