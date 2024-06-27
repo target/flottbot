@@ -66,7 +66,7 @@ $ helm install helm/flottbot/
 | ----------------------------------- | ------ | ------------------------------------------------------------------ |
 | [Slack](https://slack.com)          | ✔      | [Docs](https://target.github.io/flottbot-docs/basics/slack/)       |
 | [Discord](https://discordapp.com)   | 🚧     | [Docs](https://target.github.io/flottbot-docs/basics/discord/)     |
-| [Google Chat](https://telegram.org) | 🚧     | [Docs](https://target.github.io/flottbot-docs/basics/google-chat/) |
+| [Google Chat](https://chat.google.com) | 🚧     | [Docs](https://target.github.io/flottbot-docs/basics/google-chat/) |
 | [Telegram](https://telegram.org)    | 🚧     | coming soon                                                        |
 
 ✔ = Done 🚧 = in progress (functional but some features may not work)
