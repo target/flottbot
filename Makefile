@@ -71,8 +71,7 @@ clean: validate
 .PHONY: build
 build: clean
 	@echo "Building flottbot binary to './flottbot'"
-	@go build -a \
-		-ldflags '$(BUILD_LDFLAGS)' -o $(PWD)/flottbot ./cmd/flottbot
+	@go build -a -ldflags '$(BUILD_LDFLAGS)' -o $(PWD)/flottbot ./cmd/flottbot
 
 # ┌┬┐┌─┐┌─┐┬┌─┌─┐┬─┐
 #  │││ ││  ├┴┐├┤ ├┬┘
@@ -142,6 +141,6 @@ run: build
 	./flottbot
 
 .PHONY: run-docker
-run-docker: docker
+run-docker: docker 
 	@echo "Starting flottbot docker image"
 	@docker run -it --rm --name myflottbot -v "$$PWD"/config:/config --env-file .env $(DOCKER_IMAGE):latest /flottbot
