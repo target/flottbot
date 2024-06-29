@@ -43,6 +43,9 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 					Server: bot.MatterMostServer,
 					Token:  bot.MatterMostToken,
 				}
+				if strings.ToLower(bot.MatterMostInsecureProtocol) == "1" {
+					remoteMM.Insecure = true
+				}
 
 				remoteMM.Send(message, bot)
 			case "slack":

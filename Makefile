@@ -30,7 +30,6 @@ getdeps:
 		sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION))
 
 .PHONY: lint
-.IGNORE: lint
 lint:
 	@echo "Running $@ check"
 	@golangci-lint run
@@ -142,6 +141,6 @@ run: build
 	./flottbot
 
 .PHONY: run-docker
-run-docker: docker
+run-docker: docker 
 	@echo "Starting flottbot docker image"
 	@docker run -it --rm --name myflottbot -v "$$PWD"/config:/config --env-file .env $(DOCKER_IMAGE):latest /flottbot

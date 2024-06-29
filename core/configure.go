@@ -84,7 +84,7 @@ func configureChatApplication(bot *models.Bot) {
 			token, err := utils.Substitute(bot.MatterMostToken, emptyMap)
 
 			if err != nil {
-				log.Error().Msgf("could not set 'mattermost_token': %s", err.Error())
+				log.Error().Msgf("could not set 'mattermost_token': %v", err.Error())
 
 				bot.RunChat = false
 			}
@@ -94,12 +94,18 @@ func configureChatApplication(bot *models.Bot) {
 			server, err := utils.Substitute(bot.MatterMostServer, emptyMap)
 
 			if err != nil {
-				log.Error().Msgf("could not set 'mattermost_server': %s", err.Error())
+				log.Error().Msgf("could not set 'mattermost_server': %v", err.Error())
 
 				bot.RunChat = false
 			}
 
 			bot.MatterMostServer = server
+
+			insc, err := utils.Substitute(bot.MatterMostInsecureProtocol, emptyMap)
+			if err != nil {
+				log.Info().Msgf("could not retreive insecure flag: '%v'", err.Error())
+			}
+			bot.MatterMostInsecureProtocol = insc
 
 		//nolint:goconst // refactor
 		case "telegram":

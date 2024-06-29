@@ -16,9 +16,10 @@ import (
 
 // Client struct.
 type Client struct {
-	Server string
-	Token  string
-	BotID  string
+	Server   string
+	Token    string
+	BotID    string
+	Insecure bool
 }
 
 type mmLogger struct {
@@ -36,7 +37,16 @@ var _ remote.Remote = (*Client)(nil)
 // instantiate a new mattermost client.
 func (c *Client) new() *model.Client4 {
 	log.Info().Msgf("%#v", c)
-	api := model.NewAPIv4Client("http://" + c.Server)
+
+	var url string
+	if c.Insecure {
+		url = "http://" + c.Server
+	} else {
+		url = "https://" + c.Server
+	}
+
+	log.Info().Msgf("connecting to instance with url: %s", url)
+	api := model.NewAPIv4Client(url)
 	api.SetToken(c.Token)
 
 	return api
@@ -66,7 +76,11 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 		c.BotID = user.Username
 	}
 
-	sock, err := model.NewWebSocketClient4("ws://"+c.Server, c.Token)
+	url := "wss://" + c.Server
+	if c.Insecure {
+		url = "ws://" + c.Server
+	}
+	sock, err := model.NewWebSocketClient4(url, c.Token)
 	if err != nil {
 		log.Info().Msgf("%s", err)
 		panic(1)
