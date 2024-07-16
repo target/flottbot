@@ -68,13 +68,13 @@ func (c *Client) Reaction(_ models.Message, rule models.Rule, _ *models.Bot) {
 func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule, bot *models.Bot) {
 	api := c.new()
 	if user, resp, err := api.GetUser("me", ""); err != nil {
-		log.Fatal().Msgf("Could not login, %s", err)
-	} else {
-		log.Info().Interface("user", user.Username).Interface("resp", resp).Msg("")
-		log.Info().Msg("Logged in to mattermost")
-
-		c.BotID = user.Username
+		log.Fatal().Msgf("could not login, %s", err)
 	}
+	
+	log.Info().Interface("user", user.Username).Interface("resp", resp).Msg("")
+	log.Info().Msg("logged in to mattermost")
+
+	c.BotID = user.Username
 
 	url := "wss://" + c.Server
 	if c.Insecure {
