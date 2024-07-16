@@ -38,11 +38,9 @@ var _ remote.Remote = (*Client)(nil)
 func (c *Client) new() *model.Client4 {
 	log.Info().Msgf("%#v", c)
 
-	var url string
+	url := "https://" + c.Server
 	if c.Insecure {
 		url = "http://" + c.Server
-	} else {
-		url = "https://" + c.Server
 	}
 
 	log.Info().Msgf("connecting to instance with url: %s", url)
