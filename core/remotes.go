@@ -70,10 +70,10 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 				Insecure: false,
 			}
 
-			log.Info().Msgf("##### Insucure setting: %v", bot.MatterMostInsecureProtocol)
+			log.Info().Msgf("insecure setting is: %v", bot.MatterMostInsecureProtocol)
 			if strings.ToLower(bot.MatterMostInsecureProtocol) == "1" {
 				remoteMattermost.Insecure = true
-				log.Info().Msg("setting protocols to http and ws")
+				log.Warn().Msg("using insecure protocols http and ws")
 			}
 			go remoteMattermost.Read(inputMsgs, rules, bot)
 		// Setup remote to use the Telegram client to read from Telegram

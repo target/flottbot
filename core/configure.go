@@ -42,7 +42,7 @@ func configureChatApplication(bot *models.Bot) {
 	bot.Name = token
 
 	if bot.ChatApplication != "" {
-		log.Info().Msgf("Looking for chat application '%#q'", bot.ChatApplication)
+		log.Info().Msgf("looking for chat application '%#q'", bot.ChatApplication)
 
 		switch strings.ToLower(bot.ChatApplication) {
 		//nolint:goconst // refactor
@@ -80,7 +80,7 @@ func configureChatApplication(bot *models.Bot) {
 
 		//nolint:goconst // refactor
 		case "mattermost":
-			log.Info().Msgf("Configuring remote '%#q'", bot.ChatApplication)
+			log.Info().Msgf("configuring remote '%#q'", bot.ChatApplication)
 			token, err := utils.Substitute(bot.MatterMostToken, emptyMap)
 
 			if err != nil {
@@ -103,7 +103,7 @@ func configureChatApplication(bot *models.Bot) {
 
 			insc, err := utils.Substitute(bot.MatterMostInsecureProtocol, emptyMap)
 			if err != nil {
-				log.Info().Msgf("could not retreive insecure flag: '%v'", err.Error())
+				log.Info().Msgf("could not retrieve insecure flag: '%v'", err.Error())
 			}
 			bot.MatterMostInsecureProtocol = insc
 

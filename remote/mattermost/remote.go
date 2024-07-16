@@ -56,11 +56,11 @@ func (c *Client) Name() string { return "mattermost" }
 
 func (c *Client) Reaction(_ models.Message, rule models.Rule, _ *models.Bot) {
 	if rule.RemoveReaction != "" {
-		log.Debug().Msg("Remove reaction not implemented for mattermost")
+		log.Debug().Msg("remove reaction not implemented for mattermost")
 	}
 
 	if rule.Reaction != "" {
-		log.Debug().Msg("Reactions not implemented for mattermost")
+		log.Debug().Msg("reactions not implemented for mattermost")
 	}
 
 }
@@ -86,7 +86,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 		panic(1)
 	}
 
-	log.Info().Msg("Mattermost Websocket connected")
+	log.Info().Msg("mattermost websocket connected")
 
 	sock.Listen()
 
@@ -108,17 +108,17 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 				// remove the bot mention from the user input
 				message, mentioned := removeBotMention(post.Message, c.BotID)
 				if mentioned {
-					log.Info().Msg("Bot mentioned in post")
+					log.Info().Msg("bot mentioned in post")
 				}
 
 				user, _, err := api.GetUser(post.UserId, "")
 				if err != nil {
-					log.Fatal().Msgf("Could not get username, %s", err)
+					log.Fatal().Msgf("could not get username, %s", err)
 				}
 
 				channelName, _, err := api.GetChannel(post.ChannelId, "")
 				if err != nil {
-					log.Fatal().Msgf("Could not get channelName, %s", err)
+					log.Fatal().Msgf("could not get channelName, %s", err)
 				}
 
 				inputMsgs <- populateMessage(
@@ -134,7 +134,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 				)
 
 			default:
-				log.Debug().Msgf("No Action for %s Event", event.EventType())
+				log.Debug().Msgf("no action for %s event", event.EventType())
 				continue
 			}
 		}
@@ -173,10 +173,10 @@ func populateMessage(
 func (c *Client) Send(message models.Message, _ *models.Bot) {
 	api := c.new()
 	if user, resp, err := api.GetUser("me", ""); err != nil {
-		log.Fatal().Msgf("Could not login, %s", err)
+		log.Fatal().Msgf("could not login, %s", err)
 	} else {
 		log.Info().Interface("user", user.Username).Interface("resp", resp).Msg("")
-		log.Info().Msg("Logged in to mattermost")
+		log.Info().Msg("logged in to mattermost")
 
 		c.BotID = user.Username
 	}
@@ -186,6 +186,6 @@ func (c *Client) Send(message models.Message, _ *models.Bot) {
 	post.Message = message.Output
 
 	if _, _, err := api.CreatePost(post); err != nil {
-		log.Error().Err(err).Msg("Failed to create post")
+		log.Error().Err(err).Msg("failed to create post")
 	}
 }
