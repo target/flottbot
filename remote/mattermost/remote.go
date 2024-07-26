@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
 	"github.com/target/flottbot/models"
@@ -20,15 +19,6 @@ type Client struct {
 	Token    string
 	BotID    string
 	Insecure bool
-}
-
-type mmLogger struct {
-	zerolog.Logger
-}
-
-func (l *mmLogger) Output(_ int, s string) error {
-	l.Logger.Info().Msg(s)
-	return nil
 }
 
 // validate that Client adheres to remote interface.
