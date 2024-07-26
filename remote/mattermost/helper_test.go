@@ -4,7 +4,6 @@ package mattermost
 import "testing"
 
 func TestRemoveBotMentions(t *testing.T) {
-
 	cases := []struct {
 		Description string
 		BotID       string
@@ -31,5 +30,4 @@ func TestRemoveBotMentions(t *testing.T) {
 			}
 		})
 	}
-
 }

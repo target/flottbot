@@ -105,6 +105,7 @@ func configureChatApplication(bot *models.Bot) {
 			if err != nil {
 				log.Info().Msgf("could not retrieve insecure flag: '%v'", err.Error())
 			}
+
 			bot.MatterMostInsecureProtocol = insc
 
 		//nolint:goconst // refactor

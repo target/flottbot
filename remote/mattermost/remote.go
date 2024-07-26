@@ -78,6 +78,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 	if c.Insecure {
 		url = "ws://" + c.Server
 	}
+
 	sock, err := model.NewWebSocketClient4(url, c.Token)
 	if err != nil {
 		log.Info().Msgf("%s", err)
