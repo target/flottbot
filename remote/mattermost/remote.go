@@ -50,15 +50,16 @@ func (c *Client) Reaction(_ models.Message, rule models.Rule, _ *models.Bot) {
 	if rule.Reaction != "" {
 		log.Debug().Msg("reactions not implemented for mattermost")
 	}
-
 }
 
-func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule, bot *models.Bot) {
+func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule, _ *models.Bot) {
 	api := c.new()
-	if user, resp, err := api.GetUser("me", ""); err != nil {
+
+	user, resp, err := api.GetUser("me", "")
+	if err != nil {
 		log.Fatal().Msgf("could not login, %s", err)
 	}
-	
+
 	log.Info().Interface("user", user.Username).Interface("resp", resp).Msg("")
 	log.Info().Msg("logged in to mattermost")
 
