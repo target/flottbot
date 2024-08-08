@@ -42,6 +42,8 @@ func configureChatApplication(bot *models.Bot) {
 	bot.Name = token
 
 	if bot.ChatApplication != "" {
+		log.Info().Msgf("looking for chat application '%#q'", bot.ChatApplication)
+
 		switch strings.ToLower(bot.ChatApplication) {
 		//nolint:goconst // refactor
 		case "discord":
@@ -75,6 +77,36 @@ func configureChatApplication(bot *models.Bot) {
 		//nolint:goconst // refactor
 		case "slack":
 			configureSlackBot(bot)
+
+		//nolint:goconst // refactor
+		case "mattermost":
+			log.Info().Msgf("configuring remote '%#q'", bot.ChatApplication)
+			token, err := utils.Substitute(bot.MatterMostToken, emptyMap)
+
+			if err != nil {
+				log.Error().Msgf("could not set 'mattermost_token': %v", err.Error())
+
+				bot.RunChat = false
+			}
+
+			bot.MatterMostToken = token
+
+			server, err := utils.Substitute(bot.MatterMostServer, emptyMap)
+
+			if err != nil {
+				log.Error().Msgf("could not set 'mattermost_server': %v", err.Error())
+
+				bot.RunChat = false
+			}
+
+			bot.MatterMostServer = server
+
+			insc, err := utils.Substitute(bot.MatterMostInsecureProtocol, emptyMap)
+			if err != nil {
+				log.Info().Msgf("could not retrieve insecure flag: '%v'", err.Error())
+			}
+
+			bot.MatterMostInsecureProtocol = insc
 
 		//nolint:goconst // refactor
 		case "telegram":

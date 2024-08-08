@@ -21,6 +21,9 @@ type Bot struct {
 	SlackEventsCallbackPath       string            `mapstructure:"slack_events_callback_path"`
 	SlackInteractionsCallbackPath string            `mapstructure:"slack_interactions_callback_path"`
 	SlackListenerPort             string            `mapstructure:"slack_listener_port"`
+	MatterMostToken               string            `mapstructure:"mattermost_token"`
+	MatterMostServer              string            `mapstructure:"mattermost_server"`
+	MatterMostInsecureProtocol    string            `mapstructure:"mattermost_insecure"`
 	DiscordToken                  string            `mapstructure:"discord_token"`
 	DiscordServerID               string            `mapstructure:"discord_server_id"`
 	GoogleChatProjectID           string            `mapstructure:"google_chat_project_id"`

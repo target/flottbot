@@ -11,6 +11,7 @@ import (
 	"github.com/target/flottbot/remote/cli"
 	"github.com/target/flottbot/remote/discord"
 	"github.com/target/flottbot/remote/gchat"
+	"github.com/target/flottbot/remote/mattermost"
 	"github.com/target/flottbot/remote/scheduler"
 	"github.com/target/flottbot/remote/slack"
 	"github.com/target/flottbot/remote/telegram"
@@ -62,6 +63,22 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 			}
 			// Read messages from Slack
 			go remoteSlack.Read(inputMsgs, rules, bot)
+		case "mattermost":
+			remoteMattermost := &mattermost.Client{
+				Token:    bot.MatterMostToken,
+				Server:   bot.MatterMostServer,
+				Insecure: false,
+			}
+
+			log.Info().Msgf("insecure setting is: %v", bot.MatterMostInsecureProtocol)
+
+			if strings.ToLower(bot.MatterMostInsecureProtocol) == "1" {
+				remoteMattermost.Insecure = true
+
+				log.Warn().Msg("using insecure protocols http and ws")
+			}
+
+			go remoteMattermost.Read(inputMsgs, rules, bot)
 		// Setup remote to use the Telegram client to read from Telegram
 		case "telegram":
 			remoteTelegram := &telegram.Client{
