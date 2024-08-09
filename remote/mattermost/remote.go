@@ -3,10 +3,11 @@
 package mattermost
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/rs/zerolog/log"
 
 	"github.com/target/flottbot/models"
@@ -55,7 +56,9 @@ func (c *Client) Reaction(_ models.Message, rule models.Rule, _ *models.Bot) {
 func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule, _ *models.Bot) {
 	api := c.new()
 
-	user, resp, err := api.GetUser("me", "")
+	ctx := context.Background()
+
+	user, resp, err := api.GetUser(ctx, "me", "")
 	if err != nil {
 		log.Fatal().Msgf("could not login, %s", err)
 	}
@@ -80,7 +83,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 
 	sock.Listen()
 
-	go func() {
+	go func(ctx context.Context) {
 		for event := range sock.EventChannel {
 			switch event.EventType() {
 			case model.WebsocketEventHello:
@@ -101,12 +104,12 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 					log.Info().Msg("bot mentioned in post")
 				}
 
-				user, _, err := api.GetUser(post.UserId, "")
+				user, _, err := api.GetUser(ctx, post.UserId, "")
 				if err != nil {
 					log.Fatal().Msgf("could not get username, %s", err)
 				}
 
-				channelName, _, err := api.GetChannel(post.ChannelId, "")
+				channelName, _, err := api.GetChannel(ctx, post.ChannelId, "")
 				if err != nil {
 					log.Fatal().Msgf("could not get channelName, %s", err)
 				}
@@ -128,7 +131,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 				continue
 			}
 		}
-	}()
+	}(ctx)
 }
 
 func populateMessage(
@@ -162,7 +165,9 @@ func populateMessage(
 
 func (c *Client) Send(message models.Message, _ *models.Bot) {
 	api := c.new()
-	if user, resp, err := api.GetUser("me", ""); err != nil {
+	ctx := context.Background()
+
+	if user, resp, err := api.GetUser(ctx, "me", ""); err != nil {
 		log.Fatal().Msgf("could not login, %s", err)
 	} else {
 		log.Info().Interface("user", user.Username).Interface("resp", resp).Msg("")
@@ -175,7 +180,7 @@ func (c *Client) Send(message models.Message, _ *models.Bot) {
 	post.ChannelId = message.ChannelID
 	post.Message = message.Output
 
-	if _, _, err := api.CreatePost(post); err != nil {
+	if _, _, err := api.CreatePost(ctx, post); err != nil {
 		log.Error().Err(err).Msg("failed to create post")
 	}
 }
