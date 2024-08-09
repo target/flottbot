@@ -90,7 +90,11 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 		if ev.BotID != "" && bot.RespondToBots {
 			// get bot information to get
 			// the associated user id
-			user, err := api.GetBotInfo(ev.BotID)
+			opts := slack.GetBotInfoParameters{
+				Bot: ev.BotID,
+			}
+
+			user, err := api.GetBotInfo(opts)
 			if err != nil {
 				log.Error().Msgf("unable to retrieve bot info for %#q", ev.BotID)
 
@@ -515,7 +519,11 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 						if ev.BotID != "" && bot.RespondToBots {
 							// get bot information to get
 							// the associated user id
-							user, err := sm.GetBotInfo(ev.BotID)
+							opts := slack.GetBotInfoParameters{
+								Bot: ev.BotID,
+							}
+
+							user, err := sm.GetBotInfo(opts)
 							if err != nil {
 								log.Error().Msgf("unable to retrieve bot info for %#q", ev.BotID)
 
