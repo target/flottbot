@@ -16,11 +16,16 @@ Flottbot is a chatbot framework written in Go. But there's a catch, you don't ne
 
 The philosophy behind flottbot is to create very simple, lightweight, "dumb" bots that interact with APIs and scripts which house a bot's business logic. The word **flott** comes from the German word meaning _quick_/_speedy_.
 
-1. [Installation](#installation)
-1. [Docker images](#docker-images)
-1. [Available remotes](#available-remotes)
-1. [Documentation](#documentation)
-1. [Contributing](#contributing)
+- [Installation](#installation)
+  - [Using go](#using-go)
+  - [Binaries](#binaries)
+- [Docker Images](#docker-images)
+- [Helm Chart](#helm-chart)
+- [Available remotes](#available-remotes)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [Credits](#credits)
+- [Contributors](#contributors)
 
 ---
 
@@ -29,7 +34,7 @@ The philosophy behind flottbot is to create very simple, lightweight, "dumb" bot
 ### Using go
 
 ```sh
-$ go get -u github.com/target/flottbot/cmd/flottbot
+go get -u github.com/target/flottbot/cmd/flottbot
 ```
 
 ### Binaries
@@ -57,17 +62,18 @@ _Note: The images run with the unprivileged `flottbot` user (uid/gid 900) by def
 To install using the [Helm](https://helm.sh/) chart located in this repo, clone this repo, create [Kubernetes secrets](https://kubernetes.io/docs/concepts/configuration/secret/) for your Slack Token and Slack App Token in your namespace & install the chart:
 
 ```sh
-$ helm install helm/flottbot/
+helm install helm/flottbot/
 ```
 
 ## Available remotes
 
-| Remote                              | Status | Documentation                                                      |
-| ----------------------------------- | ------ | ------------------------------------------------------------------ |
-| [Slack](https://slack.com)          | ✔      | [Docs](https://target.github.io/flottbot-docs/basics/slack/)       |
-| [Discord](https://discordapp.com)   | 🚧     | [Docs](https://target.github.io/flottbot-docs/basics/discord/)     |
-| [Google Chat](https://telegram.org) | 🚧     | [Docs](https://target.github.io/flottbot-docs/basics/google-chat/) |
-| [Telegram](https://telegram.org)    | 🚧     | coming soon                                                        |
+| Remote                                                     | Status | Documentation                                                      |
+| ---------------------------------------------------------- | ------ | ------------------------------------------------------------------ |
+| [Slack](https://slack.com)                                 | ✔      | [Docs](https://target.github.io/flottbot-docs/basics/slack/)       |
+| [Discord](https://discordapp.com)                          | 🚧      | [Docs](https://target.github.io/flottbot-docs/basics/discord/)     |
+| [Google Chat](https://workspace.google.com/products/chat/) | 🚧      | [Docs](https://target.github.io/flottbot-docs/basics/google-chat/) |
+| [Mattermost](https://mattermost.com/)                      | 🚧      | coming soon                                                        |
+| [Telegram](https://telegram.org)                           | 🚧      | coming soon                                                        |
 
 ✔ = Done 🚧 = in progress (functional but some features may not work)
 
