@@ -3,6 +3,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -80,7 +81,7 @@ func Substitute(value string, tokens map[string]string) (string, error) {
 	// Concat any caught errors into one error message and return it with unsubstituted value
 	if len(errs) > 0 {
 		errMsg := strings.Join(errs, " ")
-		return value, fmt.Errorf(errMsg)
+		return value, errors.New(errMsg)
 	}
 
 	return value, nil
