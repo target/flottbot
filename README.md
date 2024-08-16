@@ -49,7 +49,7 @@ We currently provide a few Docker images:
 
 [target/flottbot:ruby](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and ruby v3.2 installed
 
-[target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.22 installed
+[target/flottbot:golang](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and golang v1.23 installed
 
 [target/flottbot:python](https://hub.docker.com/r/target/flottbot) - Alpine image, flottbot binary, and python v3.11 installed
 
@@ -93,4 +93,4 @@ Inspired by [Hexbot.io](https://github.com/mmcquillan/hex)
 
 ## Contributors
 
-* [List of contributors](https://github.com/target/flottbot/graphs/contributors)
+- [List of contributors](https://github.com/target/flottbot/graphs/contributors)
