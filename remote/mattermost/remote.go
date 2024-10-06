@@ -53,7 +53,7 @@ func (c *Client) Reaction(_ models.Message, rule models.Rule, _ *models.Bot) {
 	}
 }
 
-func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule, _ *models.Bot) {
+func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule, bot *models.Bot) {
 	api := c.new()
 
 	ctx := context.Background()
@@ -67,6 +67,30 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 	log.Info().Msg("logged in to mattermost")
 
 	c.BotID = user.Username
+
+	go func(b *models.Bot) {
+		rooms := make(map[string]string)
+
+		teams, _, err := api.GetTeamsForUser(ctx, user.Id, "")
+		if err != nil {
+			log.Fatal().Err(err)
+		}
+
+		for _, team := range teams {
+			r, _, err := api.GetChannelsForTeamForUser(ctx, team.Id, user.Id, false, "")
+			if err != nil {
+				log.Fatal().Err(err)
+			}
+			for _, i := range r {
+				teamRoom := fmt.Sprintf("%s/%s", team.Name, i.Name)
+				rooms[teamRoom] = i.Id
+			}
+		}
+		bot.Rooms = rooms
+	}(bot)
+
+	foo, _ := json.MarshalIndent(bot.Rooms, "", "  ")
+	fmt.Println(string(foo))
 
 	url := "wss://" + c.Server
 	if c.Insecure {
@@ -163,7 +187,7 @@ func populateMessage(
 	return message
 }
 
-func (c *Client) Send(message models.Message, _ *models.Bot) {
+func (c *Client) Send(message models.Message, bot *models.Bot) {
 	api := c.new()
 	ctx := context.Background()
 
@@ -176,11 +200,30 @@ func (c *Client) Send(message models.Message, _ *models.Bot) {
 		c.BotID = user.Username
 	}
 
-	post := &model.Post{}
-	post.ChannelId = message.ChannelID
-	post.Message = message.Output
-
-	if _, _, err := api.CreatePost(ctx, post); err != nil {
-		log.Error().Err(err).Msg("failed to create post")
+	if err := send(api, message); err != nil {
+		log.Error().Err(err)
 	}
+
+}
+
+func send(api *model.Client4, message models.Message) error {
+
+	ctx := context.Background()
+	if message.DirectMessageOnly {
+		// TODO impliment
+	} else {
+		if len(message.OutputToRooms) > 0 {
+			post := &model.Post{}
+			post.Message = message.Output
+			for _, roomID := range message.OutputToRooms {
+				post.ChannelId = roomID
+				log.Debug().Msgf("Posting to %s, message: %v", post.ChannelId, post.Message)
+				_, _, err := api.CreatePost(ctx, post)
+				return err
+
+			}
+		}
+	}
+
+	return nil
 }
