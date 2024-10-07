@@ -5,7 +5,9 @@ package mattermost
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/rs/zerolog/log"
@@ -27,8 +29,6 @@ var _ remote.Remote = (*Client)(nil)
 
 // instantiate a new mattermost client.
 func (c *Client) new() *model.Client4 {
-	log.Info().Msgf("%#v", c)
-
 	url := "https://" + c.Server
 	if c.Insecure {
 		url = "http://" + c.Server
@@ -88,9 +88,6 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 		}
 		bot.Rooms = rooms
 	}(bot)
-
-	foo, _ := json.MarshalIndent(bot.Rooms, "", "  ")
-	fmt.Println(string(foo))
 
 	url := "wss://" + c.Server
 	if c.Insecure {
@@ -191,39 +188,124 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	api := c.new()
 	ctx := context.Background()
 
-	if user, resp, err := api.GetUser(ctx, "me", ""); err != nil {
+	user, _, err := api.GetUser(ctx, "me", "")
+	if err != nil {
 		log.Fatal().Msgf("could not login, %s", err)
-	} else {
-		log.Info().Interface("user", user.Username).Interface("resp", resp).Msg("")
-		log.Info().Msg("logged in to mattermost")
+	}
+	log.Info().Msg("logged in to mattermost")
 
-		c.BotID = user.Username
+	c.BotID = user.Username
+
+	post := &model.Post{}
+	post.Message = message.Output
+
+	if message.DirectMessageOnly {
+		target := message.Vars["_user.id"]
+		log.Info().Msgf("Creating direct message between %s, and %s",
+			target, c.BotID)
+		directChannel, _, err := api.CreateDirectChannel(ctx,
+			user.Id, target)
+		if err != nil {
+			log.Error().Msgf("%v", err)
+			return
+		}
+
+		post.ChannelId = directChannel.Id
+		if _, resp, err := api.CreatePost(ctx, post); err != nil {
+			log.Error().Err(err)
+		} else {
+			log.Debug().Interface("responce", resp).Msg("")
+		}
+
+		return
 	}
 
-	if err := send(api, message); err != nil {
-		log.Error().Err(err)
+	if len(message.OutputToRooms) > 0 {
+		for _, roomID := range message.OutputToRooms {
+			post.ChannelId = roomID
+			log.Debug().Msgf("Posting message: %v, to room %v",
+				post.Message, post.ChannelId)
+			if _, _, err := api.CreatePost(ctx, post); err != nil {
+				log.Error().Err(err)
+			}
+
+		}
+	}
+
+	if len(message.OutputToUsers) > 0 {
+		for _, u := range message.OutputToUsers {
+			log.Info().Msgf("Getting user id for %s", u)
+			target, err := getUserID(api, u)
+			log.Info().Msgf("Creating direct message between %s, and %s",
+				target, c.BotID)
+			directChannel, _, err := api.CreateDirectChannel(ctx,
+				user.Id, target)
+			if err != nil {
+				log.Error().Err(err)
+				break
+			}
+
+			post.ChannelId = directChannel.Id
+			if _, resp, err := api.CreatePost(ctx, post); err != nil {
+				log.Error().Err(err)
+			} else {
+				log.Debug().Interface("responce", resp).Msg("")
+			}
+
+		}
+	}
+
+	if len(message.OutputToRooms) == 0 && len(message.OutputToUsers) == 0 {
+		post := &model.Post{}
+		post.ChannelId = message.ChannelID
+		post.Message = message.Output
+
+		if _, _, err := api.CreatePost(ctx, post); err != nil {
+			log.Error().Err(err).Msg("failed to create post")
+		}
 	}
 
 }
 
-func send(api *model.Client4, message models.Message) error {
+func getUserID(api *model.Client4, username string) (string, error) {
+	log.Info().Msgf("Getting user id for %s", username)
 
 	ctx := context.Background()
-	if message.DirectMessageOnly {
-		// TODO impliment
-	} else {
-		if len(message.OutputToRooms) > 0 {
-			post := &model.Post{}
-			post.Message = message.Output
-			for _, roomID := range message.OutputToRooms {
-				post.ChannelId = roomID
-				log.Debug().Msgf("Posting to %s, message: %v", post.ChannelId, post.Message)
-				_, _, err := api.CreatePost(ctx, post)
-				return err
 
-			}
-		}
+	// trim any leading '@' from the provided username
+	username = strings.TrimPrefix(username, "@")
+
+	user, _, err := api.GetUserByUsername(ctx, username, "")
+	if err != nil {
+		return "", nil
+
+	}
+	return user.Id, nil
+}
+
+func (c Client) sendDirectMessage(api *model.Client4, message models.Message) error {
+	userID := message.Vars["_user.id"]
+	ctx := context.Background()
+	log.Info().Msgf("Creating direct message between %s, and %s",
+		userID, c.BotID)
+	directChannel, _, err := api.CreateDirectChannel(ctx,
+		userID, c.BotID)
+	if err != nil {
+		log.Error().Msgf("%v", err)
+		return err
 	}
 
+	post := &model.Post{}
+	post.Message = message.Output
+	post.ChannelId = directChannel.Id
+	return nil
+}
+
+func (c Client) sendMessage(api *model.Client4, ctx context.Context, post *model.Post) error {
+	if _, resp, err := api.CreatePost(ctx, post); err != nil {
+		log.Error().Err(err)
+	} else {
+		log.Debug().Interface("responce", resp).Msg("")
+	}
 	return nil
 }
