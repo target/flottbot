@@ -194,39 +194,28 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	}
 	log.Info().Msg("logged in to mattermost")
 
-	c.BotID = user.Username
+	c.BotID = user.Id
 
 	post := &model.Post{}
 	post.Message = message.Output
 
 	if message.DirectMessageOnly {
-		target := message.Vars["_user.id"]
-		log.Info().Msgf("Creating direct message between %s, and %s",
-			target, c.BotID)
-		directChannel, _, err := api.CreateDirectChannel(ctx,
-			user.Id, target)
+		post.UserId = message.Vars["_user.id"]
+		err = c.sendDirectMessage(api, ctx, post)
 		if err != nil {
 			log.Error().Msgf("%v", err)
 			return
 		}
-
-		post.ChannelId = directChannel.Id
-		if _, resp, err := api.CreatePost(ctx, post); err != nil {
-			log.Error().Err(err)
-		} else {
-			log.Debug().Interface("responce", resp).Msg("")
-		}
-
 		return
 	}
 
 	if len(message.OutputToRooms) > 0 {
 		for _, roomID := range message.OutputToRooms {
 			post.ChannelId = roomID
-			log.Debug().Msgf("Posting message: %v, to room %v",
-				post.Message, post.ChannelId)
-			if _, _, err := api.CreatePost(ctx, post); err != nil {
-				log.Error().Err(err)
+
+			err = sendMessage(api, ctx, post)
+			if err != nil {
+				log.Error().Err(err).Msgf("Unable to post message to %v", roomID)
 			}
 
 		}
@@ -234,23 +223,11 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 
 	if len(message.OutputToUsers) > 0 {
 		for _, u := range message.OutputToUsers {
-			log.Info().Msgf("Getting user id for %s", u)
-			target, err := getUserID(api, u)
-			log.Info().Msgf("Creating direct message between %s, and %s",
-				target, c.BotID)
-			directChannel, _, err := api.CreateDirectChannel(ctx,
-				user.Id, target)
+			post.UserId, err = getUserID(api, u)
 			if err != nil {
 				log.Error().Err(err)
-				break
 			}
-
-			post.ChannelId = directChannel.Id
-			if _, resp, err := api.CreatePost(ctx, post); err != nil {
-				log.Error().Err(err)
-			} else {
-				log.Debug().Interface("responce", resp).Msg("")
-			}
+			c.sendDirectMessage(api, ctx, post)
 
 		}
 	}
@@ -268,7 +245,8 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 }
 
 func getUserID(api *model.Client4, username string) (string, error) {
-	log.Info().Msgf("Getting user id for %s", username)
+
+	log.Debug().Msgf("Getting user id for %s", username)
 
 	ctx := context.Background()
 
@@ -277,33 +255,40 @@ func getUserID(api *model.Client4, username string) (string, error) {
 
 	user, _, err := api.GetUserByUsername(ctx, username, "")
 	if err != nil {
-		return "", nil
+		log.Error().Err(err).Msg("Error retreving user id")
+		return "", err
 
 	}
+
+	log.Debug().Msgf("%s user id is %s", username, user.Id)
 	return user.Id, nil
 }
 
-func (c Client) sendDirectMessage(api *model.Client4, message models.Message) error {
-	userID := message.Vars["_user.id"]
-	ctx := context.Background()
-	log.Info().Msgf("Creating direct message between %s, and %s",
-		userID, c.BotID)
-	directChannel, _, err := api.CreateDirectChannel(ctx,
-		userID, c.BotID)
-	if err != nil {
-		log.Error().Msgf("%v", err)
+func (c Client) sendDirectMessage(api *model.Client4, ctx context.Context, post *model.Post) error {
+
+	if post.UserId == "" {
+		err := fmt.Errorf("No user id in the post, unable to create a direct message")
+		log.Error().Err(err).Msg("Unable to create direct message channel")
 		return err
 	}
 
-	post := &model.Post{}
-	post.Message = message.Output
+	log.Debug().Msgf("Creating direct message between %s, and %s", post.UserId, c.BotID)
+
+	directChannel, resp, err := api.CreateDirectChannel(ctx, post.UserId, c.BotID)
+	if err != nil {
+		log.Error().Interface("resp", resp).Err(err).Msg("Unable to create direct message channel")
+		return err
+	}
+
 	post.ChannelId = directChannel.Id
-	return nil
+
+	return sendMessage(api, ctx, post)
 }
 
-func (c Client) sendMessage(api *model.Client4, ctx context.Context, post *model.Post) error {
+func sendMessage(api *model.Client4, ctx context.Context, post *model.Post) error {
 	if _, resp, err := api.CreatePost(ctx, post); err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("Unable to post message")
+		return err
 	} else {
 		log.Debug().Interface("responce", resp).Msg("")
 	}
