@@ -81,12 +81,14 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 			if err != nil {
 				log.Fatal().Err(err)
 			}
+
 			for _, i := range r {
 				teamRoom := fmt.Sprintf("%s/%s", team.Name, i.Name)
 				rooms[teamRoom] = i.Id
 			}
 		}
-		bot.Rooms = rooms
+
+		b.Rooms = rooms
 	}(bot)
 
 	url := "wss://" + c.Server
@@ -184,7 +186,7 @@ func populateMessage(
 	return message
 }
 
-func (c *Client) Send(message models.Message, bot *models.Bot) {
+func (c *Client) Send(message models.Message, _ *models.Bot) {
 	api := c.new()
 	ctx := context.Background()
 
@@ -192,20 +194,22 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	if err != nil {
 		log.Fatal().Msgf("could not login, %s", err)
 	}
+
 	log.Info().Msg("logged in to mattermost")
 
 	c.BotID = user.Id
-
 	post := &model.Post{}
 	post.Message = message.Output
 
 	if message.DirectMessageOnly {
 		post.UserId = message.Vars["_user.id"]
-		err = c.sendDirectMessage(api, ctx, post)
+		err = c.sendDirectMessage(ctx, api, post)
+
 		if err != nil {
 			log.Error().Msgf("%v", err)
 			return
 		}
+
 		return
 	}
 
@@ -213,11 +217,10 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 		for _, roomID := range message.OutputToRooms {
 			post.ChannelId = roomID
 
-			err = sendMessage(api, ctx, post)
+			err = sendMessage(ctx, api, post)
 			if err != nil {
 				log.Error().Err(err).Msgf("Unable to post message to %v", roomID)
 			}
-
 		}
 	}
 
@@ -227,8 +230,10 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 			if err != nil {
 				log.Error().Err(err)
 			}
-			c.sendDirectMessage(api, ctx, post)
 
+			if err = c.sendDirectMessage(ctx, api, post); err != nil {
+				log.Error().Err(err)
+			}
 		}
 	}
 
@@ -241,11 +246,9 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 			log.Error().Err(err).Msg("failed to create post")
 		}
 	}
-
 }
 
 func getUserID(api *model.Client4, username string) (string, error) {
-
 	log.Debug().Msgf("Getting user id for %s", username)
 
 	ctx := context.Background()
@@ -257,18 +260,18 @@ func getUserID(api *model.Client4, username string) (string, error) {
 	if err != nil {
 		log.Error().Err(err).Msg("Error retreving user id")
 		return "", err
-
 	}
 
 	log.Debug().Msgf("%s user id is %s", username, user.Id)
+
 	return user.Id, nil
 }
 
-func (c Client) sendDirectMessage(api *model.Client4, ctx context.Context, post *model.Post) error {
-
+func (c Client) sendDirectMessage(ctx context.Context, api *model.Client4, post *model.Post) error {
 	if post.UserId == "" {
-		err := fmt.Errorf("No user id in the post, unable to create a direct message")
+		err := fmt.Errorf("no user id in the post, unable to create a direct message")
 		log.Error().Err(err).Msg("Unable to create direct message channel")
+
 		return err
 	}
 
@@ -282,15 +285,17 @@ func (c Client) sendDirectMessage(api *model.Client4, ctx context.Context, post 
 
 	post.ChannelId = directChannel.Id
 
-	return sendMessage(api, ctx, post)
+	return sendMessage(ctx, api, post)
 }
 
-func sendMessage(api *model.Client4, ctx context.Context, post *model.Post) error {
-	if _, resp, err := api.CreatePost(ctx, post); err != nil {
+func sendMessage(ctx context.Context, api *model.Client4, post *model.Post) error {
+	_, resp, err := api.CreatePost(ctx, post)
+	if err != nil {
 		log.Error().Err(err).Msg("Unable to post message")
 		return err
-	} else {
-		log.Debug().Interface("responce", resp).Msg("")
 	}
+
+	log.Debug().Interface("response", resp).Msg("")
+
 	return nil
 }
