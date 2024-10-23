@@ -445,6 +445,75 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 	}
 }
 
+// populateMessage - populates the 'Message' object to be passed on for processing/sending.
+func populateReaction(message models.Message, msgType models.MessageType, channel, action, reaction, timeStamp, link string, user *slack.User, bot *models.Bot) models.Message {
+	switch msgType {
+	case models.MsgTypeDirect, models.MsgTypeChannel, models.MsgTypePrivateChannel:
+		// Populate message attributes
+		message.Type = msgType
+		message.Service = models.MsgServiceChat
+		message.ChannelID = channel
+		message.ReactionAction = action
+		message.Reaction = reaction
+		message.Input = ""
+		message.Output = ""
+		message.Timestamp = timeStamp
+		message.SourceLink = link
+
+		// If the message read was not a dm, get the name of the channel it came from
+		if msgType != models.MsgTypeDirect {
+			name, ok := findKey(bot.Rooms, channel)
+			if !ok {
+				log.Error().Msgf("could not find name of channel %#q", channel)
+			}
+
+			message.ChannelName = name
+		}
+
+		message.Vars["_reaction.action"] = action
+		message.Vars["_reaction"] = reaction
+		// make channel variables available
+		message.Vars["_channel.id"] = message.ChannelID
+		message.Vars["_channel.name"] = message.ChannelName // will be empty if it came via DM
+
+		// make link to trigger message available
+		message.Vars["_source.link"] = message.SourceLink
+
+		// make timestamp information available
+		message.Vars["_source.timestamp"] = timeStamp
+
+		// Populate message with user information (i.e. who sent the message)
+		// These will be accessible on rules via ${_user.email}, ${_user.id}, etc.
+		if user != nil { // nil user implies a message from an api/bot (i.e. not an actual user)
+			message.Vars["_user.id"] = user.ID
+			message.Vars["_user.teamid"] = user.TeamID
+			message.Vars["_user.name"] = user.Name
+			message.Vars["_user.color"] = user.Color
+			message.Vars["_user.realname"] = user.RealName
+			message.Vars["_user.tz"] = user.TZ
+			message.Vars["_user.tzlabel"] = user.TZLabel
+			message.Vars["_user.tzoffset"] = strconv.Itoa(user.TZOffset)
+			message.Vars["_user.firstname"] = user.Profile.FirstName
+			message.Vars["_user.lastname"] = user.Profile.LastName
+			message.Vars["_user.realnamenormalized"] = user.Profile.RealNameNormalized
+			message.Vars["_user.displayname"] = user.Profile.DisplayName
+			message.Vars["_user.displaynamenormalized"] = user.Profile.DisplayNameNormalized
+			message.Vars["_user.email"] = user.Profile.Email
+			message.Vars["_user.skype"] = user.Profile.Skype
+			message.Vars["_user.phone"] = user.Profile.Phone
+			message.Vars["_user.title"] = user.Profile.Title
+			message.Vars["_user.statustext"] = user.Profile.StatusText
+			message.Vars["_user.statusemoji"] = user.Profile.StatusEmoji
+			message.Vars["_user.team"] = user.Profile.Team
+		}
+
+		return message
+	default:
+		log.Debug().Msgf("read message of unsupported type '%T' - unable to populate message attributes", msgType)
+		return message
+	}
+}
+
 // readFromEventsAPI utilizes the Slack API client to read event-based messages.
 // This method of reading is preferred over the RTM method.
 func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models.Message, bot *models.Bot) {
@@ -509,7 +578,7 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 					innerEvent := eventsAPIEvent.InnerEvent
 
 					switch ev := innerEvent.Data.(type) {
-					case *slackevents.AppMentionEvent, *slackevents.ReactionAddedEvent:
+					case *slackevents.AppMentionEvent:
 						continue
 					case *slackevents.MessageEvent:
 						senderID := ev.User
@@ -563,6 +632,66 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 							}
 
 							inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
+						}
+					case *slackevents.ReactionAddedEvent:
+						senderID := ev.User
+
+						if senderID != "" && bot.ID != senderID {
+							channel := ev.Item.Channel
+
+							// determine the message type
+							msgType, err := getMessageType(channel)
+							if err != nil {
+								log.Error().Msg(err.Error())
+							}
+
+							// get information on the user
+							user, err := sm.GetUserInfo(senderID)
+							if err != nil {
+								log.Error().Msgf("did not get slack user info: %s", err.Error())
+							}
+
+							timestamp := ev.Item.Timestamp
+
+							reaction := ev.Reaction
+
+							// get the link to the message, will be empty string if there's an error
+							link, err := sm.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
+							if err != nil {
+								log.Error().Msgf("unable to retrieve link to message: %s", err.Error())
+							}
+
+							inputMsgs <- populateReaction(models.NewMessage(), msgType, channel, "added", reaction, timestamp, link, user, bot)
+						}
+					case *slackevents.ReactionRemovedEvent:
+						senderID := ev.User
+
+						if senderID != "" && bot.ID != senderID {
+							channel := ev.Item.Channel
+
+							// determine the message type
+							msgType, err := getMessageType(channel)
+							if err != nil {
+								log.Error().Msg(err.Error())
+							}
+
+							// get information on the user
+							user, err := sm.GetUserInfo(senderID)
+							if err != nil {
+								log.Error().Msgf("did not get slack user info: %s", err.Error())
+							}
+
+							timestamp := ev.Item.Timestamp
+
+							reaction := ev.Reaction
+
+							// get the link to the message, will be empty string if there's an error
+							link, err := sm.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
+							if err != nil {
+								log.Error().Msgf("unable to retrieve link to message: %s", err.Error())
+							}
+
+							inputMsgs <- populateReaction(models.NewMessage(), msgType, channel, "removed", reaction, timestamp, link, user, bot)
 						}
 					case *slackevents.MemberJoinedChannelEvent:
 						// limit to our bot

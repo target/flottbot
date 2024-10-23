@@ -584,9 +584,11 @@ func TestUpdateReaction(t *testing.T) {
 
 func Test_getProccessedInputAndHitValue(t *testing.T) {
 	type args struct {
-		messageInput     string
-		ruleRespondValue string
-		ruleHearValue    string
+		messageInput      string
+		ruleRespondValue  string
+		ruleHearValue     string
+		messageReaction   string
+		ruleReactionMatch string
 	}
 
 	tests := []struct {
@@ -595,15 +597,16 @@ func Test_getProccessedInputAndHitValue(t *testing.T) {
 		want  string
 		want1 bool
 	}{
-		{"hit", args{"hello foo", "hello", "hello"}, "foo", true},
-		{"hit no hear value", args{"hello foo", "hello", ""}, "foo", true},
-		{"hit no respond value - drops args", args{"hello foo", "", "hello"}, "", true},
-		{"no match", args{"hello foo", "", ""}, "", false},
+		{"hit", args{"hello foo", "hello", "hello", "", ""}, "foo", true},
+		{"hit no hear value", args{"hello foo", "hello", "", "", ""}, "foo", true},
+		{"hit no respond value - drops args", args{"hello foo", "", "hello", "", ""}, "", true},
+		{"no match", args{"hello foo", "", "", "", ""}, "", false},
+		{"hit reaction", args{"", "", "", ":hello:", ":hello:"}, ":hello:", true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := getProccessedInputAndHitValue(tt.args.messageInput, tt.args.ruleRespondValue, tt.args.ruleHearValue)
+			got, got1 := getProccessedInputAndHitValue(tt.args.messageInput, tt.args.ruleRespondValue, tt.args.ruleHearValue, tt.args.messageReaction, tt.args.ruleReactionMatch)
 			if got != tt.want {
 				t.Errorf("getProccessedInputAndHitValue() got = %v, want %v", got, tt.want)
 			}

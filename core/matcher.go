@@ -38,7 +38,7 @@ RuleSearch:
 		// Only check active rules.
 		if rule.Active {
 			// Init some variables for use below
-			processedInput, hit := getProccessedInputAndHitValue(message.Input, rule.Respond, rule.Hear)
+			processedInput, hit := getProccessedInputAndHitValue(message.Input, rule.Respond, rule.Hear, message.Reaction, rule.ReactionMatch)
 			// Determine what service we are processing the rule for
 			switch message.Service {
 			case models.MsgServiceChat, models.MsgServiceCLI:
@@ -63,12 +63,14 @@ RuleSearch:
 }
 
 // getProccessedInputAndHitValue gets the processed input from the message input and the true/false if it was a successfully hit rule.
-func getProccessedInputAndHitValue(messageInput, ruleRespondValue, ruleHearValue string) (string, bool) {
+func getProccessedInputAndHitValue(messageInput, ruleRespondValue, ruleHearValue, messageReaction, ruleReactionMatch string) (string, bool) {
 	processedInput, hit := "", false
 	if ruleRespondValue != "" {
 		processedInput, hit = utils.Match(ruleRespondValue, messageInput, true)
 	} else if ruleHearValue != "" { // Are we listening to everything?
 		_, hit = utils.Match(ruleHearValue, messageInput, false)
+	} else if ruleReactionMatch != "" {
+		processedInput, hit = utils.Match(ruleReactionMatch, messageReaction, false)
 	}
 
 	return processedInput, hit
@@ -80,8 +82,8 @@ func getProccessedInputAndHitValue(messageInput, ruleRespondValue, ruleHearValue
 func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Message, hitRule chan<- models.Rule, rule models.Rule, processedInput string, hit bool, bot *models.Bot) (bool, bool) {
 	match, stopSearch := false, false
 
-	if rule.Respond != "" || rule.Hear != "" {
-		// You can only use 'respond' OR 'hear'
+	if rule.Respond != "" || rule.Hear != "" || rule.ReactionMatch != "" {
+		// You can only use 'respond', 'hear', or 'reaction match'
 		if rule.Respond != "" && rule.Hear != "" {
 			log.Debug().Msgf("rule %#q has both 'hear' and 'match' or 'respond' defined. please choose one or the other", rule.Name)
 		}
@@ -231,7 +233,7 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 	}
 
 	// If this wasn't a 'hear' rule, handle the args
-	if rule.Hear == "" {
+	if rule.Hear == "" && rule.ReactionMatch == "" {
 		// Get all the args that the message sender supplied
 		args := utils.RuleArgTokenizer(processedInput)
 
