@@ -211,6 +211,8 @@ func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hit
 }
 
 // isValidHitChatRule does additional checks on a successfully hit rule that came from the chat or CLI service.
+//
+//nolint:gocyclo // refactor
 func isValidHitChatRule(message *models.Message, rule models.Rule, processedInput string, bot *models.Bot) bool {
 	// Check to honor allow_users or allow_usergroups
 	canRunRule := utils.CanTrigger(message.Vars["_user.name"], message.Vars["_user.id"], rule, bot)
