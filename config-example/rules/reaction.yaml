@@ -1,0 +1,11 @@
+name: plus-one-reaction
+active: true
+reaction_match: ":+1:"
+args:
+# actions
+actions: # this rule takes no actions, just collects and responds with whats laid out in the format_response section
+
+# response
+format_output: "Oh a reaction?" # message to send to your user when they say hello
+start_message_thread: true # start a thread with the response
+direct_message_only: false # allow messaging inside channels
