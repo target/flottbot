@@ -63,7 +63,8 @@ test-coverage:
 clean: validate
 	@echo "Running $@ tasks"
 	-rm -v ./flottbot*
-	-rm -v ./debug
+
+##	-rm -v ./debug #Not created
 
 # ┌┐ ┬ ┬┬┬  ┌┬┐
 # ├┴┐│ │││   ││

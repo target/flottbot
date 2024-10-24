@@ -445,6 +445,28 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 	}
 }
 
+// populateMessage - populates the 'Message' object to be passed on for processing/sending.
+func populateReaction(message models.Message, msgType models.MessageType, channel, action, reaction, timeStamp, link string, user *slack.User, bot *models.Bot) models.Message {
+	switch msgType {
+	case models.MsgTypeDirect, models.MsgTypeChannel, models.MsgTypePrivateChannel:
+		switch action {
+		case "added":
+			message.ReactionAdded = reaction
+		case "removed":
+			message.ReactionRemoved = reaction
+		}
+
+		message.Vars["_reaction.added"] = message.ReactionAdded
+		message.Vars["_reaction.removed"] = message.ReactionRemoved
+
+		message = populateMessage(message, msgType, channel, "", timeStamp, "", link, false, user, bot)
+	default:
+		log.Debug().Msgf("read message of unsupported type '%T' - unable to populate message attributes", msgType)
+	}
+
+	return message
+}
+
 // readFromEventsAPI utilizes the Slack API client to read event-based messages.
 // This method of reading is preferred over the RTM method.
 func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models.Message, bot *models.Bot) {
@@ -479,7 +501,7 @@ func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models
 //
 // https://api.slack.com/apis/connections/socket
 //
-//nolint:gocyclo // needs refactor
+//nolint:gocyclo,funlen // needs refactor
 func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *models.Bot) {
 	// setup the client
 	client := socketmode.New(sm)
@@ -509,7 +531,7 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 					innerEvent := eventsAPIEvent.InnerEvent
 
 					switch ev := innerEvent.Data.(type) {
-					case *slackevents.AppMentionEvent, *slackevents.ReactionAddedEvent:
+					case *slackevents.AppMentionEvent:
 						continue
 					case *slackevents.MessageEvent:
 						senderID := ev.User
@@ -563,6 +585,66 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 							}
 
 							inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
+						}
+					case *slackevents.ReactionAddedEvent:
+						senderID := ev.User
+
+						if senderID != "" && bot.ID != senderID {
+							channel := ev.Item.Channel
+
+							// determine the message type
+							msgType, err := getMessageType(channel)
+							if err != nil {
+								log.Error().Msg(err.Error())
+							}
+
+							// get information on the user
+							user, err := sm.GetUserInfo(senderID)
+							if err != nil {
+								log.Error().Msgf("did not get slack user info: %s", err.Error())
+							}
+
+							timestamp := ev.Item.Timestamp
+
+							reaction := ev.Reaction
+
+							// get the link to the message, will be empty string if there's an error
+							link, err := sm.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
+							if err != nil {
+								log.Error().Msgf("unable to retrieve link to message: %s", err.Error())
+							}
+
+							inputMsgs <- populateReaction(models.NewMessage(), msgType, channel, "added", reaction, timestamp, link, user, bot)
+						}
+					case *slackevents.ReactionRemovedEvent:
+						senderID := ev.User
+
+						if senderID != "" && bot.ID != senderID {
+							channel := ev.Item.Channel
+
+							// determine the message type
+							msgType, err := getMessageType(channel)
+							if err != nil {
+								log.Error().Msg(err.Error())
+							}
+
+							// get information on the user
+							user, err := sm.GetUserInfo(senderID)
+							if err != nil {
+								log.Error().Msgf("did not get slack user info: %s", err.Error())
+							}
+
+							timestamp := ev.Item.Timestamp
+
+							reaction := ev.Reaction
+
+							// get the link to the message, will be empty string if there's an error
+							link, err := sm.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
+							if err != nil {
+								log.Error().Msgf("unable to retrieve link to message: %s", err.Error())
+							}
+
+							inputMsgs <- populateReaction(models.NewMessage(), msgType, channel, "removed", reaction, timestamp, link, user, bot)
 						}
 					case *slackevents.MemberJoinedChannelEvent:
 						// limit to our bot

@@ -17,6 +17,8 @@ type Message struct {
 	ChannelName       string
 	Input             string
 	Output            string
+	ReactionAdded     string
+	ReactionRemoved   string
 	Error             string
 	Timestamp         string
 	ThreadID          string
