@@ -584,11 +584,13 @@ func TestUpdateReaction(t *testing.T) {
 
 func Test_getProccessedInputAndHitValue(t *testing.T) {
 	type args struct {
-		messageInput      string
-		ruleRespondValue  string
-		ruleHearValue     string
-		messageReaction   string
-		ruleReactionMatch string
+		messageInput           string
+		ruleRespondValue       string
+		ruleHearValue          string
+		messageReactionAdded   string
+		messageReactionRemoved string
+		ruleReactionAdded      string
+		ruleReactionRemoved    string
 	}
 
 	tests := []struct {
@@ -597,16 +599,31 @@ func Test_getProccessedInputAndHitValue(t *testing.T) {
 		want  string
 		want1 bool
 	}{
-		{"hit", args{"hello foo", "hello", "hello", "", ""}, "foo", true},
-		{"hit no hear value", args{"hello foo", "hello", "", "", ""}, "foo", true},
-		{"hit no respond value - drops args", args{"hello foo", "", "hello", "", ""}, "", true},
-		{"no match", args{"hello foo", "", "", "", ""}, "", false},
-		{"hit reaction", args{"", "", "", ":hello:", ":hello:"}, ":hello:", true},
+		{"hit", args{"hello foo", "hello", "hello", "", "", "", ""}, "foo", true},
+		{"hit no hear value", args{"hello foo", "hello", "", "", "", "", ""}, "foo", true},
+		{"hit no respond value - drops args", args{"hello foo", "", "hello", "", "", "", ""}, "", true},
+		{"no match", args{"hello foo", "", "", "", "", "", ""}, "", false},
+		{"hit reaction added", args{"", "", "", "hello", "", "hello", ""}, "hello", true},
+		{"hit reaction removed", args{"", "", "", "", "hello", "", "hello"}, "hello", true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := getProccessedInputAndHitValue(tt.args.messageInput, tt.args.ruleRespondValue, tt.args.ruleHearValue, tt.args.messageReaction, tt.args.ruleReactionMatch)
+			rule := models.Rule{
+				Hear:             tt.args.ruleHearValue,
+				Respond:          tt.args.ruleRespondValue,
+				ReactionsAdded:   tt.args.ruleReactionAdded,
+				ReactionsRemoved: tt.args.ruleReactionRemoved,
+			}
+
+			message := models.Message{
+				Input:           tt.args.messageInput,
+				ReactionAdded:   tt.args.messageReactionAdded,
+				ReactionRemoved: tt.args.messageReactionRemoved,
+			}
+
+			got, got1 := getProccessedInputAndHitValue(message, rule)
+
 			if got != tt.want {
 				t.Errorf("getProccessedInputAndHitValue() got = %v, want %v", got, tt.want)
 			}

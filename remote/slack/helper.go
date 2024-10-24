@@ -449,14 +449,15 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 func populateReaction(message models.Message, msgType models.MessageType, channel, action, reaction, timeStamp, link string, user *slack.User, bot *models.Bot) models.Message {
 	switch msgType {
 	case models.MsgTypeDirect, models.MsgTypeChannel, models.MsgTypePrivateChannel:
-		message.ReactionAction = action
-		message.Reaction = reaction
-		message.Input = ""
-		message.Output = ""
-		message.Timestamp = timeStamp
-		message.SourceLink = link
-		message.Vars["_reaction.action"] = action
-		message.Vars["_reaction"] = reaction
+		switch action {
+		case "added":
+			message.ReactionAdded = reaction
+		case "removed":
+			message.ReactionRemoved = reaction
+		}
+
+		message.Vars["_reaction.added"] = message.ReactionAdded
+		message.Vars["_reaction.removed"] = message.ReactionRemoved
 
 		message = populateMessage(message, msgType, channel, "", timeStamp, "", link, false, user, bot)
 	default:
