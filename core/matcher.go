@@ -261,8 +261,8 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 		message.Vars[name] = value
 	}
 
-	// If this wasn't a 'hear' rule, handle the args
-	if rule.Hear == "" && rule.ReactionsAdded == "" && rule.ReactionsRemoved == "" {
+	// If this is a "respond" type, handle args
+	if rule.Respond != "" {
 		// Get all the args that the message sender supplied
 		args := utils.RuleArgTokenizer(processedInput)
 
