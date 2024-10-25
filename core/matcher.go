@@ -70,23 +70,15 @@ func getProccessedInputAndHitValue(message models.Message, rule models.Rule) (st
 	ruleHearValue := rule.Hear
 
 	if rule.Respond != "" {
-		log.Debug().Msgf("Respond Rule %s", rule.Name)
-
 		messageInput := message.Input
 		processedInput, hit = utils.Match(ruleRespondValue, messageInput, true)
 	} else if rule.Hear != "" { // Are we listening to everything?
-		log.Debug().Msgf("HearRule %s", rule.Name)
-
 		messageInput := message.Input
 		_, hit = utils.Match(ruleHearValue, messageInput, false)
 	} else if rule.ReactionsAdded != "" {
-		log.Debug().Msgf("ReactionAdded Rule %s", rule.Name)
-
 		messageReaction := message.ReactionAdded
 		processedInput, hit = utils.Match(rule.ReactionsAdded, messageReaction, false)
 	} else if rule.ReactionsRemoved != "" {
-		log.Debug().Msgf("ReactionRemoved Rule %s", rule.Name)
-
 		messageReaction := message.ReactionRemoved
 		processedInput, hit = utils.Match(rule.ReactionsRemoved, messageReaction, false)
 	}
@@ -270,7 +262,7 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 	}
 
 	// If this wasn't a 'hear' rule, handle the args
-	if rule.Hear == "" && rule.ReactionsAdded == "" {
+	if rule.Hear == "" && rule.ReactionsAdded == "" && rule.ReactionsRemoved == "" {
 		// Get all the args that the message sender supplied
 		args := utils.RuleArgTokenizer(processedInput)
 
