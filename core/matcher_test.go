@@ -645,12 +645,14 @@ func Test_isValidHitChatRule(t *testing.T) {
 
 	testBot := new(models.Bot)
 	testRule := models.Rule{}
+	testRule.Hear = "stuff"
 	testMessage := new(models.Message)
 	happyVars := make(map[string]string)
 	happyVars["_user.name"] = "fooUser"
 	testMessage.Vars = happyVars
 
 	testRuleFail := models.Rule{}
+	testRuleFail.Hear = "stuff"
 	testRuleFail.AllowUsers = []string{"barUser"}
 	testMessageFail := new(models.Message)
 	failVars := make(map[string]string)
@@ -658,6 +660,7 @@ func Test_isValidHitChatRule(t *testing.T) {
 	testMessageFail.Vars = failVars
 
 	testRuleUserAllowed := models.Rule{}
+	testRuleUserAllowed.Hear = "stuff"
 	testRuleUserAllowed.AllowUsers = []string{"fooUser"}
 	testMessageUserAllowed := new(models.Message)
 	userAllowedVars := make(map[string]string)
@@ -665,6 +668,7 @@ func Test_isValidHitChatRule(t *testing.T) {
 	testMessageUserAllowed.Vars = userAllowedVars
 
 	testRuleNeedArg := models.Rule{}
+	testRuleNeedArg.Respond = "stuff"
 	testRuleNeedArg.AllowUsers = []string{"fooUser"}
 	testRuleNeedArg.Args = []string{"arg1", "arg2"}
 	testMessageNeedArg := new(models.Message)
@@ -673,6 +677,7 @@ func Test_isValidHitChatRule(t *testing.T) {
 	testMessageNeedArg.Vars = needArgVars
 
 	testRuleArgs := models.Rule{}
+	testRuleArgs.Respond = "stuff"
 	testRuleArgs.AllowUsers = []string{"fooUser"}
 	testRuleArgs.Args = []string{"arg1", "arg2"}
 	testMessageArgs := new(models.Message)

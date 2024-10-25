@@ -241,6 +241,13 @@ func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hit
 //
 //nolint:gocyclo // refactor
 func isValidHitChatRule(message *models.Message, rule models.Rule, processedInput string, bot *models.Bot) bool {
+
+	// Check rule has one of Hear, Respond, ReactionsAdded or ReactionsRemoved
+	if !isValidChatRule(rule) {
+		message.Output = "Rule does not have one of Hear, Respond, ReactionsAdded or ReactionsRemoved defined "
+		return false
+	}
+
 	// Check to honor allow_users or allow_usergroups
 	canRunRule := utils.CanTrigger(message.Vars["_user.name"], message.Vars["_user.id"], rule, bot)
 	if !canRunRule {
