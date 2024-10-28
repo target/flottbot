@@ -584,9 +584,13 @@ func TestUpdateReaction(t *testing.T) {
 
 func Test_getProccessedInputAndHitValue(t *testing.T) {
 	type args struct {
-		messageInput     string
-		ruleRespondValue string
-		ruleHearValue    string
+		messageInput           string
+		ruleRespondValue       string
+		ruleHearValue          string
+		messageReactionAdded   string
+		messageReactionRemoved string
+		ruleReactionAdded      string
+		ruleReactionRemoved    string
 	}
 
 	tests := []struct {
@@ -595,15 +599,31 @@ func Test_getProccessedInputAndHitValue(t *testing.T) {
 		want  string
 		want1 bool
 	}{
-		{"hit", args{"hello foo", "hello", "hello"}, "foo", true},
-		{"hit no hear value", args{"hello foo", "hello", ""}, "foo", true},
-		{"hit no respond value - drops args", args{"hello foo", "", "hello"}, "", true},
-		{"no match", args{"hello foo", "", ""}, "", false},
+		{"hit", args{"hello foo", "hello", "hello", "", "", "", ""}, "foo", true},
+		{"hit no hear value", args{"hello foo", "hello", "", "", "", "", ""}, "foo", true},
+		{"hit no respond value - drops args", args{"hello foo", "", "hello", "", "", "", ""}, "", true},
+		{"no match", args{"hello foo", "", "", "", "", "", ""}, "", false},
+		{"hit reaction added", args{"", "", "", "hello", "", "hello", ""}, "hello", true},
+		{"hit reaction removed", args{"", "", "", "", "hello", "", "hello"}, "hello", true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := getProccessedInputAndHitValue(tt.args.messageInput, tt.args.ruleRespondValue, tt.args.ruleHearValue)
+			rule := models.Rule{
+				Hear:             tt.args.ruleHearValue,
+				Respond:          tt.args.ruleRespondValue,
+				ReactionsAdded:   tt.args.ruleReactionAdded,
+				ReactionsRemoved: tt.args.ruleReactionRemoved,
+			}
+
+			message := models.Message{
+				Input:           tt.args.messageInput,
+				ReactionAdded:   tt.args.messageReactionAdded,
+				ReactionRemoved: tt.args.messageReactionRemoved,
+			}
+
+			got, got1 := getProccessedInputAndHitValue(message, rule)
+
 			if got != tt.want {
 				t.Errorf("getProccessedInputAndHitValue() got = %v, want %v", got, tt.want)
 			}
@@ -625,12 +645,14 @@ func Test_isValidHitChatRule(t *testing.T) {
 
 	testBot := new(models.Bot)
 	testRule := models.Rule{}
+	testRule.Hear = "stuff"
 	testMessage := new(models.Message)
 	happyVars := make(map[string]string)
 	happyVars["_user.name"] = "fooUser"
 	testMessage.Vars = happyVars
 
 	testRuleFail := models.Rule{}
+	testRuleFail.Hear = "stuff"
 	testRuleFail.AllowUsers = []string{"barUser"}
 	testMessageFail := new(models.Message)
 	failVars := make(map[string]string)
@@ -638,6 +660,7 @@ func Test_isValidHitChatRule(t *testing.T) {
 	testMessageFail.Vars = failVars
 
 	testRuleUserAllowed := models.Rule{}
+	testRuleUserAllowed.Hear = "stuff"
 	testRuleUserAllowed.AllowUsers = []string{"fooUser"}
 	testMessageUserAllowed := new(models.Message)
 	userAllowedVars := make(map[string]string)
@@ -645,6 +668,7 @@ func Test_isValidHitChatRule(t *testing.T) {
 	testMessageUserAllowed.Vars = userAllowedVars
 
 	testRuleNeedArg := models.Rule{}
+	testRuleNeedArg.Respond = "stuff"
 	testRuleNeedArg.AllowUsers = []string{"fooUser"}
 	testRuleNeedArg.Args = []string{"arg1", "arg2"}
 	testMessageNeedArg := new(models.Message)
@@ -653,6 +677,7 @@ func Test_isValidHitChatRule(t *testing.T) {
 	testMessageNeedArg.Vars = needArgVars
 
 	testRuleArgs := models.Rule{}
+	testRuleArgs.Respond = "stuff"
 	testRuleArgs.AllowUsers = []string{"fooUser"}
 	testRuleArgs.Args = []string{"arg1", "arg2"}
 	testMessageArgs := new(models.Message)

@@ -38,7 +38,7 @@ RuleSearch:
 		// Only check active rules.
 		if rule.Active {
 			// Init some variables for use below
-			processedInput, hit := getProccessedInputAndHitValue(message.Input, rule.Respond, rule.Hear)
+			processedInput, hit := getProccessedInputAndHitValue(message, rule)
 			// Determine what service we are processing the rule for
 			switch message.Service {
 			case models.MsgServiceChat, models.MsgServiceCLI:
@@ -63,15 +63,44 @@ RuleSearch:
 }
 
 // getProccessedInputAndHitValue gets the processed input from the message input and the true/false if it was a successfully hit rule.
-func getProccessedInputAndHitValue(messageInput, ruleRespondValue, ruleHearValue string) (string, bool) {
+func getProccessedInputAndHitValue(message models.Message, rule models.Rule) (string, bool) {
 	processedInput, hit := "", false
-	if ruleRespondValue != "" {
+
+	ruleRespondValue := rule.Respond
+	ruleHearValue := rule.Hear
+
+	if rule.Respond != "" {
+		messageInput := message.Input
 		processedInput, hit = utils.Match(ruleRespondValue, messageInput, true)
-	} else if ruleHearValue != "" { // Are we listening to everything?
+	} else if rule.Hear != "" { // Are we listening to everything?
+		messageInput := message.Input
 		_, hit = utils.Match(ruleHearValue, messageInput, false)
+	} else if rule.ReactionsAdded != "" {
+		messageReaction := message.ReactionAdded
+		processedInput, hit = utils.Match(rule.ReactionsAdded, messageReaction, false)
+	} else if rule.ReactionsRemoved != "" {
+		messageReaction := message.ReactionRemoved
+		processedInput, hit = utils.Match(rule.ReactionsRemoved, messageReaction, false)
 	}
 
 	return processedInput, hit
+}
+
+// isChatRule checks that the rule applies to chat.
+func isValidChatRule(rule models.Rule) bool {
+	if rule.Respond != "" {
+		return true
+	}
+
+	if rule.Hear != "" {
+		return true
+	}
+
+	if rule.ReactionsAdded != "" || rule.ReactionsRemoved != "" {
+		return true
+	}
+
+	return false
 }
 
 // handleChatServiceRule handles the processing logic for a rule that came from either the chat application or CLI remote.
@@ -80,8 +109,8 @@ func getProccessedInputAndHitValue(messageInput, ruleRespondValue, ruleHearValue
 func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Message, hitRule chan<- models.Rule, rule models.Rule, processedInput string, hit bool, bot *models.Bot) (bool, bool) {
 	match, stopSearch := false, false
 
-	if rule.Respond != "" || rule.Hear != "" {
-		// You can only use 'respond' OR 'hear'
+	if isValidChatRule(rule) {
+		// You can only use 'respond', 'hear', or 'reactions'
 		if rule.Respond != "" && rule.Hear != "" {
 			log.Debug().Msgf("rule %#q has both 'hear' and 'match' or 'respond' defined. please choose one or the other", rule.Name)
 		}
@@ -209,7 +238,15 @@ func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hit
 }
 
 // isValidHitChatRule does additional checks on a successfully hit rule that came from the chat or CLI service.
+//
+//nolint:gocyclo // refactor
 func isValidHitChatRule(message *models.Message, rule models.Rule, processedInput string, bot *models.Bot) bool {
+	// Check rule has one of Hear, Respond, ReactionsAdded or ReactionsRemoved
+	if !isValidChatRule(rule) {
+		message.Output = "Rule does not have one of Hear, Respond, ReactionsAdded or ReactionsRemoved defined "
+		return false
+	}
+
 	// Check to honor allow_users or allow_usergroups
 	canRunRule := utils.CanTrigger(message.Vars["_user.name"], message.Vars["_user.id"], rule, bot)
 	if !canRunRule {
@@ -230,8 +267,8 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 		message.Vars[name] = value
 	}
 
-	// If this wasn't a 'hear' rule, handle the args
-	if rule.Hear == "" {
+	// If this is a "respond" type, handle args
+	if rule.Respond != "" {
 		// Get all the args that the message sender supplied
 		args := utils.RuleArgTokenizer(processedInput)
 

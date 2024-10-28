@@ -7,6 +7,8 @@ type Rule struct {
 	Name               string   `mapstructure:"name" binding:"required"`
 	Respond            string   `mapstructure:"respond" binding:"omitempty"`
 	Hear               string   `mapstructure:"hear" binding:"omitempty"`
+	ReactionsAdded     string   `mapstructure:"reactions_added" binding:"omitempty"`
+	ReactionsRemoved   string   `mapstructure:"reactions_removed" binding:"omitempty"`
 	Schedule           string   `mapstructure:"schedule"`
 	Args               []string `mapstructure:"args" binding:"required"`
 	DirectMessageOnly  bool     `mapstructure:"direct_message_only" binding:"required"`
