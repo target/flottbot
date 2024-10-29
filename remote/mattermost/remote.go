@@ -219,7 +219,7 @@ func (c *Client) Send(message models.Message, _ *models.Bot) {
 
 			err = sendMessage(ctx, api, post)
 			if err != nil {
-				log.Error().Err(err).Msgf("Unable to post message to %v", roomID)
+				log.Error().Err(err).Msgf("unable to post message to %v", roomID)
 			}
 		}
 	}
@@ -249,7 +249,7 @@ func (c *Client) Send(message models.Message, _ *models.Bot) {
 }
 
 func getUserID(api *model.Client4, username string) (string, error) {
-	log.Debug().Msgf("Getting user id for %s", username)
+	log.Debug().Msgf("getting user id for %s", username)
 
 	ctx := context.Background()
 
@@ -258,7 +258,7 @@ func getUserID(api *model.Client4, username string) (string, error) {
 
 	user, _, err := api.GetUserByUsername(ctx, username, "")
 	if err != nil {
-		log.Error().Err(err).Msg("Error retreving user id")
+		log.Error().Err(err).Msg("error retreving user id")
 		return "", err
 	}
 
@@ -270,16 +270,16 @@ func getUserID(api *model.Client4, username string) (string, error) {
 func (c Client) sendDirectMessage(ctx context.Context, api *model.Client4, post *model.Post) error {
 	if post.UserId == "" {
 		err := fmt.Errorf("no user id in the post, unable to create a direct message")
-		log.Error().Err(err).Msg("Unable to create direct message channel")
+		log.Error().Err(err).Msg("unable to create direct message channel")
 
 		return err
 	}
 
-	log.Debug().Msgf("Creating direct message between %s, and %s", post.UserId, c.BotID)
+	log.Debug().Msgf("creating direct message between %s, and %s", post.UserId, c.BotID)
 
 	directChannel, resp, err := api.CreateDirectChannel(ctx, post.UserId, c.BotID)
 	if err != nil {
-		log.Error().Interface("resp", resp).Err(err).Msg("Unable to create direct message channel")
+		log.Error().Interface("resp", resp).Err(err).Msg("unable to create direct message channel")
 		return err
 	}
 
@@ -291,7 +291,7 @@ func (c Client) sendDirectMessage(ctx context.Context, api *model.Client4, post 
 func sendMessage(ctx context.Context, api *model.Client4, post *model.Post) error {
 	_, resp, err := api.CreatePost(ctx, post)
 	if err != nil {
-		log.Error().Err(err).Msg("Unable to post message")
+		log.Error().Err(err).Msg("unable to post message")
 		return err
 	}
 
