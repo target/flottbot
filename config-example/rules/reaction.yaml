@@ -1,0 +1,11 @@
+name: question-reaction
+active: true
+reactions_added: "question"
+args:
+# actions
+actions: # no actions
+# response
+format_output: ${_user.firstname} could you elaborate more on your request?
+
+start_message_thread: true # start a thread with the response
+direct_message_only: false # allow messaging inside channels
