@@ -151,8 +151,9 @@ linters-settings:
 # This section provides the configuration for how golangci
 # will report the issues it finds.
 issues:
-  # Excluding configuration per-path, per-linter, per-text and per-source
+  # make issues output unique by line, default is true
   uniq-by-line: true
+  # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
     # prevent linters from running on *_test.go files
     - path: _test\.go
