@@ -77,61 +77,18 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 	// process the event
 	log.Info().Msgf("received event: %s", event.Type)
 
+	// see https://api.slack.com/events for reference
 	switch ev := event.Data.(type) {
-	// Ignoring app_mention events
+	// handle https://api.slack.com/events/app_mention events
 	case *slackevents.AppMentionEvent:
-	// There are Events API specific MessageEvents
-	// https://api.slack.com/events/message.channels
+		text, mentioned := removeBotMention(ev.Text, bot.ID)
+		handleMessageEvent(api, bot, ev.Channel, text, ev.User, ev.BotID, ev.TimeStamp, ev.ThreadTimeStamp, mentioned, inputMsgs)
+	// handle message.channels, message.groups, message.im, and message.mpim events (https://api.slack.com/events?query=message)
+	// note: an event that triggers app_mention will also trigger this event, potentially causing double responses
 	case *slackevents.MessageEvent:
-		senderID := ev.User
-
-		// check if message originated from a bot
-		// and whether we should respond to other bot messages
-		if ev.BotID != "" && bot.RespondToBots {
-			// get bot information to get
-			// the associated user id
-			opts := slack.GetBotInfoParameters{
-				Bot: ev.BotID,
-			}
-
-			user, err := api.GetBotInfo(opts)
-			if err != nil {
-				log.Error().Msgf("unable to retrieve bot info for %#q", ev.BotID)
-
-				return
-			}
-
-			// use the bot's user id as the senderID
-			senderID = user.UserID
-		}
-
-		// only process messages that aren't from our bot
-		if senderID != "" && bot.ID != senderID {
-			channel := ev.Channel
-
-			msgType, err := getMessageType(channel)
-			if err != nil {
-				log.Error().Msg(err.Error())
-			}
-
-			text, mentioned := removeBotMention(ev.Text, bot.ID)
-
-			// get the full user object for the given ID
-			user, err := api.GetUserInfo(senderID)
-			if err != nil {
-				log.Error().Msgf("error getting slack user info: %v", err)
-			}
-
-			timestamp := ev.TimeStamp
-			threadTimestamp := ev.ThreadTimeStamp
-
-			// get the link to the message, will be empty string if there's an error
-			link, err := api.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
-			if err != nil {
-				log.Error().Msgf("unable to retrieve link to message: %#q", err.Error())
-			}
-
-			inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
+		text, mentioned := removeBotMention(ev.Text, bot.ID)
+		if !mentioned {
+			handleMessageEvent(api, bot, ev.Channel, text, ev.User, ev.BotID, ev.TimeStamp, ev.ThreadTimeStamp, mentioned, inputMsgs)
 		}
 	case *slackevents.MemberJoinedChannelEvent:
 		// limit to our bot
@@ -530,61 +487,18 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 				case slackevents.CallbackEvent:
 					innerEvent := eventsAPIEvent.InnerEvent
 
+					// see https://api.slack.com/events for reference
 					switch ev := innerEvent.Data.(type) {
+					// handle https://api.slack.com/events/app_mention events
 					case *slackevents.AppMentionEvent:
-						continue
+						text, mentioned := removeBotMention(ev.Text, bot.ID)
+						handleMessageEvent(sm, bot, ev.Channel, text, ev.User, ev.BotID, ev.TimeStamp, ev.ThreadTimeStamp, mentioned, inputMsgs)
+					// handle message.channels, message.groups, message.im, and message.mpim events (https://api.slack.com/events?query=message)
+					// note: an event that triggers app_mention will also trigger this event, potentially causing double responses
 					case *slackevents.MessageEvent:
-						senderID := ev.User
-
-						// check if message originated from a bot
-						// and whether we should respond to other bot messages
-						if ev.BotID != "" && bot.RespondToBots {
-							// get bot information to get
-							// the associated user id
-							opts := slack.GetBotInfoParameters{
-								Bot: ev.BotID,
-							}
-
-							user, err := sm.GetBotInfo(opts)
-							if err != nil {
-								log.Error().Msgf("unable to retrieve bot info for %#q", ev.BotID)
-
-								return
-							}
-
-							// use the bot's user id as the senderID
-							senderID = user.UserID
-						}
-
-						// only process message that are not from our bot
-						if senderID != "" && bot.ID != senderID {
-							channel := ev.Channel
-
-							// determine the message type
-							msgType, err := getMessageType(channel)
-							if err != nil {
-								log.Error().Msg(err.Error())
-							}
-
-							// remove the bot mention from the user input
-							text, mentioned := removeBotMention(ev.Text, bot.ID)
-
-							// get information on the user
-							user, err := sm.GetUserInfo(senderID)
-							if err != nil {
-								log.Error().Msgf("did not get slack user info: %s", err.Error())
-							}
-
-							timestamp := ev.TimeStamp
-							threadTimestamp := ev.ThreadTimeStamp
-
-							// get the link to the message, will be empty string if there's an error
-							link, err := sm.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
-							if err != nil {
-								log.Error().Msgf("unable to retrieve link to message: %s", err.Error())
-							}
-
-							inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
+						text, mentioned := removeBotMention(ev.Text, bot.ID)
+						if !mentioned {
+							handleMessageEvent(sm, bot, ev.Channel, text, ev.User, ev.BotID, ev.TimeStamp, ev.ThreadTimeStamp, mentioned, inputMsgs)
 						}
 					case *slackevents.ReactionAddedEvent:
 						senderID := ev.User
@@ -688,6 +602,49 @@ func readFromSocketMode(sm *slack.Client, inputMsgs chan<- models.Message, bot *
 	err := client.Run()
 	if err != nil {
 		log.Fatal().Msgf("unable to (re)connect to Slack: %v", err)
+	}
+}
+
+// handleMessageEvent is a helper function to process app mention and regular message events.
+func handleMessageEvent(sm *slack.Client, bot *models.Bot, channel, text, senderID, botID, timestamp, threadTimestamp string, mentioned bool, inputMsgs chan<- models.Message) {
+	// check if message originated from a bot and whether we should respond to other bot messages
+	if botID != "" && bot.RespondToBots {
+		// get bot information to get the associated user id
+		opts := slack.GetBotInfoParameters{
+			Bot: botID,
+		}
+
+		user, err := sm.GetBotInfo(opts)
+		if err != nil {
+			log.Error().Msgf("unable to retrieve bot info for %#q", botID)
+			return
+		}
+
+		// use the bot's user id as the senderID
+		senderID = user.UserID
+	}
+
+	// only process message that are not from our bot
+	if senderID != "" && bot.ID != senderID {
+		// determine the message type
+		msgType, err := getMessageType(channel)
+		if err != nil {
+			log.Error().Msg(err.Error())
+		}
+
+		// get information on the user
+		user, err := sm.GetUserInfo(senderID)
+		if err != nil {
+			log.Error().Msgf("did not get slack user info: %s", err.Error())
+		}
+
+		// get the link to the message, will be empty string if there's an error
+		link, err := sm.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
+		if err != nil {
+			log.Error().Msgf("unable to retrieve link to message: %s", err.Error())
+		}
+
+		inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, link, mentioned, user, bot)
 	}
 }
 
