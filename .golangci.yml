@@ -17,9 +17,6 @@ output:
   # print linter name in the end of issue text, default is true
   print-linter-name: true
 
-  # make issues output unique by line, default is true
-  uniq-by-line: true
-
 # This section provides the configuration for which linters
 # golangci will execute. Several of them were disabled by
 # default but we've opted to enable them.
@@ -31,10 +28,10 @@ linters:
     - bidichk # checks for dangerous unicode character sequences
     - bodyclose # checks whether HTTP response body is closed successfully
     - contextcheck # check the function whether use a non-inherited context
+    - copyloopvar # detects places where loop variables are copied
     - dupl # code clone detection
     - errcheck # checks for unchecked errors
     - errorlint # find misuses of errors
-    - exportloopref # check for exported loop vars
     - funlen # detects long functions
     - gci # consistent import order
     - goconst # finds repeated strings that could be replaced by a constant
@@ -76,6 +73,7 @@ linters:
   # - errname             - unused
   # - exhaustive          - unused
   # - exhaustivestruct    - style preference
+  # - exportloopref       - check for exported loop vars
   # - forbidigo           - unused
   # - forcetypeassert     - unused
   # - gochecknoinits      - unused
@@ -153,6 +151,8 @@ linters-settings:
 # This section provides the configuration for how golangci
 # will report the issues it finds.
 issues:
+  # make issues output unique by line, default is true
+  uniq-by-line: true
   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
     # prevent linters from running on *_test.go files
@@ -166,3 +166,4 @@ issues:
     - testdata
     - helm
     - config-example
+    - config
