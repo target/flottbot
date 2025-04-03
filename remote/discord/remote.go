@@ -213,7 +213,7 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) any 
 			}
 
 			contents, mentioned := removeBotMention(m.Content, s.State.User.ID)
-			message = populateMessage(message, msgType, m.ChannelID, m.Message.ID, contents, timestamp, mentioned, m.Author, bot)
+			message = populateMessage(message, msgType, m.ChannelID, m.ID, contents, timestamp, mentioned, m.Author, bot)
 		default:
 			log.Error().Msgf("discord: read message of unsupported type '%d' - unable to populate message attributes", m.Type)
 		}
