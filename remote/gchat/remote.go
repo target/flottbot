@@ -45,7 +45,7 @@ func (c *Client) new() *pubsub.Client {
 
 // Name returns the name of the remote.
 func (c *Client) Name() string {
-	return "google_chat"
+	return models.ChatAppGoogleChat
 }
 
 // Read messages from Google Chat.

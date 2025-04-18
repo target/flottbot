@@ -40,7 +40,7 @@ func (c *Client) new() *tgbotapi.BotAPI {
 
 // Name returns the name of the remote.
 func (c *Client) Name() string {
-	return "telegram"
+	return models.ChatAppTelegram
 }
 
 // Reaction implementation to satisfy remote interface.

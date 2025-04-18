@@ -41,7 +41,7 @@ func (c *Client) new() *model.Client4 {
 	return api
 }
 
-func (c *Client) Name() string { return "mattermost" }
+func (c *Client) Name() string { return models.ChatAppMattermost }
 
 func (c *Client) Reaction(_ models.Message, rule models.Rule, _ *models.Bot) {
 	if rule.RemoveReaction != "" {

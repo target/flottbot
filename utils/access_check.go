@@ -105,7 +105,7 @@ func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot)
 
 	capp := strings.ToLower(bot.ChatApplication)
 	switch capp {
-	case "discord":
+	case models.ChatAppDiscord:
 		var usr *discordgo.Member
 
 		dg, err := discordgo.New("Bot " + bot.DiscordToken)
@@ -128,7 +128,7 @@ func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot)
 		}
 
 		return false, nil
-	case "slack":
+	case models.ChatAppSlack:
 		// Check if we are restricting by usergroup
 		api := slack.New(bot.SlackToken)
 

@@ -17,10 +17,10 @@ func TestCanTrigger(t *testing.T) {
 	}
 
 	testBot := new(models.Bot)
-	testBot.ChatApplication = "slack"
+	testBot.ChatApplication = models.ChatAppSlack
 
 	discordBot := new(models.Bot)
-	discordBot.ChatApplication = "discord"
+	discordBot.ChatApplication = models.ChatAppDiscord
 
 	strangeBot := new(models.Bot)
 	strangeBot.ChatApplication = "strange"

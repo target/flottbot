@@ -42,7 +42,7 @@ type slackLogger struct {
 
 // Name returns the name of the remote.
 func (c *Client) Name() string {
-	return "slack"
+	return models.ChatAppSlack
 }
 
 func (l *slackLogger) Output(_ int, s string) error {
