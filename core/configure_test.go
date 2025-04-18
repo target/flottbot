@@ -29,31 +29,31 @@ func Test_configureChatApplication(t *testing.T) {
 
 	testBotSlackNoToken := new(models.Bot)
 	testBotSlackNoToken.CLI = true
-	testBotSlackNoToken.ChatApplication = "slack"
+	testBotSlackNoToken.ChatApplication = models.ChatAppSlack
 	validateRemoteSetup(testBotSlackNoToken)
 
 	testBotBadName := new(models.Bot)
 	testBotBadName.CLI = true
-	testBotBadName.ChatApplication = "slack"
+	testBotBadName.ChatApplication = models.ChatAppSlack
 	testBotBadName.Name = "${BOT_NAME}"
 	validateRemoteSetup(testBotBadName)
 
 	testBotSlackBadToken := new(models.Bot)
 	testBotSlackBadToken.CLI = true
-	testBotSlackBadToken.ChatApplication = "slack"
+	testBotSlackBadToken.ChatApplication = models.ChatAppSlack
 	testBotSlackBadToken.SlackToken = "${TOKEN}"
 	validateRemoteSetup(testBotSlackBadToken)
 
 	testBotSlackBadSigningSecret := new(models.Bot)
 	testBotSlackBadSigningSecret.CLI = true
-	testBotSlackBadSigningSecret.ChatApplication = "slack"
+	testBotSlackBadSigningSecret.ChatApplication = models.ChatAppSlack
 	testBotSlackBadSigningSecret.SlackToken = "${TOKEN}"
 	testBotSlackBadSigningSecret.SlackSigningSecret = "${TEST_BAD_SIGNING_SECRET}"
 	validateRemoteSetup(testBotSlackBadSigningSecret)
 
 	testBotSlack := new(models.Bot)
 	testBotSlack.CLI = true
-	testBotSlack.ChatApplication = "slack"
+	testBotSlack.ChatApplication = models.ChatAppSlack
 	testBotSlack.SlackToken = "${TEST_SLACK_TOKEN}"
 	testBotSlack.SlackAppToken = "${TEST_SLACK_APP_TOKEN}"
 
@@ -64,18 +64,18 @@ func Test_configureChatApplication(t *testing.T) {
 
 	testBotDiscordNoToken := new(models.Bot)
 	testBotDiscordNoToken.CLI = true
-	testBotDiscordNoToken.ChatApplication = "discord"
+	testBotDiscordNoToken.ChatApplication = models.ChatAppDiscord
 	validateRemoteSetup(testBotDiscordNoToken)
 
 	testBotDiscordBadToken := new(models.Bot)
 	testBotDiscordBadToken.CLI = true
-	testBotDiscordBadToken.ChatApplication = "discord"
+	testBotDiscordBadToken.ChatApplication = models.ChatAppDiscord
 	testBotDiscordBadToken.DiscordToken = "${TOKEN}"
 	validateRemoteSetup(testBotDiscordBadToken)
 
 	testBotDiscordServerID := new(models.Bot)
 	testBotDiscordServerID.CLI = true
-	testBotDiscordServerID.ChatApplication = "discord"
+	testBotDiscordServerID.ChatApplication = models.ChatAppDiscord
 	testBotDiscordServerID.DiscordToken = "${TEST_DISCORD_TOKEN}"
 	testBotDiscordServerID.DiscordServerID = "${TEST_DISCORD_SERVER_ID}"
 
@@ -86,7 +86,7 @@ func Test_configureChatApplication(t *testing.T) {
 
 	testBotDiscordBadServerID := new(models.Bot)
 	testBotDiscordBadServerID.CLI = true
-	testBotDiscordBadServerID.ChatApplication = "discord"
+	testBotDiscordBadServerID.ChatApplication = models.ChatAppDiscord
 	testBotDiscordBadServerID.DiscordToken = "${TEST_DISCORD_TOKEN}"
 	testBotDiscordBadServerID.DiscordServerID = "${TOKEN}"
 
@@ -94,7 +94,7 @@ func Test_configureChatApplication(t *testing.T) {
 
 	testBotTelegram := new(models.Bot)
 	testBotTelegram.CLI = true
-	testBotTelegram.ChatApplication = "telegram"
+	testBotTelegram.ChatApplication = models.ChatAppTelegram
 	testBotTelegram.TelegramToken = "${TEST_TELEGRAM_TOKEN}"
 
 	t.Setenv("TEST_TELEGRAM_TOKEN", "TESTTOKEN")
@@ -103,12 +103,12 @@ func Test_configureChatApplication(t *testing.T) {
 
 	testBotTelegramNoToken := new(models.Bot)
 	testBotTelegramNoToken.CLI = true
-	testBotTelegramNoToken.ChatApplication = "telegram"
+	testBotTelegramNoToken.ChatApplication = models.ChatAppTelegram
 	validateRemoteSetup(testBotTelegramNoToken)
 
 	testBotTelegramBadToken := new(models.Bot)
 	testBotTelegramBadToken.CLI = true
-	testBotTelegramBadToken.ChatApplication = "telegram"
+	testBotTelegramBadToken.ChatApplication = models.ChatAppTelegram
 	testBotTelegramBadToken.TelegramToken = "${TOKEN}"
 	validateRemoteSetup(testBotTelegramBadToken)
 
@@ -124,12 +124,12 @@ func Test_configureChatApplication(t *testing.T) {
 		{"Slack - no token", args{bot: testBotSlackNoToken}, false},
 		{"Slack - bad token", args{bot: testBotSlackBadToken}, false},
 		{"Slack - bad signing secret", args{bot: testBotSlackBadSigningSecret}, false},
-		{"Slack", args{bot: testBotSlack}, true},
+		{models.ChatAppSlack, args{bot: testBotSlack}, true},
 		{"Discord - no token", args{bot: testBotDiscordNoToken}, false},
 		{"Discord - bad token", args{bot: testBotDiscordBadToken}, false},
 		{"Discord w/ server id", args{bot: testBotDiscordServerID}, true},
 		{"Discord w/ bad server id", args{bot: testBotDiscordBadServerID}, false},
-		{"Telegram", args{bot: testBotTelegram}, true},
+		{models.ChatAppTelegram, args{bot: testBotTelegram}, true},
 		{"Telegram - no token", args{bot: testBotTelegramNoToken}, false},
 		{"Telegram - bad token", args{bot: testBotTelegramBadToken}, false},
 	}
@@ -151,7 +151,7 @@ func Test_setSlackListenerPort(t *testing.T) {
 	baseBot := func() *models.Bot {
 		bot := new(models.Bot)
 		bot.CLI = true
-		bot.ChatApplication = "slack"
+		bot.ChatApplication = models.ChatAppSlack
 		bot.SlackToken = "${TEST_SLACK_TOKEN}"
 		bot.SlackInteractionsCallbackPath = "${TEST_SLACK_INTERACTIONS_CALLBACK_PATH}"
 
@@ -215,15 +215,15 @@ func Test_validateRemoteSetup(t *testing.T) {
 
 	testBotCLIChat := new(models.Bot)
 	testBotCLIChat.CLI = true
-	testBotCLIChat.ChatApplication = "slack"
+	testBotCLIChat.ChatApplication = models.ChatAppSlack
 
 	testBotCLIChatScheduler := new(models.Bot)
 	testBotCLIChatScheduler.CLI = true
-	testBotCLIChatScheduler.ChatApplication = "slack"
+	testBotCLIChatScheduler.ChatApplication = models.ChatAppSlack
 	testBotCLIChatScheduler.Scheduler = true
 
 	testBotChatScheduler := new(models.Bot)
-	testBotChatScheduler.ChatApplication = "slack"
+	testBotChatScheduler.ChatApplication = models.ChatAppSlack
 	testBotChatScheduler.Scheduler = true
 
 	testBotCLIChatSchedulerFail := new(models.Bot)

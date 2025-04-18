@@ -46,7 +46,7 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 
 		switch chatApp {
 		// Setup remote to use the Discord client to read from Discord
-		case "discord":
+		case models.ChatAppDiscord:
 			// Create Discord client
 			remoteDiscord := &discord.Client{
 				Token: bot.DiscordToken,
@@ -54,7 +54,7 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 			// Read messages from Discord
 			go remoteDiscord.Read(inputMsgs, rules, bot)
 		// Setup remote to use the Slack client to read from Slack
-		case "slack":
+		case models.ChatAppSlack:
 			// Create Slack client
 			remoteSlack := &slack.Client{
 				Token:         bot.SlackToken,
@@ -63,7 +63,7 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 			}
 			// Read messages from Slack
 			go remoteSlack.Read(inputMsgs, rules, bot)
-		case "mattermost":
+		case models.ChatAppMattermost:
 			remoteMattermost := &mattermost.Client{
 				Token:    bot.MatterMostToken,
 				Server:   bot.MatterMostServer,
@@ -80,13 +80,13 @@ func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot 
 
 			go remoteMattermost.Read(inputMsgs, rules, bot)
 		// Setup remote to use the Telegram client to read from Telegram
-		case "telegram":
+		case models.ChatAppTelegram:
 			remoteTelegram := &telegram.Client{
 				Token: bot.TelegramToken,
 			}
 			// Read messages from Telegram
 			go remoteTelegram.Read(inputMsgs, rules, bot)
-		case "google_chat":
+		case models.ChatAppGoogleChat:
 			gchat.HandleRemoteInput(inputMsgs, rules, bot)
 		default:
 			log.Error().Msgf("chat application %#q is not supported", chatApp)

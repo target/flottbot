@@ -39,7 +39,7 @@ func (c *Client) new() *discordgo.Session {
 
 // Name returns the name of the remote.
 func (c *Client) Name() string {
-	return "discord"
+	return models.ChatAppDiscord
 }
 
 // Reaction implementation to satisfy remote interface

@@ -4,6 +4,14 @@ package models
 
 import "github.com/slack-go/slack"
 
+const (
+	ChatAppSlack      = "slack"
+	ChatAppDiscord    = "discord"
+	ChatAppMattermost = "mattermost"
+	ChatAppTelegram   = "telegram"
+	ChatAppGoogleChat = "google_chat"
+)
+
 // Remotes is a struct that holds data for various remotes.
 type Remotes struct {
 	Slack   SlackConfig   `mapstructure:"slack" binding:"omitempty"`

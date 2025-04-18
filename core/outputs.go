@@ -29,7 +29,7 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 			chatApp := strings.ToLower(bot.ChatApplication)
 
 			switch chatApp {
-			case "discord":
+			case models.ChatAppDiscord:
 				if service == models.MsgServiceScheduler {
 					log.Warn().Msg("scheduler does not currently support discord")
 					break
@@ -38,7 +38,7 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 				remoteDiscord := &discord.Client{Token: bot.DiscordToken}
 				remoteDiscord.Reaction(message, rule, bot)
 				remoteDiscord.Send(message, bot)
-			case "mattermost":
+			case models.ChatAppMattermost:
 				remoteMM := &mattermost.Client{
 					Server: bot.MatterMostServer,
 					Token:  bot.MatterMostToken,
@@ -48,7 +48,7 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 				}
 
 				remoteMM.Send(message, bot)
-			case "slack":
+			case models.ChatAppSlack:
 				// Create Slack client
 				remoteSlack := &slack.Client{
 					ListenerPort:  bot.SlackListenerPort,
@@ -62,12 +62,12 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 				}
 
 				remoteSlack.Send(message, bot)
-			case "telegram":
+			case models.ChatAppTelegram:
 				remoteTelegram := &telegram.Client{
 					Token: bot.TelegramToken,
 				}
 				remoteTelegram.Send(message, bot)
-			case "google_chat":
+			case models.ChatAppGoogleChat:
 				gchat.HandleRemoteOutput(message, bot)
 			default:
 				log.Error().Msgf("chat application %#q is not supported", chatApp)

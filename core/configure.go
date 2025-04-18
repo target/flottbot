@@ -46,7 +46,7 @@ func configureChatApplication(bot *models.Bot) {
 
 		switch strings.ToLower(bot.ChatApplication) {
 		//nolint:goconst // refactor
-		case "discord":
+		case models.ChatAppDiscord:
 			// Discord bot token
 			token, err := utils.Substitute(bot.DiscordToken, emptyMap)
 			if err != nil {
@@ -75,11 +75,11 @@ func configureChatApplication(bot *models.Bot) {
 			}
 
 		//nolint:goconst // refactor
-		case "slack":
+		case models.ChatAppSlack:
 			configureSlackBot(bot)
 
 		//nolint:goconst // refactor
-		case "mattermost":
+		case models.ChatAppMattermost:
 			log.Info().Msgf("configuring remote '%#q'", bot.ChatApplication)
 			token, err := utils.Substitute(bot.MatterMostToken, emptyMap)
 
@@ -109,7 +109,7 @@ func configureChatApplication(bot *models.Bot) {
 			bot.MatterMostInsecureProtocol = insc
 
 		//nolint:goconst // refactor
-		case "telegram":
+		case models.ChatAppTelegram:
 			token, err := utils.Substitute(bot.TelegramToken, emptyMap)
 			if err != nil {
 				log.Error().Msgf("could not set 'telegram_token': %s", err.Error())
@@ -126,7 +126,7 @@ func configureChatApplication(bot *models.Bot) {
 			bot.TelegramToken = token
 
 		//nolint:goconst // refactor
-		case "google_chat":
+		case models.ChatAppGoogleChat:
 			gchat.Configure(bot)
 
 		default:
