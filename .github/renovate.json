@@ -1,6 +1,6 @@
 {
   "extends": [
-    "config:base",
+    "config:recommended",
     "docker:pinDigests",
     "helpers:pinGitHubActionDigests"
   ],
@@ -26,9 +26,12 @@
       "automerge": true
     }
   ],
-  "regexManagers": [
+  "customManagers": [
     {
-      "fileMatch": ["^Makefile$"],
+      "customType": "regex",
+      "fileMatch": [
+        "^Makefile$"
+      ],
       "matchStrings": [
         "GOLANGCI_LINT_VERSION := \"(?<currentValue>.*?)\"\\n"
       ],
