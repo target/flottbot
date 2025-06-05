@@ -1,16 +1,23 @@
-# meta
+# Go script execution rule - runs Go programs and returns formatted output
+# Demonstrates Go script execution with status and output display
+
+# Rule metadata
 name: script-rule
 active: true
-# trigger and args
-respond: goscript
-# actions
+
+# Trigger configuration
+respond: goscript  # Matches when users type "goscript"
+
+# Actions
 actions:
   - name: sample script
     type: exec
-    cmd: go run config/scripts/main.go
-# response
-format_output: "STATUS: ${_exec_status} - OUTPUT: ${_exec_output}"
+    cmd: go run config/scripts/main.go  # Execute Go program
+
+# Response configuration
+format_output: "STATUS: ${_exec_status} - OUTPUT: ${_exec_output}"  # Show status and output
 direct_message_only: false
-# help
-help_text: golang
+
+# Help configuration
+help_text: goscript  # Fixed help text to match trigger
 include_in_help: true

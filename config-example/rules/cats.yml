@@ -1,18 +1,25 @@
-# meta
+# Cat facts rule - retrieves random cat facts from an API
+# Demonstrates simple API integration for educational content
+
+# Rule metadata
 name: cats
 active: true
-# trigger and args
-respond: cats
-# actions
+
+# Trigger configuration
+respond: cats  # Matches when users type "cats"
+
+# Actions
 actions:
   - name: cat facts http request
     type: GET
-    url: https://catfact.ninja/fact
+    url: https://catfact.ninja/fact  # Free cat facts API
     expose_json_fields:
-      fact: '.fact'
-# response
-format_output: "${fact}"
+      fact: '.fact'  # Extract the fact text from response
+
+# Response configuration
+format_output: "${fact}"  # Display the retrieved cat fact
 direct_message_only: false
-# help
+
+# Help configuration
 help_text: cats
 include_in_help: true

@@ -1,18 +1,25 @@
-# meta
+# Number facts rule - retrieves interesting facts about numbers
+# Demonstrates NumbersAPI integration for educational trivia
+
+# Rule metadata
 name: number-rule
 active: true
-# trigger and args
-respond: number
+
+# Trigger configuration
+respond: number  # Matches when users type "number"
 args:
-  - value
-# actions
+  - value  # Requires a number argument (e.g., "42", "365")
+
+# Actions
 actions:
   - name: math http request
     type: GET
-    url: http://numbersapi.com/${value}
-# response
-format_output: "${_raw_http_output}"
+    url: http://numbersapi.com/${value}  # Query NumbersAPI for facts
+
+# Response configuration
+format_output: "${_raw_http_output}"  # Display the raw fact text from API
 direct_message_only: false
-# help
-help_text: '*_number_* <value>'
+
+# Help configuration
+help_text: '*_number_* <value>'  # Usage: number 42
 include_in_help: true

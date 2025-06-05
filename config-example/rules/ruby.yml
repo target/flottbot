@@ -1,16 +1,23 @@
-# meta
+# Ruby script execution rule - runs a Ruby script and returns formatted output
+# Demonstrates script execution with detailed status and output formatting
+
+# Rule metadata
 name: script-rule
 active: true
-# trigger and args
-respond: rubyscript
-# actions
+
+# Trigger configuration
+respond: rubyscript  # Matches when users type "rubyscript"
+
+# Actions
 actions:
   - name: sample script
     type: exec
-    cmd: ruby config/scripts/script.rb
-# response
-format_output: "STATUS: ${_exec_status} - OUTPUT: ${_exec_output}"
+    cmd: ruby config/scripts/script.rb  # Execute Ruby script
+
+# Response configuration
+format_output: "STATUS: ${_exec_status} - OUTPUT: ${_exec_output}"  # Show status and output
 direct_message_only: false
-# help
+
+# Help configuration
 help_text: rubyscript
 include_in_help: true

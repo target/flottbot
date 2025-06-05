@@ -1,19 +1,24 @@
-# meta
-name: sched1
-active: false
+# Scheduled message rule - sends periodic messages to specified rooms
+# Demonstrates scheduler functionality with various cron formats
 
-# trigger and args
-schedule: "@every 5s"
-# example cron specs:
+# Rule metadata
+name: sched1
+active: false  # Disabled by default to prevent spam
+
+# Trigger configuration - uses schedule instead of respond/hear
+schedule: "@every 5s"  # Send message every 5 seconds
+# Example cron specifications:
 # - */1 * * * * (at minute 0)
 # - @every 1m
-# - @every 10s
+# - @every 10s  
 # - 59 * * * * * (every minute using Quartz spec format)
 
+# Response configuration
 format_output: "Hello, from Scheduler 1!"
 
+# Output targeting
 output_to_rooms:
-  - general
+  - general  # Send to the #general channel
 
-# help
-include_in_help: false
+# Help configuration
+include_in_help: false  # Don't show in help since it's scheduled

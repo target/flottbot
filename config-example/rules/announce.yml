@@ -1,19 +1,29 @@
-# meta
+# Announcement rule - broadcasts messages to specific channels with access control
+# Demonstrates user/group permissions and channel targeting
+
+# Rule metadata
 name: announce
 active: true
-# trigger and args
-respond: announce
+
+# Trigger configuration
+respond: announce  # Matches when users type "announce"
 args:
-  - message
-# response
-format_output: "${message}"
-direct_message_only: false
+  - message  # Message text to broadcast
+
+# Access control
 allow_users:
-  - kelly.shmelly
+  - kelly.shmelly  # Specific users who can use this command
 allow_usergroups:
-  - flottbot-team
+  - flottbot-team  # User groups with access
+
+# Response configuration
+format_output: "${message}"  # Broadcast the provided message
+direct_message_only: false
+
+# Output targeting
 output_to_rooms:
-  - general
-# help
-help_text: announce <text>
+  - general  # Send announcements to #general channel
+
+# Help configuration
+help_text: announce <text>  # Usage: announce "Important update!"
 include_in_help: true

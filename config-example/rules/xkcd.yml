@@ -1,21 +1,28 @@
-# meta
+# XKCD comic fetcher rule - displays random XKCD comics
+# Demonstrates chained actions: script execution followed by HTTP request
+
+# Rule metadata
 name: xkcd-rule
 active: true
-# trigger and args
-respond: xkcd
-# actions
+
+# Trigger configuration
+respond: xkcd  # Matches when users type "xkcd"
+
+# Actions
 actions:
   - name: random number between 1-100
     type: exec
-    cmd: /bin/sh ./config/scripts/random.sh 45
+    cmd: /bin/sh ./config/scripts/random.sh 45  # Generate random number up to 45
   - name: xkcd random http request
     type: GET
-    url: https://xkcd.com/${_exec_output}/info.0.json
+    url: https://xkcd.com/${_exec_output}/info.0.json  # Use random number to fetch comic
     expose_json_fields:
-      img: ".img"
-# response
-format_output: "${img}"
+      img: ".img"  # Extract image URL from response
+
+# Response configuration
+format_output: "${img}"  # Display the comic image URL
 direct_message_only: false
-# help
+
+# Help configuration
 help_text: xkcd
 include_in_help: true

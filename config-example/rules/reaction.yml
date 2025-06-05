@@ -1,0 +1,20 @@
+# Reaction-based rule - responds when users add specific emoji reactions
+# Demonstrates reaction trigger functionality and threaded responses
+
+# Rule metadata
+name: question-reaction
+active: true
+
+# Trigger configuration - responds to emoji reactions
+reactions_added: "question"  # Triggers when question mark emoji is added to a message
+args:
+  # No arguments needed for reaction-based rules
+
+# Actions
+actions:
+  # No actions needed - this rule only responds with text
+
+# Response configuration
+format_output: ${_user.firstname} could you elaborate more on your request?
+start_message_thread: true   # Creates a threaded response to the original message
+direct_message_only: false   # Works in channels

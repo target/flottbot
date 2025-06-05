@@ -1,29 +1,35 @@
-# meta
+# Weather forecast rule - fetches weather data using coordinates
+# Demonstrates chained HTTP requests and template field extraction
+
+# Rule metadata
 name: weather-rule
 active: true
-# trigger and args
-respond: weather
+
+# Trigger configuration
+respond: weather  # Matches when users type "weather"
 args:
-  - lonlat
-# actions
+  - lonlat  # Requires longitude,latitude coordinates (e.g., "39.7456,-97.0892")
+
+# Actions
 actions:
   - name: weather http request
     type: GET
-    url: http://api.weather.gov/points/${lonlat}
+    url: http://api.weather.gov/points/${lonlat}  # Get location info from coordinates
     expose_json_fields:
       city: '.properties.relativeLocation.properties.city'
       state: '.properties.relativeLocation.properties.state'
-      fc_url: '.properties.forecast'
+      fc_url: '.properties.forecast'  # Extract forecast URL for next request
   - name: get forecast
     type: GET
-    url: ${fc_url}
+    url: ${fc_url}  # Use extracted URL to get detailed forecast
     expose_json_fields:
       tomorrow_temp: |-
         {{ (index .properties.periods 1).temperature }}{{ (index .properties.periods 1).temperatureUnit }}
-# response
+
+# Response configuration
 format_output: "Tomorrow's temperature in ${city}, ${state} will be ${tomorrow_temp}"
 direct_message_only: false
 
-# help
+# Help configuration
 help_text: weather <lon,lat>
 include_in_help: true
