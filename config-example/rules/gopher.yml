@@ -1,22 +1,28 @@
-# meta
+# Random Gopher image rule - fetches random Gopher mascot images
+# Demonstrates API chaining, random selection, and reaction updates
+
+# Rule metadata
 name: get a random gopher
 active: true
-respond: gopher
-reaction: thinking_face
-# actions
+
+# Trigger configuration
+respond: gopher  # Matches when users type "gopher"
+reaction: thinking_face  # Initial reaction while processing
+
+# Actions
 actions:
   - name: gopher http request
     type: GET
-    url: https://gopherize.me/gophers/recent/json
+    url: https://gopherize.me/gophers/recent/json  # Get list of available gophers
     expose_json_fields:
       num_of_gophers: |-
-        {{len .gophers}}
-  - name: random number between 1-100
+        {{len .gophers}}  # Count available gophers
+  - name: random number between one and number of gophers
     type: exec
-    cmd: /bin/sh ./config/scripts/random.sh ${num_of_gophers}
+    cmd: /bin/sh ./config/scripts/random.sh ${num_of_gophers}  # Pick random index
   - name: random gopher http request
     type: GET
-    url: https://gopherize.me/gophers/recent/json
+    url: https://gopherize.me/gophers/recent/json  # Get gopher list again
     expose_json_fields:
       random_gopher: |-
         {{ range $index, $element := .gophers }}{{ if eq $index ${_exec_output} }}{{.original_url}}{{ end }}{{ end }}
@@ -27,9 +33,10 @@ actions:
         x
       {{ end }}
 
-# response
-format_output: "${random_gopher}"
+# Response configuration
+format_output: "${random_gopher}"  # Display the random gopher image URL
 direct_message_only: false
-#help
+
+# Help configuration
 help_text: gopher
 include_in_help: true

@@ -1,28 +1,36 @@
-# meta
+# Dialogflow integration rule - forwards all messages to Google Dialogflow for NLP processing
+# CAUTION: This catch-all rule will override other rules when active
+# Demonstrates external AI/NLP service integration
+
+# Rule metadata
 name: dialogflow
-active: false
-# trigger and args
-respond: /(...)/ # CAUTION: this will override all rules
-# actions
+active: false  # Disabled by default due to its catch-all nature
+
+# Trigger configuration - DANGEROUS: matches everything
+respond: /(...)/ # CAUTION: this will override all rules when active
+
+# Actions
 actions:
   - name: dialogflow http request
     type: POST
-    url: https://api.dialogflow.com/v1/query?v=20150910
+    url: https://api.dialogflow.com/v1/query?v=20150910  # Dialogflow v1 API endpoint
     query_data:
       lang: "en"
-      query: "${_raw_user_input}"
+      query: "${_raw_user_input}"  # Forward user's exact input
       sessionId: 12345
       timezone: "America/New_York"
     custom_headers:
-      Authorization: Bearer ${DIALOG_FLOW_TOKEN}
+      Authorization: Bearer ${DIALOG_FLOW_TOKEN}  # Requires DIALOG_FLOW_TOKEN env var
       Accept: 'application/json'
       Content-Type: 'application/json'
     auth:
     expose_json_fields:
-      answer: '.result.fulfillment.speech'
-# response
-format_output: "${answer}"
+      answer: '.result.fulfillment.speech'  # Extract AI response
+
+# Response configuration
+format_output: "${answer}"  # Display Dialogflow's response
 direct_message_only: false
-# help
+
+# Help configuration
 help_text: "talk to me"
 include_in_help: true

@@ -1,16 +1,23 @@
-# meta
+# Python script execution rule - runs a Python script and returns the output
+# Demonstrates script execution with status and output handling
+
+# Rule metadata
 name: script-rule that raises error
 active: true
-# trigger and args
-respond: pyscript
-# actions
+
+# Trigger configuration
+respond: pyscript  # Matches when users type "pyscript"
+
+# Actions
 actions:
   - name: sample script
     type: exec
-    cmd: python config/scripts/main.py
-# response
-format_output: "${_exec_status} - ${_exec_output}"
+    cmd: python config/scripts/main.py  # Execute Python script
+
+# Response configuration
+format_output: "${_exec_status} - ${_exec_output}"  # Shows both status and output
 direct_message_only: false
-# help
+
+# Help configuration
 help_text: pyscript
 include_in_help: true

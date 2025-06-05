@@ -1,20 +1,24 @@
-# metadata
+# Simple greeting rule - responds with a friendly message when users say "hello"
+# This demonstrates basic text matching and user variable substitution
+
+# Rule metadata
 name: hello
-active: true # activate rule
+active: true
 
-# trigger & arguments
-respond: hello
+# Trigger configuration
+respond: hello  # Matches when users type "hello"
 args:
-# no required args, as we're just looking for the match and nothing else.
+  # No arguments required - just matches the trigger word
 
-# actions
-actions: # this rule takes no actions, just collects and responds with whats laid out in the format_response section
+# Actions
+actions:
+  # No actions needed - this rule only responds with text
 
-# response
-format_output: "what's up, ${_user.name}?" # message to send to your user when they say hello
-start_message_thread: true # start a thread with the response
-direct_message_only: false # allow messaging inside channels
+# Response configuration
+format_output: "what's up, ${_user.name}?"  # Uses the user's name in response
+start_message_thread: true   # Creates a threaded response
+direct_message_only: false   # Works in both channels and DMs
 
-#help
-help_text: hello # help/usage text for the echo rule
-include_in_help: true # see help_text in help message
+# Help configuration
+help_text: hello
+include_in_help: true

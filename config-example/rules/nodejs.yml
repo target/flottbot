@@ -1,19 +1,26 @@
-# meta
+# Node.js script execution rule - runs multiple scripts in sequence
+# Demonstrates chained script execution (Node.js followed by Ruby)
+
+# Rule metadata
 name: script-rule
 active: true
-# trigger and args
-respond: nodescript
-# actions
+
+# Trigger configuration
+respond: nodescript  # Matches when users type "nodescript"
+
+# Actions
 actions:
   - name: sample script
     type: exec
-    cmd: node config/scripts/index.js
+    cmd: node config/scripts/index.js  # Execute Node.js script first
   - name: sample script
     type: exec
-    cmd: ruby config/scripts/script.rb
-# response
-format_output: "${_exec_output}"
+    cmd: ruby config/scripts/script.rb  # Then execute Ruby script
+
+# Response configuration
+format_output: "${_exec_output}"  # Display output from last executed script
 direct_message_only: false
-# help
+
+# Help configuration
 help_text: nodescript
 include_in_help: true

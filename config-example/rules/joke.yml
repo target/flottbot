@@ -1,20 +1,27 @@
-# meta
+# Joke fetcher rule - retrieves random dad jokes from an external API
+# Demonstrates HTTP GET requests and JSON field extraction
+
+# Rule metadata
 name: joke-rule
 active: true
-# trigger and args
-respond: joke
-# actions
+
+# Trigger configuration
+respond: joke  # Matches when users type "joke"
+
+# Actions
 actions:
   - name: joke http request
     type: GET
     url: https://icanhazdadjoke.com/
     custom_headers:
-      Accept: 'application/json'
+      Accept: 'application/json'  # Request JSON format
     expose_json_fields:
-      joke: '.joke'
-# response
-format_output: "${joke}"
+      joke: '.joke'  # Extract the joke text from response
+
+# Response configuration
+format_output: "${joke}"  # Display the retrieved joke
 direct_message_only: false
-# help
+
+# Help configuration
 help_text: joke
 include_in_help: true

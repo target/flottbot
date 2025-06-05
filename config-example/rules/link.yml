@@ -1,11 +1,17 @@
-# meta
+# Link detection rule - responds when users mention links or permalinks
+# Demonstrates message source link variable usage
+
+# Rule metadata
 name: link
 active: true
-# trigger and args
-hear: /(perma|link)/
 
-format_output: "someone said 'perma' or 'link', see: ${_source.link}"
+# Trigger configuration - listens for specific words
+hear: /(perma|link)/  # Matches messages containing "perma" or "link"
+
+# Response configuration
+format_output: "someone said 'perma' or 'link', see: ${_source.link}"  # Uses source link variable
 direct_message_only: false
 
+# Output targeting
 output_to_rooms:
-  - general
+  - general  # Send responses to #general channel

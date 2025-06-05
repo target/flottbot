@@ -1,23 +1,27 @@
-# meta
+# Fact of the Day scheduled rule - daily historical facts
+# Demonstrates scheduled execution for automated daily content delivery
+
+# Rule metadata
 name: fact of the day
 active: true
 
-# trigger and args
-schedule: '@daily'
-# actions
+# Trigger configuration - scheduled instead of user-triggered
+schedule: '@daily'  # Runs once per day automatically
+
+# Actions
 actions:
   - name: today in history http request
     type: GET
-    url: https://history.muffinlabs.com/date
+    url: https://history.muffinlabs.com/date  # Get historical events for today
     expose_json_fields:
       num_of_events: |-
-        {{len .data.Events}}
+        {{len .data.Events}}  # Count available events
   - name: random number between 1-40
     type: exec
-    cmd: sh config/scripts/random.sh ${num_of_events}
+    cmd: sh config/scripts/random.sh ${num_of_events}  # Pick random event
   - name: today in history http request
     type: GET
-    url: https://history.muffinlabs.com/date
+    url: https://history.muffinlabs.com/date  # Get events again to select one
     expose_json_fields:
       date: '.date'
       year: |-
@@ -25,12 +29,13 @@ actions:
       event: |-
         {{ range $index, $element := .data.Events }}{{ if eq $index ${_exec_output} }}{{.text}}{{ end }}{{ end }}
 
-
-# response
+# Response configuration
 format_output: "On ${date} in the year ${year}: ${event}"
 direct_message_only: false
-output_to_rooms:
-  - general
 
-# help
-include_in_help: false
+# Output targeting
+output_to_rooms:
+  - general  # Send daily facts to #general channel
+
+# Help configuration
+include_in_help: false  # Don't show in help since it's automated

@@ -1,43 +1,49 @@
-# meta
+# Pokemon stats lookup rule - fetches Pokemon information from PokeAPI
+# Demonstrates multi-step actions, room targeting, and template processing
+
+# Rule metadata
 name: pokemon-rule
 active: true
-# trigger and args
-respond: pokemon
+
+# Trigger configuration
+respond: pokemon  # Matches when users type "pokemon"
 args:
-  - name
-# actions
+  - name  # Requires Pokemon name argument (e.g., "pikachu", "charizard")
+
+# Actions
 actions:
   - name: trigger message
     type: message
-    message: "Looking up stats for ${name}..."
+    message: "Looking up stats for ${name}..."  # Send loading message
     limit_to_rooms:
-      - flottbot-dev
+      - flottbot-dev  # Only send loading message to dev channel
   - name: trigger log
     type: log
-    message: "Someone is searching up stats for ${name}"
+    message: "Someone is searching up stats for ${name}"  # Log the request
     limit_to_rooms:
-      - flottbot-dev2
+      - flottbot-dev2  # Log to different channel
   - name: pokemon http request
     type: GET
-    url: http://pokeapi.co/api/v2/pokemon/${name}
+    url: http://pokeapi.co/api/v2/pokemon/${name}  # Query PokeAPI
     query_data:
     auth:
     expose_json_fields:
-      pokename: '.name'
+      pokename: '.name'  # Extract Pokemon name
       type: |-
         {{ range .types }}
           - {{ .type.name -}}
         {{ end }}
-      weight: '.weight'
-      baseexp: '.base_experience'
+      weight: '.weight'  # Extract weight
+      baseexp: '.base_experience'  # Extract base experience
       ability: |-
         {{ range .abilities }}
           - {{ .ability.name -}}
         {{ end }}
-# response
+
+# Response configuration
 format_output: "Name: ${pokename}\n Types: ${type}\n Abilities: ${ability}\n Base Exp: ${baseexp}\n Weight: ${weight}\n Icon: :${name}:"
 direct_message_only: false
 
-# help
-help_text: pokemon <name>
+# Help configuration
+help_text: pokemon <name>  # Usage: pokemon pikachu
 include_in_help: true

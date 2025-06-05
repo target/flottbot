@@ -1,16 +1,23 @@
-# meta
+# Shell script execution rule - runs a shell script and returns the output
+# Demonstrates basic script execution
+
+# Rule metadata
 name: script-rule
 active: true
-# trigger and args
-respond: shellscript
-# actions
+
+# Trigger configuration
+respond: shellscript  # Matches when users type "shellscript"
+
+# Actions
 actions:
   - name: sample script
     type: exec
-    cmd: sh config/scripts/script.sh
-# response
-format_output: "${_exec_output}"
+    cmd: sh config/scripts/script.sh  # Execute shell script
+
+# Response configuration
+format_output: "${_exec_output}"  # Display script output
 direct_message_only: false
-# help
+
+# Help configuration
 help_text: shellscript
 include_in_help: true

@@ -1,11 +1,17 @@
-# meta
-name: hear
-active: false
-# trigger and args
-hear: /(thing|hear)/
-# response
-allow_usergroups:
-  - admins
+# Pattern listening rule - responds to messages containing specific words
+# Demonstrates regex pattern matching and user group restrictions
 
+# Rule metadata
+name: hear
+active: false  # Disabled by default
+
+# Trigger configuration - uses 'hear' for passive listening
+hear: /(thing|hear)/  # Matches messages containing "thing" or "hear"
+
+# Access control
+allow_usergroups:
+  - admins  # Only admin users can trigger this rule
+
+# Response configuration
 format_output: "looks like you either said thing or hear"
-direct_message_only: true
+direct_message_only: true  # Only responds in DMs for privacy
