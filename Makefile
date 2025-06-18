@@ -26,7 +26,7 @@ getdeps:
 	@mkdir -p ${GOPATH}/bin
 	@which golangci-lint 1>/dev/null || \
 		(echo "Installing golangci-lint" && \
-		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/main/install.sh | \
 		sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION))
 
 .PHONY: lint
