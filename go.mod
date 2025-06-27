@@ -4,7 +4,7 @@ go 1.24.4
 
 require (
 	cloud.google.com/go/pubsub v1.49.0
-	github.com/Masterminds/semver/v3 v3.3.1
+	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
@@ -17,7 +17,7 @@ require (
 	github.com/rs/zerolog v1.34.0
 	github.com/slack-go/slack v0.17.1
 	github.com/spf13/viper v1.20.1
-	google.golang.org/api v0.238.0
+	google.golang.org/api v0.239.0
 )
 
 require (
