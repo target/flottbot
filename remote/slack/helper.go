@@ -90,6 +90,36 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 		if !mentioned {
 			handleMessageEvent(api, bot, ev.Channel, text, ev.User, ev.BotID, ev.TimeStamp, ev.ThreadTimeStamp, mentioned, inputMsgs)
 		}
+	case *slackevents.ReactionAddedEvent:
+		senderID := ev.User
+
+		if senderID != "" && bot.ID != senderID {
+			channel := ev.Item.Channel
+
+			// determine the message type
+			msgType, err := getMessageType(channel)
+			if err != nil {
+				log.Error().Msg(err.Error())
+			}
+
+			// get information on the user
+			user, err := api.GetUserInfo(senderID)
+			if err != nil {
+				log.Error().Msgf("did not get slack user info: %s", err.Error())
+			}
+
+			timestamp := ev.Item.Timestamp
+
+			reaction := ev.Reaction
+
+			// get the link to the message, will be empty string if there's an error
+			link, err := api.GetPermalink(&slack.PermalinkParameters{Channel: channel, Ts: timestamp})
+			if err != nil {
+				log.Error().Msgf("unable to retrieve link to message: %s", err.Error())
+			}
+
+			inputMsgs <- populateReaction(models.NewMessage(), msgType, channel, "added", reaction, timestamp, link, user, bot)
+		}
 	case *slackevents.MemberJoinedChannelEvent:
 		// limit to our bot
 		if ev.User == bot.ID {
