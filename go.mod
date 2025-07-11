@@ -15,9 +15,9 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
-	github.com/slack-go/slack v0.17.1
+	github.com/slack-go/slack v0.17.3
 	github.com/spf13/viper v1.20.1
-	google.golang.org/api v0.239.0
+	google.golang.org/api v0.241.0
 )
 
 require (
