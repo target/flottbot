@@ -217,6 +217,7 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) any 
 		default:
 			log.Error().Msgf("discord: read message of unsupported type '%d' - unable to populate message attributes", m.Type)
 		}
+
 		inputMsgs <- message
 	}
 }

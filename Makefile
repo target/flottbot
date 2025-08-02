@@ -5,7 +5,7 @@ GOARCH := $(shell go env GOARCH)
 GOOS := $(shell go env GOOS)
 BUILD_LDFLAGS := -s -w
 BUILD_LDFLAGS += -X github.com/target/flottbot/version.Version=${VERSION}
-GOLANGCI_LINT_VERSION := "v2.1.6"
+GOLANGCI_LINT_VERSION := "v2.3.1"
 PACKAGES := $(shell go list ./... | grep -v /config-example/)
 PLATFORM := "linux/amd64,linux/arm64"
 
@@ -25,9 +25,23 @@ validate: getdeps fmt vet lint tidy
 getdeps:
 	@mkdir -p ${GOPATH}/bin
 	@which golangci-lint 1>/dev/null || \
-		(echo "Installing golangci-lint" && \
-		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/main/install.sh | \
-		sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION))
+		(echo "Installing golangci-lint with checksum verification" && \
+		GOLANGCI_LINT_VERSION_NO_V="$${GOLANGCI_LINT_VERSION#v}" && \
+		GOLANGCI_LINT_TARBALL="golangci-lint-$${GOLANGCI_LINT_VERSION_NO_V}-$(GOOS)-$(GOARCH).tar.gz" && \
+		GOLANGCI_LINT_URL="https://github.com/golangci/golangci-lint/releases/download/$(GOLANGCI_LINT_VERSION)/$${GOLANGCI_LINT_TARBALL}" && \
+		GOLANGCI_LINT_CHECKSUM_URL="https://github.com/golangci/golangci-lint/releases/download/$(GOLANGCI_LINT_VERSION)/golangci-lint-$${GOLANGCI_LINT_VERSION_NO_V}-checksums.txt" && \
+		cd /tmp && \
+		echo "Downloading golangci-lint..." && \
+		curl -sSfL "$${GOLANGCI_LINT_URL}" -o "$${GOLANGCI_LINT_TARBALL}" && \
+		echo "Downloading checksums..." && \
+		curl -sSfL "$${GOLANGCI_LINT_CHECKSUM_URL}" -o checksums.txt && \
+		echo "Verifying checksum..." && \
+		grep "$${GOLANGCI_LINT_TARBALL}" checksums.txt | sha256sum -c - && \
+		echo "Extracting golangci-lint..." && \
+		tar -xzf "$${GOLANGCI_LINT_TARBALL}" && \
+		cp "golangci-lint-$${GOLANGCI_LINT_VERSION_NO_V}-$(GOOS)-$(GOARCH)/golangci-lint" "$(shell go env GOPATH)/bin/" && \
+		rm -rf "$${GOLANGCI_LINT_TARBALL}" checksums.txt "golangci-lint-$${GOLANGCI_LINT_VERSION_NO_V}-$(GOOS)-$(GOARCH)" && \
+		echo "golangci-lint installed successfully with verified checksum")
 
 .PHONY: lint
 lint:

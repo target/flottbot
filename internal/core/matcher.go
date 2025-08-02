@@ -46,12 +46,14 @@ RuleSearch:
 			case models.MsgServiceChat, models.MsgServiceCLI:
 				foundMatch, stopSearch := handleChatServiceRule(outputMsgs, message, hitRule, rule, processedInput, hit, bot)
 				match = foundMatch
+
 				if stopSearch {
 					break RuleSearch
 				}
 			case models.MsgServiceScheduler:
 				foundMatch, stopSearch := handleSchedulerServiceRule(outputMsgs, message, hitRule, rule, bot)
 				match = foundMatch
+
 				if stopSearch {
 					break RuleSearch
 				}
@@ -174,6 +176,7 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 			// Do additional checks on the rule before running
 			if !isValidHitChatRule(&message, rule, processedInput, bot) {
 				outputMsgs <- message
+
 				hitRule <- models.Rule{}
 				// prevent actions from being run; exit early
 				return match, stopSearch
@@ -234,6 +237,7 @@ func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hit
 			// Populate output with help text defined above
 			message.Output = helpMsg
 			outputMsgs <- message
+
 			hitRule <- models.Rule{}
 		}
 	}
@@ -407,6 +411,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 	val, err := craftResponse(rule, message)
 	if err != nil {
 		log.Error().Msg(err.Error())
+
 		message.Output = err.Error()
 		outputMsgs <- message
 	} else {
@@ -591,6 +596,7 @@ func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *
 	msg.DirectMessageOnly = direct
 	// Send out message
 	outputMsgs <- *msg
+
 	hitRule <- models.Rule{}
 
 	return nil
@@ -599,6 +605,7 @@ func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *
 // Handle initial emoji reaction when rule is matched.
 func handleReaction(outputMsgs chan<- models.Message, msg *models.Message, hitRule chan<- models.Rule, rule models.Rule) {
 	outputMsgs <- *msg
+
 	hitRule <- rule
 }
 

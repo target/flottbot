@@ -78,6 +78,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 				message.Attributes["from_schedule"] = scheduleName
 				message.Type = models.MsgTypeChannel
 				message.OutputToRooms = outputRooms
+
 				message.OutputToUsers = outputUsers
 				inputMsgs <- message
 			}

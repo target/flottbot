@@ -37,7 +37,7 @@ linters:
     - unparam
     - unused
     - whitespace
-    - wsl
+    - wsl_v5
   settings:
     funlen:
       lines: 160
@@ -45,7 +45,7 @@ linters:
     gocyclo:
       min-complexity: 18
     goheader:
-      template: 'SPDX-License-Identifier: Apache-2.0'
+      template: "SPDX-License-Identifier: Apache-2.0"
     misspell:
       locale: US
     nolintlint:

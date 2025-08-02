@@ -39,6 +39,7 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	if isIgnored {
 		log.Info().
 			Msgf("%#q is part of a group in ignore_usergroups: %#q", currentUserName, strings.Join(rule.IgnoreUserGroups, ", "))
+
 		return false
 	}
 

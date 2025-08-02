@@ -62,6 +62,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 
 			message.Vars["_user.id"] = user
 			message.Vars["_user.firstname"] = user
+
 			message.Vars["_user.name"] = user
 			inputMsgs <- message
 		} else {

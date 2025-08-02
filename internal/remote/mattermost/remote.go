@@ -203,8 +203,8 @@ func (c *Client) Send(message models.Message, _ *models.Bot) {
 
 	if message.DirectMessageOnly {
 		post.UserId = message.Vars["_user.id"]
-		err = c.sendDirectMessage(ctx, api, post)
 
+		err = c.sendDirectMessage(ctx, api, post)
 		if err != nil {
 			log.Error().Msgf("%v", err)
 			return

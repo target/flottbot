@@ -979,6 +979,7 @@ func Test_handleNoMatch(t *testing.T) {
 			tt.args.hitRule = testHitRule
 
 			handleNoMatch(tt.args.outputMsgs, tt.args.message, tt.args.hitRule, tt.args.rules, tt.args.bot)
+
 			select {
 			case output := <-testOutput:
 				if tt.wantHelpText != output.Output {
