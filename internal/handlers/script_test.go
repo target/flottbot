@@ -37,7 +37,7 @@ func TestScriptExec(t *testing.T) {
 
 	varMissingScriptAction := newExecAction(`echo "${notest}"`)
 
-	msgBeforeExit := newExecAction(`/bin/sh ../testdata/fail.sh`)
+	msgBeforeExit := newExecAction(`/bin/sh testdata/fail.sh`)
 
 	notExists := newExecAction(`./trap.sh`)
 
