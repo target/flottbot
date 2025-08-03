@@ -11,9 +11,9 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/target/flottbot/core"
-	"github.com/target/flottbot/models"
-	"github.com/target/flottbot/version"
+	"github.com/target/flottbot/internal/core"
+	"github.com/target/flottbot/internal/models"
+	"github.com/target/flottbot/internal/version"
 )
 
 func main() {
