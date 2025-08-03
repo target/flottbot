@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/pubsub/v2"
 	"google.golang.org/api/chat/v1"
 
 	"github.com/target/flottbot/internal/models"

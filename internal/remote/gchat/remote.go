@@ -5,7 +5,7 @@ package gchat
 import (
 	"context"
 
-	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/pubsub/v2"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/api/chat/v1"
 	"google.golang.org/api/option"
