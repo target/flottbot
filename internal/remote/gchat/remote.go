@@ -55,7 +55,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 	// init client
 	client := c.new()
 
-	sub := client.Subscription(c.SubscriptionID)
+	sub := client.Subscriber(c.SubscriptionID)
 
 	err := sub.Receive(ctx, func(_ context.Context, m *pubsub.Message) {
 		defer m.Ack()
