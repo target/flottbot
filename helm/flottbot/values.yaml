@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: target/flottbot
-  tag: '0.15.0@sha256:7e6e99ca74bd0ff0166f9ab66b6b12db8a350d6b9788b32a895ea7f92b025945'
+  tag: '0.15.1@sha256:2ceeba3f22de984f30c07c58497d63c14a1bd0072b4247299fe93653f1aed922'
   pullPolicy: IfNotPresent
 
 service:
