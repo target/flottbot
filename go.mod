@@ -17,7 +17,7 @@ require (
 	github.com/rs/zerolog v1.34.0
 	github.com/slack-go/slack v0.17.3
 	github.com/spf13/viper v1.20.1
-	google.golang.org/api v0.244.0
+	google.golang.org/api v0.246.0
 )
 
 require (
