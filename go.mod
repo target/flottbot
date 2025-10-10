@@ -3,21 +3,21 @@ module github.com/target/flottbot
 go 1.24.5
 
 require (
-	cloud.google.com/go/pubsub/v2 v2.0.0
+	cloud.google.com/go/pubsub/v2 v2.2.0
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/gorilla/mux v1.8.1
-	github.com/mattermost/mattermost/server/public v0.1.16
+	github.com/mattermost/mattermost/server/public v0.1.20
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
-	github.com/prometheus/client_golang v1.23.0
+	github.com/prometheus/client_golang v1.23.2
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
 	github.com/slack-go/slack v0.17.3
-	github.com/spf13/viper v1.20.1
-	google.golang.org/api v0.244.0
+	github.com/spf13/viper v1.21.0
+	google.golang.org/api v0.252.0
 )
 
 require (
