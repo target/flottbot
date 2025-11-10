@@ -29,8 +29,8 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": [
-        "^Makefile$"
+      "managerFilePatterns": [
+        "/^Makefile$/"
       ],
       "matchStrings": [
         "GOLANGCI_LINT_VERSION := \"(?<currentValue>.*?)\"\\n"
