@@ -39,7 +39,9 @@ func main() {
 	}
 
 	// set some early defaults for the logger
+	
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnixMs
+	
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 
 	log.Logger = log.Output(os.Stdout).With().Logger()
