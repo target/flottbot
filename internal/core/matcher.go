@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"html"
 	"html/template"
+	"maps"
 	"regexp"
 	"strconv"
 	"strings"
@@ -244,8 +245,6 @@ func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hit
 }
 
 // isValidHitChatRule does additional checks on a successfully hit rule that came from the chat or CLI service.
-//
-//nolint:gocyclo // refactor
 func isValidHitChatRule(message *models.Message, rule models.Rule, processedInput string, bot *models.Bot) bool {
 	// Check rule has one of Hear, Respond, ReactionsAdded or ReactionsRemoved
 	if !isValidChatRule(rule) {
@@ -265,13 +264,9 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 		return false
 	}
 
-	for name, value := range parseArgumentsFromRegex(rule.Hear, message.Input) {
-		message.Vars[name] = value
-	}
+	maps.Copy(message.Vars, parseArgumentsFromRegex(rule.Hear, message.Input))
 
-	for name, value := range parseArgumentsFromRegex(rule.Respond, message.Input) {
-		message.Vars[name] = value
-	}
+	maps.Copy(message.Vars, parseArgumentsFromRegex(rule.Respond, message.Input))
 
 	// If this is a "respond" type, handle args
 	if rule.Respond != "" {

@@ -3,6 +3,7 @@
 package auth
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -22,11 +23,9 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	}
 
 	// are they ignored directly? deny
-	for _, name := range rule.IgnoreUsers {
-		if name == currentUserName {
-			log.Info().Msgf("%#q is on the 'ignore_users' list for rule: %#q", currentUserName, rule.Name)
-			return false
-		}
+	if slices.Contains(rule.IgnoreUsers, currentUserName) {
+		log.Info().Msgf("%#q is on the 'ignore_users' list for rule: %#q", currentUserName, rule.Name)
+		return false
 	}
 
 	// are they part of a usergroup to be ignored? deny
@@ -49,19 +48,13 @@ func CanTrigger(currentUserName string, currentUserID string, rule models.Rule, 
 	}
 
 	// check if they are part of the allow users list
-	for _, name := range rule.AllowUsers {
-		if name == currentUserName {
-			canRunRule = true
-			break
-		}
+	if slices.Contains(rule.AllowUsers, currentUserName) {
+		canRunRule = true
 	}
 
 	// check if they are part of the allow users ids list
-	for _, userID := range rule.AllowUserIDs {
-		if userID == currentUserID {
-			canRunRule = true
-			break
-		}
+	if slices.Contains(rule.AllowUserIDs, currentUserID) {
+		canRunRule = true
 	}
 
 	// if they still can't run the rule,
@@ -143,10 +136,8 @@ func isMemberOfGroup(currentUserID string, userGroups []string, bot *models.Bot)
 						log.Error().Msgf("unable to retrieve user group members, %v", err)
 					}
 					// Check if any of the members are the current user
-					for _, userGroupMemberID := range userGroupMembers {
-						if userGroupMemberID == currentUserID {
-							return true, nil
-						}
+					if slices.Contains(userGroupMembers, currentUserID) {
+						return true, nil
 					}
 
 					break
