@@ -5,7 +5,7 @@ GOARCH := $(shell go env GOARCH)
 GOOS := $(shell go env GOOS)
 BUILD_LDFLAGS := -s -w
 BUILD_LDFLAGS += -X github.com/target/flottbot/version.Version=${VERSION}
-GOLANGCI_LINT_VERSION := "v2.7.0"
+GOLANGCI_LINT_VERSION := "v2.8.0"
 PACKAGES := $(shell go list ./... | grep -v /config-example/)
 PLATFORM := "linux/amd64,linux/arm64"
 
