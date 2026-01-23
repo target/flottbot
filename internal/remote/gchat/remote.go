@@ -35,7 +35,7 @@ var _ remote.Remote = (*Client)(nil)
 func (c *Client) new() *pubsub.Client {
 	ctx := context.Background()
 
-	client, err := pubsub.NewClient(ctx, c.ProjectID, option.WithCredentialsFile(c.Credentials))
+	client, err := pubsub.NewClient(ctx, c.ProjectID, option.WithAuthCredentialsFile(option.ServiceAccount, c.Credentials))
 	if err != nil {
 		log.Error().Msgf("google_chat unable to authenticate: %s", err.Error())
 	}
@@ -82,7 +82,7 @@ func (c *Client) Send(message models.Message, _ *models.Bot) {
 	ctx := context.Background()
 
 	service, err := chat.NewService(
-		ctx, option.WithCredentialsFile(c.Credentials),
+		ctx, option.WithAuthCredentialsFile(option.ServiceAccount, c.Credentials),
 		option.WithScopes("https://www.googleapis.com/auth/chat.bot"),
 	)
 	if err != nil {
