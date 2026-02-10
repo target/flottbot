@@ -132,7 +132,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, _ map[string]models.Rule,
 					log.Fatal().Msgf("could not get username, %s", err)
 				}
 
-				channelName, _, err := api.GetChannel(ctx, post.ChannelId, "")
+				channelName, _, err := api.GetChannel(ctx, post.ChannelId)
 				if err != nil {
 					log.Fatal().Msgf("could not get channelName, %s", err)
 				}
