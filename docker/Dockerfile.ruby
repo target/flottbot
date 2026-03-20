@@ -19,7 +19,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
   go build -a -ldflags "-s -w -X github.com/target/flottbot/version.Version=${VERSION}" \
   -o flottbot ./cmd/flottbot
 
-FROM docker.io/ruby:3.4.8-alpine@sha256:8a8762cf2bbdc1501bd00811d644dbffce2b8801081b7e3295ff4134a42ef0c6
+FROM docker.io/ruby:4.0.2-alpine@sha256:b99166e463d6547bdccb2457cfd8af0d8b37c79d1fd1bee69cafcfd780e4a497
 
 ENV USERNAME=flottbot
 ENV GROUP=flottbot
