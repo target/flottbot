@@ -94,3 +94,82 @@ Inspired by [Hexbot.io](https://github.com/mmcquillan/hex)
 ## Contributors
 
 - [List of contributors](https://github.com/target/flottbot/graphs/contributors)
+
+## FAQ
+
+### General Questions
+
+**Q: What is flottbot and why should I use it?**
+
+A: Flottbot is a chatbot framework written in Go that requires no Go knowledge. Configure your bot via YAML files and extend functionality by writing scripts in your favorite language. The philosophy is to create simple, lightweight bots that interact with APIs and scripts housing business logic.
+
+**Q: What does "flott" mean?**
+
+A: "Flott" comes from the German word meaning "quick" or "speedy", reflecting the framework's lightweight and fast design philosophy.
+
+### Installation & Setup
+
+**Q: How do I install flottbot?**
+
+A: Use `go get -u github.com/target/flottbot/cmd/flottbot` or download binaries for Linux, macOS, and Windows from [GitHub Releases](https://github.com/target/flottbot/releases/latest).
+
+**Q: What are the available Docker images?**
+
+A: We provide several Docker images:
+- `target/flottbot` - Alpine + flottbot binary
+- `target/flottbot:ruby` - Alpine + flottbot + Ruby v3.2
+- `target/flottbot:golang` - Alpine + flottbot + Go v1.23
+- `target/flottbot:python` - Alpine + flottbot + Python v3.11
+
+**Q: How do I deploy flottbot with Helm?**
+
+A: Clone the repo, create Kubernetes secrets for Slack Token and App Token, then run `helm install helm/flottbot/`.
+
+### Remotes & Integrations
+
+**Q: Which chat platforms does flottbot support?**
+
+A: Supported remotes:
+- **Slack** ✔ (fully supported)
+- **Discord** 🚧 (in progress)
+- **Google Chat** 🚧 (in progress)
+- **Mattermost** 🚧 (coming soon)
+- **Telegram** 🚧 (coming soon)
+
+**Q: How do I configure Slack integration?**
+
+A: Create Slack Token and App Token as Kubernetes secrets (for Helm deployment) or configure them in your YAML files. See [Slack documentation](https://target.github.io/flottbot-docs/basics/slack/) for details.
+
+### Configuration & Scripting
+
+**Q: Do I need to know Go to use flottbot?**
+
+A: No! Configure your bot entirely via YAML files. Extend functionality by writing scripts in any language (Python, Ruby, Bash, etc.).
+
+**Q: How do I add custom functionality?**
+
+A: Write scripts in your preferred language and reference them in your YAML configuration. Flottbot handles the bot-logic while your scripts handle business logic.
+
+### Troubleshooting
+
+**Q: My bot won't connect to Slack - what should I check?**
+
+A: Verify your Slack Token and App Token are correctly configured. Ensure the bot has proper permissions in your Slack workspace. Check logs for specific error messages.
+
+**Q: Docker container fails to start - what's wrong?**
+
+A: Ensure you're using the correct image version (pin to specific version like `target/flottbot:0.10.0`). The container runs with unprivileged user (uid/gid 900), check file permissions.
+
+### Getting Help
+
+**Q: Where can I find documentation?**
+
+A: Visit [flottbot docs](https://target.github.io/flottbot-docs/) for installation and usage guides.
+
+**Q: Is there a community channel?**
+
+A: Join the [#flottbot](https://gophers.slack.com/messages/flottbot/) channel in [Gophers Slack](https://invite.slack.golangbridge.org/) for questions and discussions.
+
+**Q: How can I contribute?**
+
+A: Check [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for contribution guidelines. Pull requests are welcome!
