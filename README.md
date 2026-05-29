@@ -12,6 +12,11 @@
 [![Coverage Status](https://coveralls.io/repos/target/flottbot/badge.svg)](https://coveralls.io/r/target/flottbot)
 [![Go Report Card](https://goreportcard.com/badge/github.com/target/flottbot)](https://goreportcard.com/report/github.com/target/flottbot)
 
+> [!WARNING]
+> This repository is archived and no longer actively maintained and as such is not recommended for continued use.
+> No new features, fixes, or security updates are planned.
+> If you want to continue development or maintenance, please fork this repository.
+
 Flottbot is a chatbot framework written in Go. But there's a catch, you don't need to know a lick of Go! Configure your bot via YAML files, extend functionality by writing scripts in your favorite language.
 
 The philosophy behind flottbot is to create very simple, lightweight, "dumb" bots that interact with APIs and scripts which house a bot's business logic. The word **flott** comes from the German word meaning _quick_/_speedy_.
@@ -81,11 +86,11 @@ helm install helm/flottbot/
 
 For installation and usage, please [visit the flottbot docs](https://target.github.io/flottbot-docs/)
 
-For questions join the [#flottbot](https://gophers.slack.com/messages/flottbot/) channel in the [Gophers Slack](https://invite.slack.golangbridge.org/).
+This project is archived and does not provide active support. Fork the repository if you need ongoing maintenance.
 
 ## Contributing
 
-Please do! Check [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for info.
+This project is archived and is not accepting new contributions. If you want to continue development, please fork this repository.
 
 ## Credits
 
