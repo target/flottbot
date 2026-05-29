@@ -13,7 +13,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/target/flottbot)](https://goreportcard.com/report/github.com/target/flottbot)
 
 > [!WARNING]
-> This repository is archived and no longer actively maintained and as such is not recommended for continued use.
+> This repository/project is archived and no longer actively maintained and as such is not recommended for continued use.
 > No new features, fixes, or security updates are planned.
 > If you want to continue development or maintenance, please fork this repository.
 
